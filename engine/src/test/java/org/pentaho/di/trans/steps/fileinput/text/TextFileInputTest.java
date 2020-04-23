@@ -25,15 +25,18 @@ package org.pentaho.di.trans.steps.fileinput.text;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileContent;
 import org.apache.commons.vfs2.FileObject;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.RowSet;
+import org.pentaho.di.core.SingleRowRowSet;
 import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.logging.LoggingObjectInterface;
 import org.pentaho.di.core.playlist.FilePlayListAll;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -50,9 +53,12 @@ import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.errorhandling.AbstractFileErrorHandler;
 import org.pentaho.di.trans.step.errorhandling.FileErrorHandler;
 import org.pentaho.di.trans.steps.StepMockUtil;
+import org.pentaho.di.trans.steps.calculator.CalculatorData;
+import org.pentaho.di.trans.steps.calculator.CalculatorMeta;
 import org.pentaho.di.trans.steps.file.BaseFileField;
 import org.pentaho.di.trans.steps.file.IBaseFileInputReader;
 import org.pentaho.di.trans.steps.file.IBaseFileInputStepControl;
+import org.pentaho.di.trans.steps.mock.StepMockHelper;
 import org.pentaho.di.utils.TestUtils;
 
 import java.io.ByteArrayInputStream;
@@ -61,19 +67,32 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TextFileInputTest {
+  private StepMockHelper<TextFileInputMeta, TextFileInputData> smh;
   @ClassRule public static RestorePDIEngineEnvironment env = new RestorePDIEngineEnvironment();
 
   @BeforeClass
   public static void initKettle() throws Exception {
     KettleEnvironment.init();
+  }
+
+  @Before
+  public void setUp() {
+    smh =
+      new StepMockHelper<TextFileInputMeta, TextFileInputData>( "TextFileInput", TextFileInputMeta.class,
+        TextFileInputData.class );
+    when( smh.logChannelInterfaceFactory.create( any(), any( LoggingObjectInterface.class ) ) ).thenReturn(
+      smh.logChannelInterface );
+    when( smh.trans.isRunning() ).thenReturn( true );
   }
 
   private static InputStreamReader getInputStreamReader( String data ) throws UnsupportedEncodingException {
@@ -143,7 +162,7 @@ public class TextFileInputTest {
       .toString();
     final String virtualFile = createVirtualFile( "pdi-2607.txt", content );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), field( "col2" ) );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ), field( "col2" ) );
     meta.content.lineWrapped = true;
     meta.content.nrWraps = 1;
 
@@ -164,7 +183,7 @@ public class TextFileInputTest {
     BaseFileField field2 = field( "col2" );
     field2.setRepeated( true );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), field2, field( "col3" ) );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ), field2, field( "col3" ) );
     TextFileInputData data = createDataObject( virtualFile, ",", "col1", "col2", "col3" );
 
     TextFileInput input = StepMockUtil.getStep( TextFileInput.class, TextFileInputMeta.class, "test" );
@@ -182,7 +201,7 @@ public class TextFileInputTest {
     BaseFileField col2 = field( "col2" );
     col2.setNullString( "-" );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), col2 );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ), col2 );
     TextFileInputData data = createDataObject( virtualFile, ",", "col1", "col2" );
 
     TextFileInput input = StepMockUtil.getStep( TextFileInput.class, TextFileInputMeta.class, "test" );
@@ -199,7 +218,7 @@ public class TextFileInputTest {
     BaseFileField col2 = field( "col2" );
     col2.setIfNullValue( "DEFAULT" );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), col2 );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ), col2 );
     TextFileInputData data = createDataObject( virtualFile, ",", "col1", "col2" );
 
     TextFileInput input = StepMockUtil.getStep( TextFileInput.class, TextFileInputMeta.class, "test" );
@@ -217,7 +236,7 @@ public class TextFileInputTest {
       .toString();
     final String virtualFile = createVirtualFile( "pdi-2607.txt", content );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ) );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ) );
 
     meta.inputFields[0].setType( 1 );
     meta.content.lineWrapped = false;
@@ -239,7 +258,7 @@ public class TextFileInputTest {
       .append( "123" ).append( '\n' ).append( "333\n" ).toString();
     final String virtualFile = createVirtualFile( "pdi-16697.txt", content );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ) );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ) );
 
     meta.inputFields[ 0 ].setType( 1 );
     meta.errorHandling.errorIgnored = true;
@@ -267,7 +286,7 @@ public class TextFileInputTest {
     BaseFileField col2 = field( "col2" );
     col2.setIfNullValue( "DEFAULT" );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), col2 );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ), col2 );
 
     meta.inputFiles.passingThruFields = true;
     meta.inputFiles.acceptingFilenames = true;
@@ -306,7 +325,7 @@ public class TextFileInputTest {
   @Test
   public void testClose() throws Exception {
 
-    TextFileInputMeta mockTFIM = createMetaObject( null );
+    TextFileInputMeta mockTFIM = createMetaObject( false,null );
     String virtualFile = createVirtualFile( "pdi-17267.txt", null );
     TextFileInputData mockTFID = createDataObject( virtualFile, ";", null );
     mockTFID.lineBuffer = new ArrayList<>();
@@ -339,7 +358,7 @@ public class TextFileInputTest {
       .append( "zzz,yyy,xxx" ).toString();
     final String virtualFile = createVirtualFile( "pdi-18175.txt", content );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), field( "col2" ), field( "col3" ) );
+    TextFileInputMeta meta = createMetaObject( false,field( "col1" ), field( "col2" ), field( "col3" ) );
     TextFileInputData data = createDataObject( virtualFile, ",", "col1", "col2", "col3" );
 
     TextFileInput input = StepMockUtil.getStep( TextFileInput.class, TextFileInputMeta.class, "test" );
@@ -360,7 +379,7 @@ public class TextFileInputTest {
       .append( "zzz,yyy,xxx" ).toString();
     final String virtualFile = createVirtualFile( "pdi-18175.txt", content );
 
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), field( "col2" ), field( "col3" ) );
+    TextFileInputMeta meta = createMetaObject(false, field( "col1" ), field( "col2" ), field( "col3" ) );
     meta.content.noEmptyLines = true;
     TextFileInputData data = createDataObject( virtualFile, ",", "col1", "col2", "col3" );
 
@@ -374,6 +393,57 @@ public class TextFileInputTest {
   }
 
   @Test
+  public void acceptFileOrFolderFromPreviousStep() throws  Exception {
+    /*String dataFolder = TestUtils.createRamFolder( "data" );
+    String data1Folder = TestUtils.createRamFolder( "data/1" );
+    final String content1 = new StringBuilder().append( "12,12-01-01,John,Doe,1000.00" ).append( '\n' ).toString();
+    final String data1 = createVirtualFile( "data/1/data.csv", content1 );
+    String data2Folder = TestUtils.createRamFolder( "data/2" );
+    final String content2 = new StringBuilder().append( "13,11-01-01,John,Murphy,2000.00" ).append( '\n' ).toString();
+    final String data2 = createVirtualFile( "data/2/data.csv", content2 );*/
+    final boolean acceptingFileNamesFromPreviousStep = true;
+    TextFileInputMeta meta = createMetaObject( acceptingFileNamesFromPreviousStep , field( "col1" ), field( "col2" ), field( "col3" )
+      , field( "col4" ), field( "col5" ) );
+    String fromStep = "Generate Rows";
+    String toStep = "Text File Input ";
+    String path = "Path";
+    meta.inputFiles.acceptingStepName = fromStep;
+    meta.inputFiles.acceptingField = path;
+    TextFileInputData data = createDataObject( null, ",", "col1", "col2", "col3" );
+
+    TextFileInput input = StepMockUtil.getStep( TextFileInput.class, TextFileInputMeta.class, toStep );
+
+    StepMeta  stepMeta = mock( StepMeta.class );
+    when( stepMeta.getName() ).thenReturn( fromStep );
+    when( input.getTransMeta().findStep( fromStep ) ).thenReturn( stepMeta );
+    input.getTransMeta().setVariable( "test", "test" );
+    RowMeta inputRowMeta = new RowMeta();
+    ValueMetaString pathMeta = new ValueMetaString( path );
+    inputRowMeta.addValueMeta( pathMeta );
+    URL res = this.getClass().getResource( "files/frompreviousstep" );
+    String filepath = res.getPath();
+    Object[] rows = new Object[] { filepath };
+    RowSet inputRowSet = new SingleRowRowSet();
+    inputRowSet.setThreadNameFromToCopy(fromStep, 0, toStep , 0 );
+    inputRowSet.putRow( inputRowMeta, rows );
+    List<RowSet> inputRowSets = new ArrayList<RowSet>(  );
+    inputRowSets.add( inputRowSet );
+    inputRowSet.setRowMeta( inputRowMeta );
+    //when(inputRowSet.getOriginStepName()).thenReturn( fromStep );
+    input.setInputRowSets( inputRowSets );
+    List<Object[]> output = TransTestingUtil.execute( input, meta, data, 2, false );
+    TransTestingUtil.assertResult( new Object[] { "12","12-01-01","John,Doe","1000.00" }, output.get( 0 ) );
+    TransTestingUtil.assertResult( new Object[] { "13","11-01-01","John,Murphy","2000.00" }, output.get( 0 ) );
+
+   /* deleteVfsFile( dataFolder );
+    deleteVfsFile( data1Folder );
+    deleteVfsFile( data2Folder );
+    deleteVfsFile( data1 );
+    deleteVfsFile( data2 );*/
+
+  }
+
+  @Test
   public void fieldsWithLineBreaksWithEmptyLinesTest() throws Exception {
 
     final String content = new StringBuilder()
@@ -382,13 +452,13 @@ public class TextFileInputTest {
       .append( '\n' )
       .append( "zzz,yyy,xxx" ).toString();
     final String virtualFile = createVirtualFile( "pdi-18175.txt", content );
-
-    TextFileInputMeta meta = createMetaObject( field( "col1" ), field( "col2" ), field( "col3" ) );
+    TextFileInputMeta meta = createMetaObject( false, field( "col1" ), field( "col2" ), field( "col3" ) );
     meta.content.noEmptyLines = false;
     TextFileInputData data = createDataObject( virtualFile, ",", "col1", "col2", "col3" );
 
 
     TextFileInput input = StepMockUtil.getStep( TextFileInput.class, TextFileInputMeta.class, "test" );
+
     List<Object[]> output = TransTestingUtil.execute( input, meta, data, 3, false );
     TransTestingUtil.assertResult( new Object[] { "aaa", "\"bbb\"", "ccc" }, output.get( 0 ) );
     TransTestingUtil.assertResult( new Object[] { null }, output.get( 1 ) );
@@ -397,7 +467,7 @@ public class TextFileInputTest {
     deleteVfsFile( virtualFile );
   }
 
-  private TextFileInputMeta createMetaObject( BaseFileField... fields ) {
+  private TextFileInputMeta createMetaObject( boolean acceptingFileNamesFromPreviousStep, BaseFileField... fields ) {
     TextFileInputMeta meta = new TextFileInputMeta();
     meta.content.enclosure = "\"";
     meta.content.fileCompression = "None";
@@ -408,6 +478,7 @@ public class TextFileInputTest {
     meta.content.nrFooterLines = -1;
 
     meta.inputFields = fields;
+    meta.inputFiles.acceptingFilenames =  true;
     return meta;
   }
 
@@ -416,7 +487,10 @@ public class TextFileInputTest {
                                               String... outputFields ) throws Exception {
     TextFileInputData data = new TextFileInputData();
     data.files = new FileInputList();
-    data.files.addFile( KettleVFS.getFileObject( file ) );
+    if(file != null && file.length() > 0) {
+      data.files.addFile( KettleVFS.getFileObject( file ) );
+    }
+
 
     data.separator = separator;
 

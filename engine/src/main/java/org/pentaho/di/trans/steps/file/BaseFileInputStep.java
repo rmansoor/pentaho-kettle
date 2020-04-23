@@ -23,14 +23,16 @@
 package org.pentaho.di.trans.steps.file;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Result;
 import org.pentaho.di.core.ResultFile;
 import org.pentaho.di.core.RowSet;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.exception.KettleFileException;
 import org.pentaho.di.core.row.RowDataUtil;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -293,7 +295,6 @@ public abstract class BaseFileInputStep<M extends BaseFileInputMeta<?, ?, ?>, D 
    */
   private RowMetaInterface[] filesFromPreviousStep() throws KettleException {
     RowMetaInterface[] infoStep = null;
-
     data.files.getFiles().clear();
 
     int idx = -1;
@@ -319,14 +320,52 @@ public abstract class BaseFileInputStep<M extends BaseFileInputMeta<?, ?, ?>, D 
       }
       String fileValue = prevInfoFields.getString( fileRow, idx );
       try {
-        FileObject fileObject = KettleVFS.getFileObject( fileValue, getTransMeta() );
-        data.files.addFile( fileObject );
+        FileObject parentFileObject = KettleVFS.getFileObject( fileValue, getTransMeta() );
+        if ( parentFileObject != null && parentFileObject.getType() == FileType.FOLDER ) { // it's a directory
+          final boolean subdirs = true;
+          FileObject[] fileObjects = parentFileObject.findFiles( new AllFileSelector() {
+            @Override
+            public boolean traverseDescendents( FileSelectInfo info ) {
+              return info.getDepth() == 0 || subdirs ;
+            }
+
+            @Override
+            public boolean includeFile( FileSelectInfo info ) {
+              // Never return the parent directory of a file list.
+              if ( info.getDepth() == 0 ) {
+                return false;
+              }
+
+              FileObject fileObject = info.getFile();
+              try {
+                return fileObject != null && FileType.FILE.equals( fileObject.getType() );
+              } catch ( Exception ex ) {
+                // Upon error don't process the file.
+                return false;
+              }
+            }
+          } );
+          if ( fileObjects != null ) {
+            for ( int j = 0; j < fileObjects.length; j++ ) {
+              FileObject fileObject = fileObjects[ j ];
+              if ( fileObject.exists() ) {
+                data.files.addFile( fileObject );
+              }
+            }
+          }
+          if ( Utils.isEmpty( fileObjects ) ) {
+              data.files.addNonAccessibleFile( parentFileObject );
+          }
+        } else {  // it's a file
+          data.files.addFile( parentFileObject );
+        }
+
         if ( meta.inputFiles.passingThruFields ) {
           StringBuilder sb = new StringBuilder();
-          sb.append( data.files.nrOfFiles() > 0 ? data.files.nrOfFiles() - 1 : 0 ).append( "_" ).append( fileObject.toString() );
+          sb.append( data.files.nrOfFiles() > 0 ? data.files.nrOfFiles() - 1 : 0 ).append( "_" ).append( parentFileObject.toString() );
           data.passThruFields.put( sb.toString(), fileRow );
         }
-      } catch ( KettleFileException e ) {
+      } catch ( Exception e ) {
         logError( BaseMessages.getString( PKG, "BaseFileInputStep.Log.Error.UnableToCreateFileObject", fileValue ), e );
       }
 

@@ -87,6 +87,23 @@ public class TestUtils {
     }
   }
 
+  public static String createRamFolder( String path ) {
+    return createRamFolder( path, null );
+  }
+  public static String createRamFolder( String path, VariableSpace space ) {
+    if ( space == null ) {
+      space = new Variables();
+      space.initializeVariablesFrom( null );
+    }
+    try {
+      FileObject file = KettleVFS.getFileObject( "ram://" + path, space );
+      file.createFolder();
+      return file.getName().getURI();
+    } catch ( FileSystemException | KettleFileException e ) {
+      throw new RuntimeException( e );
+    }
+  }
+
   public static FileObject getFileObject( String vfsPath ) {
     return getFileObject( vfsPath, null );
   }
