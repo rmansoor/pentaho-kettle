@@ -50,6 +50,7 @@ public class ConnectionManager {
   private ConcurrentHashMap<String, ConnectionProvider<? extends ConnectionDetails>> connectionProviders =
     new ConcurrentHashMap<>();
   private List<String> nameCache = new ArrayList<>();
+  private List<ConnectionDetailsListener> connectionDetailsListeners = new ArrayList<>();
 
   public static ConnectionManager getInstance() {
     return instance;
@@ -160,14 +161,17 @@ public class ConnectionManager {
       (ConnectionProvider<T>) connectionProviders.get( connectionDetails.getType() );
     if ( prepare && connectionProvider.prepare( connectionDetails ) == null ) {
       return false;
-    }
-    if ( !saveElement( getMetaStoreFactory( metaStore, (Class<T>) connectionDetails.getClass() ),
-      connectionDetails ) ) {
+    } if ( !saveElement( getMetaStoreFactory( metaStore, (Class<T>) connectionDetails.getClass() ),
+        connectionDetails ) ) {
       return false;
-    }
-    if ( !nameCache.contains( connectionDetails.getName() ) ) {
+    } if ( !nameCache.contains( connectionDetails.getName() ) ) {
       nameCache.add( connectionDetails.getName() );
+    } if ( connectionDetailsListeners != null && connectionDetailsListeners.size() > 0 ) {
+      for ( ConnectionDetailsListener listener : connectionDetailsListeners ) {
+        listener.connectionUpdated( connectionDetails );
+      }
     }
+
     return true;
   }
 
@@ -542,13 +546,19 @@ public class ConnectionManager {
    * @return A list of value/label pairs of named connection types
    */
   public List<Type> getItems() {
-    List<Type> types = new ArrayList<>();
-    List<ConnectionProvider<? extends ConnectionDetails>> providers =
-      Collections.list( connectionProviders.elements() );
-    for ( ConnectionProvider provider : providers ) {
+    List<Type> types = new ArrayList<>(); List<ConnectionProvider<? extends ConnectionDetails>>
+        providers =
+        Collections.list( connectionProviders.elements() ); for ( ConnectionProvider provider : providers ) {
       types.add( new ConnectionManager.Type( provider.getKey(), provider.getName() ) );
-    }
-    return types;
+    } return types;
+  }
+
+  public void addConnectionDetailsListener( ConnectionDetailsListener connectionDetailsListener ) {
+    connectionDetailsListeners.add( connectionDetailsListener );
+  }
+
+  public void removeConnectionDetailsListener( ConnectionDetailsListener connectionDetailsListener ) {
+    connectionDetailsListeners.remove( connectionDetailsListener );
   }
 
   /**
