@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.pentaho.di.plugins</groupId>
+    <artifactId>excel-assemblies</artifactId>
+    <version>9.3.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>excel-impl-plugin</artifactId>
+  <version>9.3.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <pentaho-reporting.version>9.3.0.0-SNAPSHOT</pentaho-reporting.version>
+    <project.revision>9.3.0.0-SNAPSHOT</project.revision>
+    <resources.directory>${project.basedir}/src/main/resources</resources.directory>
+    <assembly.dir>${project.build.directory}/assembly</assembly.dir>
+	<odfdom-java.version>0.8.7</odfdom-java.version>
+	<poi.version>3.17</poi.version>
+	<xerces.version>2.12.0</xerces.version>
+	<xmlbeans.version>3.1.0</xmlbeans.version>	
+  </properties>
+
+  <name>Excel Impl Plugin Distribution</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.odftoolkit</groupId>
+      <artifactId>odfdom-java</artifactId>
+      <version>${odfdom-java.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>  
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>excel-impl</artifactId>
+      <version>${project.revision}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>${poi.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml</artifactId>
+      <version>${poi.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml-schemas</artifactId>
+      <version>${poi.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>${xerces.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+            <version>${xmlbeans.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>	
+  </dependencies>
+  
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-libs</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${assembly.dir}/lib</outputDirectory>
+              <includeScope>compile</includeScope>
+              <excludeArtifactIds>excel-impl-plugin</excludeArtifactIds>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+
+
