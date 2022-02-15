@@ -23,7 +23,6 @@
 package org.pentaho.di.ui.trans.steps.excelinput;
 
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.pentaho.di.core.plugins.PluginInterface;
@@ -44,7 +43,7 @@ import java.lang.reflect.Method;
 
 
 public class ExcelInputDialogTest {
-  @ClassRule public static RestorePDIEngineEnvironment env = new RestorePDIEngineEnvironment();
+  public static RestorePDIEngineEnvironment env = new RestorePDIEngineEnvironment();
 
   @Test
   /**

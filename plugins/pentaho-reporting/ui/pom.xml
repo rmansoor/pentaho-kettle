@@ -15,6 +15,7 @@
 	<properties>
 		<mockito-all.version>1.9.5</mockito-all.version>
 		<pdi.version>9.3.0.0-SNAPSHOT</pdi.version>
+		<pentaho-reporting.version>9.3.0.0-SNAPSHOT</pentaho-reporting.version>
 	</properties>
 
 	<dependencies>
@@ -40,6 +41,11 @@
 			<artifactId>kettle-ui-swt</artifactId>
 			<version>${pdi.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-core</artifactId>
+			<version>${pentaho-reporting.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>

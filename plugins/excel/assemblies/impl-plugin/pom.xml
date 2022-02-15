@@ -14,7 +14,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <pentaho-reporting.version>9.3.0.0-SNAPSHOT</pentaho-reporting.version>
+    <excel.version>9.3.0.0-SNAPSHOT</excel.version>
     <project.revision>9.3.0.0-SNAPSHOT</project.revision>
     <resources.directory>${project.basedir}/src/main/resources</resources.directory>
     <assembly.dir>${project.build.directory}/assembly</assembly.dir>

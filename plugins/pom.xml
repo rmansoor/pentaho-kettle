@@ -75,6 +75,8 @@
         <module>ms-access</module>
         <module>xml</module>
         <module>streaming</module>
+        <module>excel</module>
+        <module>pentaho-reporting</module>
       </modules>
     </profile>
 
