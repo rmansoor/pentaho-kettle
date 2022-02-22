@@ -5,9 +5,7 @@
     <formats>
       <format>zip</format>
     </formats>
-  
-    <baseDirectory>excel</baseDirectory>
-  
+    <baseDirectory>excel-impl-plugin</baseDirectory>
     <fileSets>
       <fileSet>
         <directory>src/main/resources</directory>

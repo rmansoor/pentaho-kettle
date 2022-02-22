@@ -20,7 +20,7 @@
 		<common.version>3.3.0-v20070426</common.version>
 		<jface.version>3.3.0-I20070606-0010</jface.version>
 		<commands.version>3.3.0-I20070605-0010</commands.version>	
-		<poi.version>3.17</poi.version>	
+		<poi.version>4.1.1</poi.version>
 	</properties>
 
 	<dependencies>
@@ -28,24 +28,49 @@
 			<groupId>org.pentaho.di.plugins</groupId>
 			<artifactId>excel-impl</artifactId>
 			<version>${project.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>pentaho-kettle</groupId>
 			<artifactId>kettle-core</artifactId>
 			<version>${pdi.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>pentaho-kettle</groupId>
 			<artifactId>kettle-engine</artifactId>
 			<version>${pdi.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>pentaho-kettle</groupId>
 			<artifactId>kettle-ui-swt</artifactId>
 			<version>${pdi.version}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>pentaho-kettle</groupId>
@@ -53,6 +78,12 @@
 			<version>${pdi.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -61,11 +92,27 @@
 			<version>4.13.2</version>
 			<scope>provided</scope>
 		</dependency>
+
 		<dependency>
-		  <groupId>org.apache.poi</groupId>
-		  <artifactId>poi-ooxml-schemas</artifactId>
-		  <version>${poi.version}</version>
-		  <scope>provided</scope>	  
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>${poi.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-vfs2</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -94,6 +141,7 @@
       <groupId>org.eclipse.equinox</groupId>
       <artifactId>common</artifactId>
       <version>${common.version}</version>
+	  <scope>provided</scope>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -105,6 +153,7 @@
       <groupId>org.eclipse</groupId>
       <artifactId>jface</artifactId>
       <version>${jface.version}</version>
+	  <scope>provided</scope>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -116,6 +165,7 @@
       <groupId>org.eclipse.core</groupId>
       <artifactId>commands</artifactId>
       <version>${commands.version}</version>
+	  <scope>provided</scope>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>

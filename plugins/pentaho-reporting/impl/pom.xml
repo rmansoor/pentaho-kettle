@@ -16,6 +16,9 @@
 		<powermock.version>1.6.3</powermock.version>
 		<pdi.version>9.3.0.0-SNAPSHOT</pdi.version>
 		<pentaho-reporting.version>9.3.0.0-SNAPSHOT</pentaho-reporting.version>
+		<commons-vfs2-version>2.2</commons-vfs2-version>
+		<jcommon.version>1.0.16</jcommon.version>
+		<itext.version>2.1.7</itext.version>
 	</properties>
 
 	<dependencies>
@@ -48,7 +51,6 @@
 			<groupId>org.pentaho.reporting.library</groupId>
 			<artifactId>libbase</artifactId>
 			<version>${pentaho-reporting.version}</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>*</groupId>
@@ -69,21 +71,367 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>librepository</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libloader</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libfonts</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libserializer</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libdocbundle</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libformat</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libpixie</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libsparkline</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libswing</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.library</groupId>
+			<artifactId>libxml</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>pentaho</groupId>
+			<artifactId>metastore</artifactId>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-core</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!--  Pentaho reporting dependencies -->
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-drill-down</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-kettle</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-mondrian</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-olap4j</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-pmd</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-reportdesigner-parser</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-sampledata</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-scripting</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-toc</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>classic-extensions-xpath</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>legacy-charts</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>legacy-functions</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.pentaho.reporting.engine</groupId>
+			<artifactId>wizard-core</artifactId>
+			<version>${pentaho-reporting.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>net.sf</groupId>
 			<artifactId>cb2xml</artifactId>
 			<version>1.01.1</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.sf</groupId>
 			<artifactId>jrecord</artifactId>
 			<version>0.90.2</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>3.5</version>
+			<scope>provided</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>*</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>*</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-vfs2</artifactId>
+			<version>${commons-vfs2-version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>*</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>jfree</groupId>
+			<artifactId>jcommon</artifactId>
+			<version>${jcommon.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>*</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -101,6 +449,28 @@
 				<exclusion>
 					<groupId>*</groupId>
 					<artifactId>*</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext</artifactId>
+			<version>${itext.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>*</artifactId>
+					<groupId>*</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext-rtf</artifactId>
+			<version>${itext.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>*</artifactId>
+					<groupId>*</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>

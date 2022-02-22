@@ -49,16 +49,11 @@
     <jersey-bundle.version>1.19.1</jersey-bundle.version>
     <jersey-client.version>1.19.1</jersey-client.version>
     <jersey-core.version>1.19.1</jersey-core.version>
-    <jxl.version>2.6.12</jxl.version>
     <ldapjdk.version>20000524</ldapjdk.version>
     <monetdb-jdbc.version>2.8</monetdb-jdbc.version>
-    <odfdom-java.version>0.8.6</odfdom-java.version>
-    <poi.version>4.1.1</poi.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <xmlbeans.version>3.1.0</xmlbeans.version>
     <curvesapi.version>1.06</curvesapi.version>
-    <commons-compress.version>1.19</commons-compress.version>
     <rome.version>1.0</rome.version>
     <SassyReader.version>0.5</SassyReader.version>
     <saxon.version>9.1.0.8</saxon.version>
@@ -149,8 +144,24 @@
       <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libformula</artifactId>
       <version>${pentaho-reporting.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-
+    <dependency>
+      <groupId>org.pentaho.reporting.library</groupId>
+      <artifactId>libbase</artifactId>
+      <version>${pentaho-reporting.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
     <!-- Third-party dependencies -->
     <dependency>
       <groupId>org.dom4j</groupId>
@@ -390,17 +401,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>jexcelapi</groupId>
-      <artifactId>jxl</artifactId>
-      <version>${jxl.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>ldapjdk</groupId>
       <artifactId>ldapjdk</artifactId>
       <version>${ldapjdk.version}</version>
@@ -415,17 +415,6 @@
       <groupId>monetdb</groupId>
       <artifactId>monetdb-jdbc</artifactId>
       <version>${monetdb-jdbc.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.odftoolkit</groupId>
-      <artifactId>odfdom-java</artifactId>
-      <version>${odfdom-java.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -459,28 +448,6 @@
       <groupId>com.github.virtuald</groupId>
       <artifactId>curvesapi</artifactId>
       <version>${curvesapi.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-compress</artifactId>
-      <version>${commons-compress.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.xmlbeans</groupId>
-      <artifactId>xmlbeans</artifactId>
-      <version>${xmlbeans.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>

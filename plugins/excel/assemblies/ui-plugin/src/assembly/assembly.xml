@@ -6,7 +6,7 @@
       <format>zip</format>
     </formats>
   
-    <baseDirectory>excel</baseDirectory>
+    <baseDirectory>excel-ui-plugin</baseDirectory>
   
     <fileSets>
       <fileSet>

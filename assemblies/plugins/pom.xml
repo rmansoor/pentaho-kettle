@@ -42,6 +42,8 @@
     <vertica-bulkloader-plugin.version>9.3.0.0-SNAPSHOT</vertica-bulkloader-plugin.version>
     <pdi-pur-plugin.version>9.3.0.0-SNAPSHOT</pdi-pur-plugin.version>
     <pentaho-mongodb-plugin.version>9.3.0.0-SNAPSHOT</pentaho-mongodb-plugin.version>
+    <excel.version>9.3.0.0-SNAPSHOT</excel.version>
+    <pentaho-reporting.version>9.3.0.0-SNAPSHOT</pentaho-reporting.version>
   </properties>
 
   <dependencies>
@@ -350,6 +352,54 @@
       <groupId>org.pentaho.di.plugins</groupId>
       <artifactId>pdi-pur-plugin</artifactId>
       <version>${pdi-pur-plugin.version}</version>
+      <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>excel-impl-plugin</artifactId>
+      <version>${excel.version}</version>
+      <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>excel-ui-plugin</artifactId>
+      <version>${excel.version}</version>
+      <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>pentaho-reporting-impl-plugin</artifactId>
+      <version>${pentaho-reporting.version}</version>
+      <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.di.plugins</groupId>
+      <artifactId>pentaho-reporting-ui-plugin</artifactId>
+      <version>${pentaho-reporting.version}</version>
       <type>zip</type>
       <exclusions>
         <exclusion>

@@ -31,6 +31,7 @@ import java.util.Map;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.annotations.Step;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.database.DatabaseMeta;
 import org.pentaho.di.core.exception.KettleException;
@@ -58,6 +59,10 @@ import org.w3c.dom.Node;
  * Created on 4-apr-2003
  *
  */
+@Step( id = "PentahoReportingOutput", image = "ui/images/JFR.svg", i18nPackageName = "org.pentaho.di.trans.steps.pentahoreporting",
+        documentationUrl = "Products/Pentaho_Reporting_Output", name = "PentahoReportingOutput.name",
+        description = "PentahoReportingOutput.TypeLongDesc.PentahoReportingOutput", categoryDescription = "i18n:org.pentaho.di.trans.step:BaseStep.Category.Output" )
+
 @InjectionSupported( localizationPrefix = "PentahoReportingOutputMeta.Injection.", groups = { "PARAMETERS" } )
 public class PentahoReportingOutputMeta extends BaseStepMeta implements StepMetaInterface {
   private static Class<?> PKG = PentahoReportingOutput.class; // for i18n purposes, needed by Translator2!!

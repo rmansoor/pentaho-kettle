@@ -53,12 +53,6 @@
 			<artifactId>kettle-ui-swt</artifactId>
 			<version>${pdi.version}</version>
 			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>*</groupId>
-					<artifactId>*</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.pentaho.reporting.engine</groupId>
