@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2020 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2024 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -195,6 +195,10 @@ public class CarteSingleton {
                     LoggingRegistry.getInstance().removeLogChannelFileWriterBuffer( id );
 
                     jobMap.removeJob( entry );
+
+                    // Remove the logging information from the log registry & central log store
+                    KettleLogStore.discardLines( job.getLogChannelId(), false );
+
 
                     log.logMinimal( "Cleaned up job "
                       + entry.getName() + " with id " + entry.getId() + " from " + job.getLogDate() );
