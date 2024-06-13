@@ -49,4 +49,20 @@
       </pen:attributes>
     </pen:publish>
   </bean>
+  <bean class="com.pentaho.platform.plugin.services.importer.PDIImportFileHandler">
+    <constructor-arg>
+      <bean factory-bean="MimeTypeListFactory" factory-method="registerMimeTypeDefinition" >
+        <constructor-arg value="system/pdi-pur-plugin/pdiImportHandlerMimeTypeDefinitions.xml" />
+        <constructor-arg value="com.pentaho.platform.plugin.services.importer.PDIImportFileHandler" />
+      </bean>
+    </constructor-arg>
+    <property name="repository" ref="unifiedRepository" />
+    <property name="defaultAclHandler" ref="defaultAclHandler" />
+    <property name="knownExtensions" ref="extensions" />
+    <pen:publish as-type="INTERFACES">
+      <pen:attributes>
+        <pen:attr key="name" value="IPlatformImportHandler"/>
+      </pen:attributes>
+    </pen:publish>
+  </bean>
 </beans>
