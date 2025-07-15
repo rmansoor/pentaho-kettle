@@ -82,6 +82,18 @@ public class KettleEnvironment {
     init( true );
   }
 
+  /**
+   * Initializes the Kettle environment with an option to skip registry extensions.
+   * This method will configure Simple JNDI and allows skipping plugin registry extensions
+   * for faster initialization when extensions are not needed.
+   *
+   * @param skipRegistryExtensions if true, skips registration of plugin registry extensions
+   * @throws KettleException Any errors that occur during initialization will throw a KettleException.
+   */
+  public static void initWithoutExtensions( boolean skipRegistryExtensions ) throws KettleException {
+    init( true, skipRegistryExtensions );
+  }
+
   public static void init( Class<? extends PluginTypeInterface> pluginClasses ) {
 
   }
@@ -98,6 +110,17 @@ public class KettleEnvironment {
    * @throws KettleException Any errors that occur during initialization will throw a KettleException.
    */
   public static void init( boolean simpleJndi ) throws KettleException {
+    init( simpleJndi, false );
+  }
+
+  /**
+   * Initializes the Kettle environment with full control over Simple JNDI and registry extensions.
+   *
+   * @param simpleJndi true to configure Simple JNDI, false otherwise
+   * @param skipRegistryExtensions if true, skips registration of plugin registry extensions
+   * @throws KettleException Any errors that occur during initialization will throw a KettleException.
+   */
+  public static void init( boolean simpleJndi, boolean skipRegistryExtensions ) throws KettleException {
     init( Arrays.asList(
       RowDistributionPluginType.getInstance(),
       StepPluginType.getInstance(),
@@ -115,10 +138,14 @@ public class KettleEnvironment {
       AuthenticationProviderPluginType.getInstance(),
       AuthenticationConsumerPluginType.getInstance(),
       EnginePluginType.getInstance()
-    ), simpleJndi );
+    ), simpleJndi, skipRegistryExtensions );
   }
 
   public static void init( List<PluginTypeInterface> pluginClasses, boolean simpleJndi ) throws KettleException {
+    init( pluginClasses, simpleJndi, false );
+  }
+
+  public static void init( List<PluginTypeInterface> pluginClasses, boolean simpleJndi, boolean skipRegistryExtensions ) throws KettleException {
 
     SettableFuture<Boolean> ready;
     if ( initialized.compareAndSet( null, ready = SettableFuture.create() ) ) {
@@ -143,7 +170,11 @@ public class KettleEnvironment {
         // Register the native types and the plugins for the various plugin types...
         //
         pluginClasses.forEach( PluginRegistry::addPluginType );
-        PluginRegistry.init();
+        if ( skipRegistryExtensions ) {
+          PluginRegistry.init( skipRegistryExtensions );
+        } else {
+          PluginRegistry.init();
+        }
 
         // Also read the list of variables.
         //

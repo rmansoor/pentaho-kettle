@@ -13,21 +13,6 @@
 
 package org.pentaho.di.core.plugins;
 
-import org.pentaho.di.core.Const;
-import org.pentaho.di.core.exception.KettlePluginClassMapException;
-import org.pentaho.di.core.exception.KettlePluginException;
-import org.pentaho.di.core.logging.KettleLogStore;
-import org.pentaho.di.core.logging.LogChannel;
-import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.logging.Metrics;
-import org.pentaho.di.core.row.RowBuffer;
-import org.pentaho.di.core.row.RowMeta;
-import org.pentaho.di.core.row.RowMetaInterface;
-import org.pentaho.di.core.row.value.ValueMetaString;
-import org.pentaho.di.core.util.EnvUtil;
-import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.i18n.BaseMessages;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -53,6 +38,21 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.exception.KettlePluginClassMapException;
+import org.pentaho.di.core.exception.KettlePluginException;
+import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.logging.Metrics;
+import org.pentaho.di.core.row.RowBuffer;
+import org.pentaho.di.core.row.RowMeta;
+import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaString;
+import org.pentaho.di.core.util.EnvUtil;
+import org.pentaho.di.core.util.Utils;
+import org.pentaho.di.i18n.BaseMessages;
+
 
 /**
  * This singleton provides access to all the plugins in the Kettle universe.<br> It allows you to register types and
@@ -537,30 +537,55 @@ public class PluginRegistry {
   }
 
   /**
-   * This method registers plugin types and loads their respective plugins
+   * This method registers plugin types and loads their respective plugins, 
+   * with an option to skip registry extensions registration
    *
+   * @param skipRegistryExtensions if true, skips registration of registry extensions
    * @throws KettlePluginException
    */
-  public static void init( boolean keepCache ) throws KettlePluginException {
+  public static void init( boolean skipRegistryExtensions ) throws KettlePluginException {
+    init( false, skipRegistryExtensions );
+  }
+
+  /**
+   * This method registers plugin types and loads their respective plugins
+   *
+   * @param keepCache if true, keeps the jar file cache
+   * @throws KettlePluginException
+   */
+  public static void initWithCache( boolean keepCache ) throws KettlePluginException {
+    init( keepCache, false );
+  }
+
+  /**
+   * This method registers plugin types and loads their respective plugins
+   *
+   * @param keepCache if true, keeps the jar file cache
+   * @param skipRegistryExtensions if true, skips registration of registry extensions
+   * @throws KettlePluginException
+   */
+  public static void init( boolean keepCache, boolean skipRegistryExtensions ) throws KettlePluginException {
     final PluginRegistry registry = getInstance();
 
-    log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSIONS_START );
+    if ( !skipRegistryExtensions ) {
+      log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSIONS_START );
 
-    // Find pluginRegistry extensions
-    try {
-      registry.registerType( PluginRegistryPluginType.getInstance() );
-      List<PluginInterface> plugins = registry.getPlugins( PluginRegistryPluginType.class );
-      for ( PluginInterface extensionPlugin : plugins ) {
-        log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSION_START, extensionPlugin.getName() );
-        PluginRegistryExtension extension = (PluginRegistryExtension) registry.loadClass( extensionPlugin );
-        extension.init( registry );
-        extensions.add( extension );
-        log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSIONS_STOP, extensionPlugin.getName() );
+      // Find pluginRegistry extensions
+      try {
+        registry.registerType( PluginRegistryPluginType.getInstance() );
+        List<PluginInterface> plugins = registry.getPlugins( PluginRegistryPluginType.class );
+        for ( PluginInterface extensionPlugin : plugins ) {
+          log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSION_START, extensionPlugin.getName() );
+          PluginRegistryExtension extension = (PluginRegistryExtension) registry.loadClass( extensionPlugin );
+          extension.init( registry );
+          extensions.add( extension );
+          log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSIONS_STOP, extensionPlugin.getName() );
+        }
+      } catch ( KettlePluginException e ) {
+        e.printStackTrace();
       }
-    } catch ( KettlePluginException e ) {
-      e.printStackTrace();
+      log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSIONS_STOP );
     }
-    log.snap( Metrics.METRIC_PLUGIN_REGISTRY_REGISTER_EXTENSIONS_STOP );
 
     log.snap( Metrics.METRIC_PLUGIN_REGISTRY_PLUGIN_REGISTRATION_START );
     for ( final PluginTypeInterface pluginType : pluginTypes ) {

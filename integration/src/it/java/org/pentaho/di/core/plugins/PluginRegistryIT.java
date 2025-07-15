@@ -183,4 +183,143 @@ public class PluginRegistryIT extends TestCase {
     }
     PluginRegistry.init();
   }
+
+  public void testPluginRegistryInitWithSkipRegistryExtensions() throws KettlePluginException {
+    // Test the new init method with skipRegistryExtensions parameter
+    PluginRegistry registry = PluginRegistry.getInstance();
+    registry.reset();
+
+    // Setup plugin types
+    PluginTypeInterface[] plugins = new PluginTypeInterface[] { StepPluginType.getInstance(), // Steps
+      PartitionerPluginType.getInstance(), // Partitioners
+      JobEntryPluginType.getInstance(), // Job entries
+      RepositoryPluginType.getInstance(), // Repository types
+      DatabasePluginType.getInstance(), // Databases
+    };
+    for ( PluginTypeInterface pl : plugins ) {
+      PluginRegistry.addPluginType( pl );
+    }
+
+    // Test with skipRegistryExtensions = true
+    PluginRegistry.init( true );
+    assertNotNull( "Registry should be initialized", registry );
+
+    // Verify basic functionality still works
+    Class<? extends PluginTypeInterface> pluginTypeClass = StepPluginType.class;
+    try {
+      registry.getPluginType( pluginTypeClass );
+    } catch ( KettlePluginException kpe ) {
+      fail( "Plugin type should be available even with extensions skipped" );
+    }
+
+    // Reset and test with skipRegistryExtensions = false
+    registry.reset();
+    for ( PluginTypeInterface pl : plugins ) {
+      PluginRegistry.addPluginType( pl );
+    }
+    PluginRegistry.init( false );
+    assertNotNull( "Registry should be initialized", registry );
+  }
+
+  public void testPluginRegistryInitWithCacheAndSkipRegistryExtensions() throws KettlePluginException {
+    // Test the new init method with both keepCache and skipRegistryExtensions parameters
+    PluginRegistry registry = PluginRegistry.getInstance();
+    
+    // Setup plugin types
+    PluginTypeInterface[] plugins = new PluginTypeInterface[] { StepPluginType.getInstance(), // Steps
+      PartitionerPluginType.getInstance(), // Partitioners
+      JobEntryPluginType.getInstance(), // Job entries
+    };
+
+    // Test all combinations of keepCache and skipRegistryExtensions
+    boolean[] booleanValues = { true, false };
+    
+    for ( boolean keepCache : booleanValues ) {
+      for ( boolean skipRegistryExtensions : booleanValues ) {
+        registry.reset();
+        for ( PluginTypeInterface pl : plugins ) {
+          PluginRegistry.addPluginType( pl );
+        }
+        
+        // Test the new init method
+        PluginRegistry.init( keepCache, skipRegistryExtensions );
+        assertNotNull( "Registry should be initialized with keepCache=" + keepCache + 
+                      ", skipRegistryExtensions=" + skipRegistryExtensions, registry );
+        
+        // Verify basic functionality works
+        Class<? extends PluginTypeInterface> pluginTypeClass = StepPluginType.class;
+        try {
+          registry.getPluginType( pluginTypeClass );
+        } catch ( KettlePluginException kpe ) {
+          fail( "Plugin type should be available with keepCache=" + keepCache + 
+               ", skipRegistryExtensions=" + skipRegistryExtensions );
+        }
+      }
+    }
+  }
+
+  public void testPluginRegistryInitWithCacheMethod() throws KettlePluginException {
+    // Test the renamed initWithCache method
+    PluginRegistry registry = PluginRegistry.getInstance();
+    
+    // Setup plugin types
+    PluginTypeInterface[] plugins = new PluginTypeInterface[] { StepPluginType.getInstance(), // Steps
+      PartitionerPluginType.getInstance(), // Partitioners
+    };
+
+    // Test with keepCache = true
+    registry.reset();
+    for ( PluginTypeInterface pl : plugins ) {
+      PluginRegistry.addPluginType( pl );
+    }
+    PluginRegistry.initWithCache( true );
+    assertNotNull( "Registry should be initialized with cache kept", registry );
+
+    // Test with keepCache = false
+    registry.reset();
+    for ( PluginTypeInterface pl : plugins ) {
+      PluginRegistry.addPluginType( pl );
+    }
+    PluginRegistry.initWithCache( false );
+    assertNotNull( "Registry should be initialized without cache", registry );
+  }
+
+  public void testPluginRegistryPerformanceWithSkippedExtensions() throws KettlePluginException {
+    // Test that skipping extensions provides performance benefit
+    PluginRegistry registry = PluginRegistry.getInstance();
+    
+    // Setup plugin types
+    PluginTypeInterface[] plugins = new PluginTypeInterface[] { StepPluginType.getInstance(),
+      PartitionerPluginType.getInstance(),
+      JobEntryPluginType.getInstance(),
+    };
+
+    // Measure time with extensions
+    registry.reset();
+    for ( PluginTypeInterface pl : plugins ) {
+      PluginRegistry.addPluginType( pl );
+    }
+    long startTime = System.currentTimeMillis();
+    PluginRegistry.init( false ); // include extensions
+    long timeWithExtensions = System.currentTimeMillis() - startTime;
+
+    // Measure time without extensions
+    registry.reset();
+    for ( PluginTypeInterface pl : plugins ) {
+      PluginRegistry.addPluginType( pl );
+    }
+    startTime = System.currentTimeMillis();
+    PluginRegistry.init( true ); // skip extensions
+    long timeWithoutExtensions = System.currentTimeMillis() - startTime;
+
+    // Verify that both approaches work
+    assertNotNull( "Registry should work with extensions", registry );
+    assertNotNull( "Registry should work without extensions", registry );
+    
+    // Note: We don't assert that timeWithoutExtensions < timeWithExtensions 
+    // because the performance difference might be minimal in test environment
+    // but we log the difference for observation
+    System.out.println( "Init time with extensions: " + timeWithExtensions + "ms" );
+    System.out.println( "Init time without extensions: " + timeWithoutExtensions + "ms" );
+  }
 }

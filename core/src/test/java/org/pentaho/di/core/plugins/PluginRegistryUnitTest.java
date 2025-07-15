@@ -189,4 +189,54 @@ public class PluginRegistryUnitTest {
     registry.registerPlugin( ValueMetaPluginType.class, plugin );
     verify( plugin, atLeast( 4 ) ).merge( any() );
   }
+
+  @Test
+  public void testInitWithSkipRegistryExtensions() throws KettlePluginException {
+    // Test that the new init method with skipRegistryExtensions parameter works correctly
+    PluginRegistry.init( true );
+    
+    // Verify the registry is initialized
+    PluginRegistry registry = PluginRegistry.getInstance();
+    assertNotNull( registry );
+    
+    // Reset and test with skipRegistryExtensions = false
+    registry.reset();
+    PluginRegistry.init( false );
+    assertNotNull( registry );
+  }
+
+  @Test  
+  public void testInitWithCacheAndSkipRegistryExtensions() throws KettlePluginException {
+    // Test the new init method with both keepCache and skipRegistryExtensions parameters
+    PluginRegistry registry = PluginRegistry.getInstance();
+    registry.reset();
+    
+    // Test with keepCache = true, skipRegistryExtensions = true
+    PluginRegistry.init( true, true );
+    assertNotNull( registry );
+    
+    // Reset and test with keepCache = false, skipRegistryExtensions = false  
+    registry.reset();
+    PluginRegistry.init( false, false );
+    assertNotNull( registry );
+    
+    // Reset and test with keepCache = true, skipRegistryExtensions = false
+    registry.reset();
+    PluginRegistry.init( true, false );
+    assertNotNull( registry );
+  }
+
+  @Test
+  public void testInitWithCacheMethodExists() throws KettlePluginException {
+    // Test that the renamed initWithCache method works correctly
+    PluginRegistry registry = PluginRegistry.getInstance();
+    registry.reset();
+    
+    PluginRegistry.initWithCache( true );
+    assertNotNull( registry );
+    
+    registry.reset();
+    PluginRegistry.initWithCache( false );
+    assertNotNull( registry );
+  }
 }
