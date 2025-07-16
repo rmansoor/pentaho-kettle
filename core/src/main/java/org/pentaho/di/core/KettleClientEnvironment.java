@@ -77,6 +77,10 @@ public class KettleClientEnvironment {
   }
 
   public static synchronized void init( List<PluginTypeInterface> pluginsToLoad ) throws KettleException {
+    init( pluginsToLoad, false );
+  }
+
+  public static synchronized void init( List<PluginTypeInterface> pluginsToLoad, boolean skipRegistryExtensions ) throws KettleException {
     if ( initialized != null ) {
       return;
     }
@@ -106,16 +110,25 @@ public class KettleClientEnvironment {
     // Load plugins
     //
     pluginsToLoad.forEach( PluginRegistry::addPluginType );
-    PluginRegistry.init();
+    PluginRegistry.init( false, skipRegistryExtensions );
 
     List<PluginInterface> logginPlugins = PluginRegistry.getInstance().getPlugins( LoggingPluginType.class );
     initLogginPlugins( logginPlugins );
 
-    String passwordEncoderPluginID = Const.NVL( EnvUtil.getSystemProperty( Const.KETTLE_PASSWORD_ENCODER_PLUGIN ), "Kettle" );
+    if ( ! skipRegistryExtensions ) {
+      String passwordEncoderPluginID = Const.NVL(EnvUtil.getSystemProperty(Const.KETTLE_PASSWORD_ENCODER_PLUGIN), "Kettle");
 
-    Encr.init( passwordEncoderPluginID );
+      Encr.init(passwordEncoderPluginID);
+    }
+    initialized = Boolean.TRUE;
+  }
 
-    initialized = new Boolean( true );
+  public static synchronized void initWithoutExtensions( boolean simpleJndi ) throws KettleException {
+    init( Arrays.asList( LoggingPluginType.getInstance(),
+      ValueMetaPluginType.getInstance(),
+      DatabasePluginType.getInstance(),
+      ExtensionPointPluginType.getInstance(),
+      TwoWayPasswordEncoderPluginType.getInstance(), ServiceProviderPluginType.getInstance() ), true );
   }
 
   public static boolean isInitialized() {

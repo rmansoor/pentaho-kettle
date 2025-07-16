@@ -23,8 +23,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.encryption.TwoWayPasswordEncoderPluginType;
@@ -32,7 +37,6 @@ import org.pentaho.di.core.extension.ExtensionPointPluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginTypeInterface;
-
 
 /**
  * @author Andrey Khayrutdinov
