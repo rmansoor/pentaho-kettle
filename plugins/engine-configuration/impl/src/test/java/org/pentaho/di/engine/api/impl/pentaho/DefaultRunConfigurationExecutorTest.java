@@ -11,7 +11,7 @@
  ******************************************************************************/
 
 
-package org.pentaho.di.engine.configuration.impl.pentaho;
+package org.pentaho.di.engine.api.impl.pentaho;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +31,6 @@ import org.pentaho.di.ui.spoon.Spoon;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by bmorrise on 3/22/17.

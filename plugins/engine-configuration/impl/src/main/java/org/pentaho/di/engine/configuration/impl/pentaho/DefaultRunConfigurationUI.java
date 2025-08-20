@@ -32,7 +32,6 @@ import org.pentaho.di.cluster.SlaveServerManagementInterface;
 import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.engine.configuration.api.RunConfigurationDialog;
 import org.pentaho.di.engine.configuration.api.RunConfigurationUI;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
@@ -56,7 +55,7 @@ public class DefaultRunConfigurationUI implements RunConfigurationUI {
   private Supplier<Spoon> spoonSupplier = Spoon::getInstance;
   private PropsUI props = PropsUI.getInstance();
   private DefaultRunConfiguration defaultRunConfiguration;
-  private RunConfigurationDialog runConfigurationDialog;
+  private Object runConfigurationDialog;
 
   private CCombo wcSlaveServer;
 
@@ -64,8 +63,11 @@ public class DefaultRunConfigurationUI implements RunConfigurationUI {
     this.defaultRunConfiguration = defaultRunConfiguration;
   }
 
-  @Override public void attach( RunConfigurationDialog runConfigurationDialog ) {
-    this.runConfigurationDialog = runConfigurationDialog;
+  @Override public void attach( Object runConfigurationDialog ) {
+    // Cast to the concrete UI dialog type as needed
+    org.pentaho.di.ui.engine.configuration.RunConfigurationDialog dialog = 
+      (org.pentaho.di.ui.engine.configuration.RunConfigurationDialog) runConfigurationDialog;
+    this.runConfigurationDialog = dialog;
 
     FormLayout gformLayout = new FormLayout();
     gformLayout.marginWidth = 10;

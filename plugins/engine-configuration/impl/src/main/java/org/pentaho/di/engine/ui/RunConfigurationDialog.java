@@ -55,7 +55,7 @@ import java.util.Map;
  * Created by bmorrise on 3/15/17.
  */
 public class RunConfigurationDialog extends Dialog
-  implements org.pentaho.di.engine.configuration.api.RunConfigurationDialog {
+  implements org.pentaho.di.ui.engine.configuration.RunConfigurationDialog {
 
   private static Class<?> PKG = RunConfigurationDialog.class;
 

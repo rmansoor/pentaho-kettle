@@ -11,7 +11,7 @@
  ******************************************************************************/
 
 
-package org.pentaho.di.engine.configuration.impl.extension;
+package org.pentaho.di.engine.api.impl.extension;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,11 +20,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.base.AbstractMeta;
-import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.engine.configuration.impl.RunConfigurationManager;
-import org.pentaho.di.engine.configuration.impl.pentaho.DefaultRunConfiguration;
+import org.pentaho.di.engine.api.impl.RunConfigurationManager;
+import org.pentaho.di.engine.api.impl.pentaho.DefaultRunConfiguration;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.job.entries.trans.JobEntryTrans;
 import org.pentaho.di.job.entry.JobEntryCopy;

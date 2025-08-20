@@ -19,7 +19,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.exception.KettleException;
-import org.pentaho.di.core.parameters.UnknownParamException;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.repository.Repository;

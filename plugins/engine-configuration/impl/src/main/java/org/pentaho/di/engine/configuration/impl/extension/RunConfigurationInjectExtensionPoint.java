@@ -19,7 +19,7 @@ import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.engine.configuration.api.RunConfiguration;
+import org.pentaho.di.engine.configuration.RunConfiguration;
 import org.pentaho.di.engine.configuration.impl.EmbeddedRunConfigurationManager;
 import org.pentaho.di.engine.configuration.impl.RunConfigurationManager;
 import org.pentaho.di.job.Job;

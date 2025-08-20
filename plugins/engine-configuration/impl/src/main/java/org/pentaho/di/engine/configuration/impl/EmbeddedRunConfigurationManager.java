@@ -14,9 +14,8 @@
 package org.pentaho.di.engine.configuration.impl;
 
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
-import org.pentaho.di.engine.configuration.api.RunConfigurationProvider;
+import org.pentaho.di.engine.configuration.RunConfigurationProvider;
 import org.pentaho.di.engine.configuration.impl.pentaho.DefaultRunConfigurationProvider;
-import org.pentaho.metastore.api.IMetaStore;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -11,7 +11,7 @@
  ******************************************************************************/
 
 
-package org.pentaho.di.engine.configuration.impl;
+package org.pentaho.di.engine.api.impl;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,9 +20,9 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.engine.configuration.api.RunConfiguration;
 import org.pentaho.di.engine.configuration.api.RunConfigurationProvider;
-import org.pentaho.di.engine.configuration.impl.pentaho.DefaultRunConfiguration;
-import org.pentaho.di.engine.configuration.impl.pentaho.DefaultRunConfigurationExecutor;
-import org.pentaho.di.engine.configuration.impl.pentaho.DefaultRunConfigurationProvider;
+import org.pentaho.di.engine.api.impl.pentaho.DefaultRunConfiguration;
+import org.pentaho.di.engine.api.impl.pentaho.DefaultRunConfigurationExecutor;
+import org.pentaho.di.engine.api.impl.pentaho.DefaultRunConfigurationProvider;
 import org.pentaho.metastore.stores.memory.MemoryMetaStore;
 
 import java.util.ArrayList;

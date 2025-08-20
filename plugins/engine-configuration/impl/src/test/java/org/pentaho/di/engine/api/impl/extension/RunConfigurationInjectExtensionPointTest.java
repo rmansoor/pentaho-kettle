@@ -11,7 +11,7 @@
  ******************************************************************************/
 
 
-package org.pentaho.di.engine.configuration.impl.extension;
+package org.pentaho.di.engine.api.impl.extension;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +23,7 @@ import org.pentaho.di.core.Result;
 import org.pentaho.di.core.attributes.metastore.EmbeddedMetaStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.engine.configuration.api.RunConfiguration;
-import org.pentaho.di.engine.configuration.impl.RunConfigurationManager;
+import org.pentaho.di.engine.api.impl.RunConfigurationManager;
 import org.pentaho.di.job.Job;
 import org.pentaho.di.job.JobExecutionExtension;
 import org.pentaho.di.job.JobMeta;

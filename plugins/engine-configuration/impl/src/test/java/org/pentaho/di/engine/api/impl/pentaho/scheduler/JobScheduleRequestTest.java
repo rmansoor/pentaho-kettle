@@ -11,7 +11,7 @@
  ******************************************************************************/
 
 
-package org.pentaho.di.engine.configuration.impl.pentaho.scheduler;
+package org.pentaho.di.engine.api.impl.pentaho.scheduler;
 
 import org.junit.Assert;
 import org.junit.Test;

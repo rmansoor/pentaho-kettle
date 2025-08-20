@@ -11,7 +11,7 @@
  ******************************************************************************/
 
 
-package org.pentaho.di.engine.configuration.impl.pentaho.scheduler;
+package org.pentaho.di.engine.api.impl.pentaho.scheduler;
 
 import org.apache.http.entity.StringEntity;
 import org.junit.Before;
@@ -19,7 +19,6 @@ import org.junit.Test;
 import org.pentaho.di.base.AbstractMeta;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.core.parameters.UnknownParamException;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.repository.RepositoryDirectoryInterface;
