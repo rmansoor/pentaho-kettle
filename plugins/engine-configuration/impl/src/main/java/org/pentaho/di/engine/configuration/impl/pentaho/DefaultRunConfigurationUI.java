@@ -32,8 +32,8 @@ import org.pentaho.di.cluster.SlaveServerManagementInterface;
 import org.pentaho.di.core.bowl.Bowl;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.util.Utils;
-import org.pentaho.di.engine.configuration.api.RunConfigurationDialog;
-import org.pentaho.di.engine.configuration.api.RunConfigurationUI;
+import org.pentaho.di.ui.engine.configuration.RunConfigurationDialog;
+import org.pentaho.di.ui.engine.configuration.RunConfigurationUI;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.core.PropsUI;
@@ -64,15 +64,15 @@ public class DefaultRunConfigurationUI implements RunConfigurationUI {
     this.defaultRunConfiguration = defaultRunConfiguration;
   }
 
-  @Override public void attach( RunConfigurationDialog runConfigurationDialog ) {
-    this.runConfigurationDialog = runConfigurationDialog;
+  @Override public void attach( Object runConfigurationDialog ) {
+    this.runConfigurationDialog = (RunConfigurationDialog) runConfigurationDialog;
 
     FormLayout gformLayout = new FormLayout();
     gformLayout.marginWidth = 10;
     gformLayout.marginHeight = 10;
-    runConfigurationDialog.getGroup().setLayout( gformLayout );
+    this.runConfigurationDialog.getGroup().setLayout( gformLayout );
 
-    Composite wTarget = new Composite( runConfigurationDialog.getGroup(), SWT.NONE );
+    Composite wTarget = new Composite( this.runConfigurationDialog.getGroup(), SWT.NONE );
     wTarget.setLayout( new FormLayout() );
     props.setLook( wTarget );
 
@@ -114,7 +114,7 @@ public class DefaultRunConfigurationUI implements RunConfigurationUI {
     fdTarget.top = new FormAttachment( 0 );
     wTarget.setLayoutData( fdTarget );
 
-    Label vSpacer = new Label( runConfigurationDialog.getGroup(), SWT.VERTICAL | SWT.SEPARATOR );
+    Label vSpacer = new Label( this.runConfigurationDialog.getGroup(), SWT.VERTICAL | SWT.SEPARATOR );
     FormData fdvSpacer = new FormData();
     fdvSpacer.width = 1;
     fdvSpacer.left = new FormAttachment( wTarget, 30 );
@@ -122,7 +122,7 @@ public class DefaultRunConfigurationUI implements RunConfigurationUI {
     fdvSpacer.bottom = new FormAttachment( 100, 0 );
     vSpacer.setLayoutData( fdvSpacer );
 
-    Composite wcLocal = new Composite( runConfigurationDialog.getGroup(), SWT.NONE );
+    Composite wcLocal = new Composite( this.runConfigurationDialog.getGroup(), SWT.NONE );
     props.setLook( wcLocal );
     wcLocal.setLayout( new GridLayout() );
 
@@ -141,7 +141,7 @@ public class DefaultRunConfigurationUI implements RunConfigurationUI {
     fdcLocal.bottom = new FormAttachment( 100 );
     wcLocal.setLayoutData( fdcLocal );
 
-    Composite wcPentaho = new Composite( runConfigurationDialog.getGroup(), SWT.NONE );
+    Composite wcPentaho = new Composite( this.runConfigurationDialog.getGroup(), SWT.NONE );
     props.setLook( wcPentaho );
     wcPentaho.setLayout( new GridLayout() );
 
@@ -160,7 +160,7 @@ public class DefaultRunConfigurationUI implements RunConfigurationUI {
     fdcPentaho.bottom = new FormAttachment( 100 );
     wcPentaho.setLayoutData( fdcPentaho );
 
-    Composite wcRemote = new Composite( runConfigurationDialog.getGroup(), SWT.NONE );
+    Composite wcRemote = new Composite( this.runConfigurationDialog.getGroup(), SWT.NONE );
     props.setLook( wcRemote );
     wcRemote.setLayout( new FormLayout() );
 

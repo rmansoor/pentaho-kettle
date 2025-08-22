@@ -14,7 +14,7 @@
 package org.pentaho.di.engine.configuration.impl.pentaho;
 
 import org.pentaho.di.engine.configuration.api.RunConfiguration;
-import org.pentaho.di.engine.configuration.api.RunConfigurationUI;
+import org.pentaho.di.ui.engine.configuration.RunConfigurationUI;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 
@@ -153,7 +153,7 @@ public class DefaultRunConfiguration implements RunConfiguration {
     this.pentaho = pentaho;
   }
 
-  @Override public RunConfigurationUI getUI() {
+  @Override public Object getUI() {
     return new DefaultRunConfigurationUI( this );
   }
 }

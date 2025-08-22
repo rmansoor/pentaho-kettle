@@ -44,6 +44,7 @@ import org.pentaho.di.engine.configuration.impl.pentaho.DefaultRunConfiguration;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.ConstUI;
 import org.pentaho.di.ui.core.PropsUI;
+import org.pentaho.di.ui.engine.configuration.RunConfigurationUI;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.di.ui.util.SwtSvgImageUtil;
 
@@ -55,7 +56,7 @@ import java.util.Map;
  * Created by bmorrise on 3/15/17.
  */
 public class RunConfigurationDialog extends Dialog
-  implements org.pentaho.di.engine.configuration.api.RunConfigurationDialog {
+  implements org.pentaho.di.ui.engine.configuration.RunConfigurationDialog {
 
   private static Class<?> PKG = RunConfigurationDialog.class;
 
@@ -274,7 +275,7 @@ public class RunConfigurationDialog extends Dialog
     }
 
     clearOptions();
-    runConfiguration.getUI().attach( this );
+    ((RunConfigurationUI) runConfiguration.getUI()).attach( (Object) this );
     gOptions.layout();
     shell.pack();
 

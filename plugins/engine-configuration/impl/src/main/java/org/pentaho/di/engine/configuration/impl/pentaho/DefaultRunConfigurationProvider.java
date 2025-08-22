@@ -13,7 +13,6 @@
 
 package org.pentaho.di.engine.configuration.impl.pentaho;
 
-import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.service.PluginServiceLoader;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.engine.configuration.api.RunConfiguration;
@@ -23,7 +22,6 @@ import org.pentaho.di.engine.configuration.impl.CheckedMetaStoreSupplier;
 import org.pentaho.di.engine.configuration.impl.MetaStoreRunConfigurationFactory;
 import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.trans.TransMeta;
-import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.locator.api.MetastoreLocator;
 import org.pentaho.metastore.persist.MetaStoreFactory;

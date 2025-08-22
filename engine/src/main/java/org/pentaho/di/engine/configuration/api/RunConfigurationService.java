@@ -14,8 +14,10 @@
 package org.pentaho.di.engine.configuration.api;
 
 /**
- * Created by bmorrise on 8/22/17.
+ * Created by bmorrise on 3/14/17.
  */
-public interface RunConfigurationUI {
-  void attach( RunConfigurationDialog runConfigurationDialog );
+public interface RunConfigurationService extends RunConfigurationFactory {
+  String[] getTypes();
+  RunConfiguration getRunConfigurationByType( String type );
+  RunConfigurationExecutor getExecutor(String type );
 }
