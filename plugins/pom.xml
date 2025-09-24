@@ -61,6 +61,27 @@
         <module>mail-validator</module>
         <module>get-file-with-ftp</module>
         <module>msg-box-info</module>
+        <!-- Restructured Step Plugins -->
+        <module>calculator</module>
+        <module>constant</module>
+        <module>databasejoin</module>
+        <module>databaselookup</module>
+        <module>datagrid</module>
+        <module>detectlastrow</module>
+        <module>detectemptystream</module>
+        <module>fieldsplitter</module>
+        <module>filterrows</module>
+        <module>getfilenames</module>
+        <module>groupby</module>
+        <module>jobexecutor</module>
+        <module>mapping</module>
+        <module>selectvalues</module>
+        <module>sort</module>
+        <module>tableinput</module>
+        <module>tableoutput</module>
+        <module>textfileinput</module>
+        <module>textfileoutput</module>
+        <module>csvinput</module>
       </modules>
     </profile>
 
