@@ -33,7 +33,9 @@ import org.pentaho.di.core.logging.SimpleLoggingObject;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.job.Job;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.trans.Trans;
+import org.pentaho.di.trans.TransMeta;
 
 public class CarteSingleton {
 
@@ -152,18 +154,41 @@ public class CarteSingleton {
                     = ( int ) Math.floor( ( System.currentTimeMillis() - trans.getLogDate().getTime() ) / 60000 );
                   if ( diffInMinutes >= objectTimeout ) {
 
-                    // Clean up repository resources to prevent memory leaks
+                    // Clean up all resources to prevent memory leaks
                     // This is critical for releasing JackRabbit CachingHierarchyManager instances
                     try {
                       if ( trans.getRepository() != null ) {
                         // Clear any cached repository metadata
-                        trans.getTransMeta().setRepository( null );
-                        log.logMinimal( "Cleaned any cached repository metadata" );
+                        TransMeta transMetaRef = trans.getTransMeta();
+                        if ( transMetaRef != null ) {
+                          transMetaRef.setRepository( null );
+                        }
                       }
                       // Explicitly clear the repository reference to allow garbage collection
                       trans.setRepository( null );
+                      
+                      // Clear listeners to break circular references
+                      trans.getTransListeners().clear();
+                      trans.getTransStoppedListeners().clear();
+                      
+                      // Clear active sub-transformations and jobs
+                      if ( trans.getActiveSubtransformations() != null ) {
+                        trans.getActiveSubtransformations().clear();
+                      }
+                      if ( trans.getActiveSubjobs() != null ) {
+                        trans.getActiveSubjobs().clear();
+                      }
+                      
+                      // Clear steps and rowsets
+                      if ( trans.getSteps() != null ) {
+                        trans.getSteps().clear();
+                      }
+                      if ( trans.getRowsets() != null ) {
+                        trans.getRowsets().clear();
+                      }
+                      
                     } catch ( Exception e ) {
-                      log.logError( "Error cleaning up repository resources for transformation " + entry.getName(), e );
+                      log.logError( "Error cleaning up resources for transformation " + entry.getName(), e );
                     }
 
                     // Let's remove this from the transformation map...
@@ -197,18 +222,34 @@ public class CarteSingleton {
                     String id = jobMap.getJob( entry ).getLogChannelId();
                     LoggingRegistry.getInstance().removeLogChannelFileWriterBuffer( id );
 
-                    // Clean up repository resources to prevent memory leaks
+                    // Clean up all resources to prevent memory leaks
                     // This is critical for releasing JackRabbit CachingHierarchyManager instances
                     try {
                       if ( job.getRep() != null ) {
                         // Clear any cached repository metadata
-                        job.getJobMeta().setRepository( null );
-                        log.logMinimal( "Cleaned any cached repository metadata" );
+                        JobMeta jobMeta = job.getJobMeta();
+                        if ( jobMeta != null ) {
+                          jobMeta.setRepository( null );
+                        }
                       }
-                      // Explicitly clear the repository reference to allow garbage collection
-                      job.setRepository( null );
+                      
+                      // Clear listeners to break circular references
+                      job.getJobListeners().clear();
+                      job.getJobEntryListeners().clear();
+                      
+                      // Clear active sub-jobs and transformations
+                      if ( job.getActiveJobEntryTransformations() != null ) {
+                        job.getActiveJobEntryTransformations().clear();
+                      }
+                      if ( job.getActiveJobEntryJobs() != null ) {
+                        job.getActiveJobEntryJobs().clear();
+                      }
+                      
+                      // Clear job entry results
+                      job.getJobEntryResults().clear();
+                      
                     } catch ( Exception e ) {
-                      log.logError( "Error cleaning up repository resources for job " + entry.getName(), e );
+                      log.logError( "Error cleaning up resources for job " + entry.getName(), e );
                     }
 
                     jobMap.removeJob( entry );
