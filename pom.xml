@@ -57,10 +57,13 @@
     <pentaho-metastore.version>11.1.0.0-SNAPSHOT</pentaho-metastore.version>
 
     <!-- Third-party dependencies -->
+    <!-- CVE-2023-4218: JFace 3.31.0 fixes XXE vulnerability (CWE-611) in XML parsing -->
+    <!-- Centralized jface.version ensures all modules use non-vulnerable version -->
+    <!-- All plugins inherit this property; overrides removed for version consistency -->
     <org.eclipse.swt.version>4.6</org.eclipse.swt.version>
     <encoder.version>1.2</encoder.version>
     <jsch.version>0.2.9</jsch.version>
-    <jface.version>3.3.0-I20070606-0010</jface.version>
+    <jface.version>3.31.0</jface.version>
     <monetdb-jdbc.version>2.8</monetdb-jdbc.version>
     <commons-configuration2.version>2.10.1</commons-configuration2.version>
 
@@ -168,12 +171,30 @@
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.jface</artifactId>
-        <version>3.22.0</version>
+        <version>${jface.version}</version>
+        <exclusions>
+          <!-- Prevent old org.eclipse:jface from being pulled in transitively (CVE-2023-4218) -->
+          <exclusion>
+            <groupId>org.eclipse</groupId>
+            <artifactId>jface</artifactId>
+          </exclusion>
+          <!-- Wildcard exclusion to catch all old eclipse artifacts -->
+          <exclusion>
+            <groupId>org.eclipse</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.core.commands</artifactId>
-        <version>3.9.800</version>
+        <version>3.11.100</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.eclipse</groupId>
+            <artifactId>*</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
