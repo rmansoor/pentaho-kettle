@@ -18,6 +18,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.pentaho.di.core.bowl.DefaultBowl;
 import org.pentaho.di.core.KettleClientEnvironment;
@@ -65,7 +66,6 @@ public class JsonOutputAnalyzerTest {
   private TransMeta transMeta;
   @Mock
   private RowMetaInterface mockRowMetaInterface;
-
   private IMetaverseBuilder mockBuilder;
   private INamespace mockNamespace;
 
@@ -79,8 +79,8 @@ public class JsonOutputAnalyzerTest {
   @Before
   public void setUp() throws Exception {
 
-    mockBuilder = mock( IMetaverseBuilder.class );
-    mockNamespace = mock( INamespace.class );
+    mockBuilder = Mockito.mock( IMetaverseBuilder.class );
+    mockNamespace = Mockito.mock( INamespace.class );
     mockFactory = new MetaverseObjectFactory();
     when( mockBuilder.getMetaverseObjectFactory() ).thenReturn( mockFactory );
     lenient().when( mockNamespace.getParentNamespace() ).thenReturn( mockNamespace );

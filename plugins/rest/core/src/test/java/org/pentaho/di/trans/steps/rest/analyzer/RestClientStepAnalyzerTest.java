@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 /**
  * Created by rfellows on 5/11/15.
  */
-@RunWith( MockitoJUnitRunner.StrictStubs.class )
+@RunWith( MockitoJUnitRunner.class )
 public class RestClientStepAnalyzerTest {
 
   private RestClientStepAnalyzer analyzer;

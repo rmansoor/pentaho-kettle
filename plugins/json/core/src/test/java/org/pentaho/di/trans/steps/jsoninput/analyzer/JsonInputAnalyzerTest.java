@@ -69,7 +69,6 @@ public class JsonInputAnalyzerTest {
   private TransMeta transMeta;
   @Mock
   private RowMetaInterface mockRowMetaInterface;
-
   private IMetaverseBuilder mockBuilder;
   private INamespace mockNamespace;
 
@@ -83,8 +82,8 @@ public class JsonInputAnalyzerTest {
   @Before
   public void setUp() throws Exception {
 
-    mockBuilder = mock( IMetaverseBuilder.class );
-    mockNamespace = mock( INamespace.class );
+    mockBuilder = Mockito.mock( IMetaverseBuilder.class );
+    mockNamespace = Mockito.mock( INamespace.class );
     mockFactory = new MetaverseObjectFactory();
     when( mockBuilder.getMetaverseObjectFactory() ).thenReturn( mockFactory );
     lenient().when( mockNamespace.getParentNamespace() ).thenReturn( mockNamespace );
