@@ -35,4 +35,25 @@
     </license>
   </licenses>
 
+  <build>
+    <plugins>
+      <!--
+        The CE parent pom binds the failsafe integration-test goal to every module, including the
+        pom-packaged aggregators (kafka, kafka-assemblies, pentaho-streaming-kafka-plugin). When the
+        reactor is run with -DrunITs together with -Dit.test=..., failsafe treats the absence of a
+        matching test in those pom modules as a fatal error ("No tests were executed!"). Relaxing
+        these two flags lets the reactor build run the real ITs in the core module while the modules
+        that legitimately have no integration tests pass instead of failing the whole build.
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <failIfNoTests>false</failIfNoTests>
+          <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
