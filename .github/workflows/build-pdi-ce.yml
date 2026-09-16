@@ -1,0 +1,112 @@
+name: Build PDI-CE
+
+# Builds the assemblies/client module (artifactId: pdi-ce, "PDI Client Community
+# Edition") and uploads the resulting zip as a workflow artifact.
+#
+# NOTE: this reactor's parent POM (org.pentaho:pentaho-ce-jar-parent-pom) and a
+# number of internal dependencies resolve from Hitachi Vantara's private
+# Artifactory (https://one.hitachivantara.com/artifactory/maven), not Maven
+# Central. For this workflow to succeed on GitHub-hosted runners you must:
+#   1. Add repository secrets ARTIFACTORY_USERNAME / ARTIFACTORY_PASSWORD
+#      (Settings -> Secrets and variables -> Actions) with read access to that
+#      Artifactory instance.
+#   2. Confirm that instance accepts connections from GitHub Actions' runner IP
+#      ranges (it may be network- or VPN-restricted; this is unverified from
+#      here).
+#
+# JDK: set to 11 to match this branch's era (Pentaho 10.1-line). Adjust
+# java-version below if a build fails on javac/API mismatches.
+
+on:
+  push:
+    branches: [ "9.3", "9.4", "10.1" ]
+  pull_request:
+    branches: [ "9.3", "9.4", "10.1" ]
+  workflow_dispatch: {}
+
+jobs:
+  build-pdi-ce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "11"
+          cache: maven
+
+      - name: Configure Maven settings (private Artifactory)
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'EOF'
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+            <servers>
+              <server>
+                <id>maven</id>
+                <username>${env.ARTIFACTORY_USERNAME}</username>
+                <password>${env.ARTIFACTORY_PASSWORD}</password>
+              </server>
+            </servers>
+            <profiles>
+              <profile>
+                <id>hv-artifactory</id>
+                <repositories>
+                  <repository>
+                    <id>maven</id>
+                    <url>https://one.hitachivantara.com/artifactory/maven</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                  </repository>
+                </repositories>
+                <pluginRepositories>
+                  <pluginRepository>
+                    <id>maven</id>
+                    <url>https://one.hitachivantara.com/artifactory/maven</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                  </pluginRepository>
+                </pluginRepositories>
+              </profile>
+            </profiles>
+            <activeProfiles>
+              <activeProfile>hv-artifactory</activeProfile>
+            </activeProfiles>
+          </settings>
+          EOF
+        env:
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
+      - name: Build pdi-ce (assemblies/client + required reactor modules)
+        # No Maven wrapper is checked into this repo; use the Maven bundled on
+        # the runner image (currently a recent 3.9.x).
+        run: >
+          mvn -B -ntp
+          -pl assemblies/client -am
+          -DskipTests -Dmaven.javadoc.skip=true
+          clean package
+        env:
+          MAVEN_OPTS: -Xmx4g
+
+      - name: Locate built zip
+        id: artifact
+        run: |
+          zip_path=$(find assemblies/client/target -maxdepth 1 -name 'pdi-ce-*.zip' | head -1)
+          if [ -z "$zip_path" ]; then
+            echo "no pdi-ce zip found under assemblies/client/target" >&2
+            exit 1
+          fi
+          echo "path=$zip_path" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$zip_path")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload pdi-ce artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ steps.artifact.outputs.path }}
+          retention-days: 14
