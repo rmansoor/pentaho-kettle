@@ -104,6 +104,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-license</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>pdi-engine-api</artifactId>
       <version>${project.version}</version>

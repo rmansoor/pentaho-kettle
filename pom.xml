@@ -284,6 +284,7 @@
       <modules>
         <module>engine-ext</module>
         <module>core</module>
+        <module>license</module>
         <module>engine</module>
         <module>dbdialog</module>
         <module>ui</module>
