@@ -20,7 +20,7 @@
   <properties>
     <!-- Test running configuration -->
     <maven-surefire-plugin.reuseForks>true</maven-surefire-plugin.reuseForks>
-    <maven-surefire-plugin.argLine>-noverify</maven-surefire-plugin.argLine>
+    <maven-surefire-plugin.argLine>-noverify ${java21.test.argLine}</maven-surefire-plugin.argLine>
     <maven-failsafe-plugin.reuseForks>false</maven-failsafe-plugin.reuseForks>
 
     <!-- Pentaho dependencies -->
@@ -78,7 +78,7 @@
     <js.version>1.7R3</js.version>
     <mail.version>1.6.1</mail.version>
     <mstor.version>0.9.13</mstor.version>
-    <snappy-java.version>1.1.0</snappy-java.version>
+    <snappy-java.version>1.1.10.8</snappy-java.version>
     <commons-cli.version>1.2</commons-cli.version>
     <log4jdbc.version>1.2</log4jdbc.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
@@ -866,7 +866,7 @@
     <dependency>
       <groupId>com.cronutils</groupId>
       <artifactId>cron-utils</artifactId>
-      <version>9.1.6</version>
+      <version>9.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -916,11 +916,12 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock2.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
     </dependency>
 

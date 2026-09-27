@@ -87,7 +87,7 @@ public class GetJobStatusServletTest {
     getJobStatusServlet.doGet( mockHttpServletRequest, mockHttpServletResponse );
 
     assertFalse( ServletTestUtils.hasBadText( ServletTestUtils.getInsideOfTag( "H1", out.toString() ) ) );
-    PowerMockito.verifyStatic( atLeastOnce() );
+    PowerMockito.verifyStatic( Encode.class, atLeastOnce() );
     Encode.forHtml( anyString() );
 
   }
@@ -117,7 +117,7 @@ public class GetJobStatusServletTest {
     getJobStatusServlet.doGet( mockHttpServletRequest, mockHttpServletResponse );
     assertFalse( out.toString().contains( ServletTestUtils.BAD_STRING_TO_TEST ) );
 
-    PowerMockito.verifyStatic( atLeastOnce() );
+    PowerMockito.verifyStatic( Encode.class, atLeastOnce() );
     Encode.forHtml( anyString() );
   }
 

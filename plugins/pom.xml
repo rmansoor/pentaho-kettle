@@ -91,6 +91,8 @@
         <module>ldap</module>
         <module>excel</module>
         <module>pentaho-reporting</module>
+        <module>s3-vfs</module>
+        <module>kafka</module>
       </modules>
     </profile>
 

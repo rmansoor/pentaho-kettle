@@ -61,7 +61,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
+import static org.powermock.reflect.Whitebox.setInternalState;
 
 @RunWith( PowerMockRunner.class )
 @PowerMockIgnore( "jdk.internal.reflect.*" )

@@ -126,8 +126,8 @@ public class CalculatorUnitTest {
     boolean processed = calculator.processRow( meta, new CalculatorData() );
     verify( calculator, times( 1 ) ).logError( argThat( new ArgumentMatcher<String>() {
       @Override
-      public boolean matches( Object o ) {
-        return ((String) o ).contains( BaseMessages.getString( PKG, "Calculator.Log.NoFile" ) );
+      public boolean matches( String o ) {
+        return o.contains( BaseMessages.getString( PKG, "Calculator.Log.NoFile" ) );
       }
     } ) );
     assertFalse( processed );

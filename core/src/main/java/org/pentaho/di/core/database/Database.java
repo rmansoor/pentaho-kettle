@@ -133,7 +133,6 @@ public class Database implements VariableSpace, LoggingObjectInterface, Closeabl
 
   private DatabaseMeta databaseMeta;
 
-  private static final String DATA_SERVICES_PLUGIN_ID = "KettleThin";
 
   private int rowlimit;
   private int commitsize;
@@ -2399,11 +2398,7 @@ public class Database implements VariableSpace, LoggingObjectInterface, Closeabl
         //
         fields = getQueryFieldsFromPreparedStatement( sql );
       } else {
-        if ( isDataServiceConnection() ) {
-          fields = getQueryFieldsFromDatabaseMetaData( sql );
-        } else {
-          fields = getQueryFieldsFromDatabaseMetaData();
-        }
+        fields = getQueryFieldsFromDatabaseMetaData();
       }
     } catch ( Exception e ) {
       fields = getQueryFieldsFallback( sql, param, inform, data );
@@ -2415,10 +2410,6 @@ public class Database implements VariableSpace, LoggingObjectInterface, Closeabl
     }
 
     return fields;
-  }
-
-  private boolean isDataServiceConnection() {
-    return DATA_SERVICES_PLUGIN_ID.equals( databaseMeta.getPluginId() );
   }
 
   public RowMetaInterface getQueryFieldsFromPreparedStatement( String sql ) throws Exception {

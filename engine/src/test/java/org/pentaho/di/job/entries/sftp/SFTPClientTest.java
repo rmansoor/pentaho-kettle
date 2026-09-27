@@ -52,15 +52,15 @@ public class SFTPClientTest {
   private String password = "password";
   private Session session = mock( Session.class );
   private ChannelSftp channel = mock( ChannelSftp.class );
-  private InetAddress server = mock( InetAddress.class );
+  // Java 21: InetAddress is sealed and can't be mocked; a real loopback address works the same here
+  private InetAddress server = InetAddress.getLoopbackAddress();
   private JSch jSch = mock( JSch.class );
 
   @Before
   public void setUp() throws JSchException {
     System.clearProperty( SFTPClient.ENV_PARAM_USERAUTH_GSSAPI );
 
-    when( server.getHostAddress() ).thenReturn( "localhost" );
-    when( jSch.getSession( username, "localhost", port ) ).thenReturn( session );
+    when( jSch.getSession( username, server.getHostAddress(), port ) ).thenReturn( session );
     when( session.openChannel( "sftp" ) ).thenReturn( channel );
   }
 

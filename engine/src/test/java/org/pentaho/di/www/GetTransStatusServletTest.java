@@ -85,7 +85,7 @@ public class GetTransStatusServletTest {
     getTransStatusServlet.doGet( mockHttpServletRequest, mockHttpServletResponse );
     assertFalse( ServletTestUtils.hasBadText( ServletTestUtils.getInsideOfTag( "H1", out.toString() ) ) );
 
-    PowerMockito.verifyStatic( atLeastOnce() );
+    PowerMockito.verifyStatic( Encode.class, atLeastOnce() );
     Encode.forHtml( anyString() );
   }
 
@@ -113,7 +113,7 @@ public class GetTransStatusServletTest {
     getTransStatusServlet.doGet( mockHttpServletRequest, mockHttpServletResponse );
     assertFalse( ServletTestUtils.hasBadText( ServletTestUtils.getInsideOfTag( "TITLE", out.toString() ) ) );
 
-    PowerMockito.verifyStatic( atLeastOnce() );
+    PowerMockito.verifyStatic( Encode.class, atLeastOnce() );
     Encode.forHtml( anyString() );
   }
 

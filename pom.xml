@@ -47,7 +47,22 @@
 
   <properties>
     <maven.build.timestamp.format>yyyy-MM-dd hh.mm.ss</maven.build.timestamp.format>
-    <maven-surefire-plugin.argLine>-Duser.timezone=UTC -Dfile.encoding=UTF-8 -Duser.language=en -Duser.country=US -Djava.locale.providers=COMPAT,SPI</maven-surefire-plugin.argLine>
+    <!-- Java 21: packages PDI and its libraries reach into reflectively; same list as the launch scripts -->
+    <jdk.add-opens.argLine>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.math=ALL-UNNAMED --add-opens=java.base/java.security=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.net.www.protocol.jar=ALL-UNNAMED --add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED --add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED --add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED --add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED --add-opens=java.base/sun.reflect.misc=ALL-UNNAMED --add-opens=java.management/javax.management=ALL-UNNAMED --add-opens=java.management/javax.management.openmbean=ALL-UNNAMED --add-opens=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED</jdk.add-opens.argLine>
+    <!-- tests only: Pan/Kitchen tests trap System.exit with a SecurityManager (Java 18+ refuses it unless allowed) -->
+    <!-- PowerMock deep-clones into these JDK packages -->
+    <powermock.add-opens.argLine>--add-opens=java.base/java.util.regex=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.ref=ALL-UNNAMED --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED --add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED --add-opens=java.sql/java.sql=ALL-UNNAMED --add-opens=java.base/java.util.stream=ALL-UNNAMED --add-opens=java.base/java.util.function=ALL-UNNAMED --add-opens=java.logging/java.util.logging=ALL-UNNAMED --add-opens=java.desktop/sun.awt=ALL-UNNAMED</powermock.add-opens.argLine>
+    <java21.test.argLine>${jdk.add-opens.argLine} ${powermock.add-opens.argLine} -Djava.security.manager=allow</java21.test.argLine>
+    <maven-surefire-plugin.argLine>-Duser.timezone=UTC -Dfile.encoding=UTF-8 -Duser.language=en -Duser.country=US -Djava.locale.providers=COMPAT,SPI ${java21.test.argLine}</maven-surefire-plugin.argLine>
+
+    <!-- Java 21 baseline: overrides pentaho-parent-pom (release 8, compiler plugin 3.7.0) -->
+    <maven.compiler.release>21</maven.compiler.release>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <!-- bnd in bundle-plugin 2.5.3 can't read Java 21 class files -->
+    <maven-bundle-plugin.version>6.0.0</maven-bundle-plugin.version>
+    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+    <byte-buddy.version>1.17.8</byte-buddy.version>
+    <powermock2.version>2.0.9</powermock2.version>
 
     <!-- License Configuration -->
     <license.licenseName>apache_v2</license.licenseName>
@@ -59,8 +74,39 @@
     <!-- Third-party dependencies -->
     <org.eclipse.swt.version>4.6</org.eclipse.swt.version>
     <js.version>1.7R3</js.version>
-    <commons-beanutils.version>1.9.3</commons-beanutils.version>
+    <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <guava.version>17.0</guava.version>
+
+    <!-- CVE remediation: overrides of versions inherited from pentaho-parent-pom -->
+    <log4j.version>2.25.5</log4j.version>
+    <postgresql.version>42.7.13</postgresql.version>
+    <httpclient.version>4.5.14</httpclient.version>
+    <httpcore.version>4.4.16</httpcore.version>
+    <xstream.version>1.4.21</xstream.version>
+    <snowflake-jdbc.version>3.28.0</snowflake-jdbc.version>
+    <commons-io.version>2.22.0</commons-io.version>
+
+    <!-- CVE remediation, Step 2 -->
+    <fasterxml-jackson.version>2.18.11</fasterxml-jackson.version>
+    <fasterxml-jackson-databind.version>2.18.11</fasterxml-jackson-databind.version>
+    <!-- snakeyaml 2.x: the version jackson-dataformat-yaml 2.18 is built against -->
+    <snakeyaml.version>2.3</snakeyaml.version>
+    <!-- last 9.4 release; Jetty 12 needs Carte's server setup rewritten -->
+    <jetty.version>9.4.58.v20250814</jetty.version>
+    <!-- last open-source 5.x releases; 6.x moves to jakarta.* which the Pentaho platform libraries don't support -->
+    <spring.version>5.3.39</spring.version>
+    <spring-security.version>5.8.16</spring-security.version>
+    <commons-compress.version>1.28.0</commons-compress.version>
+    <!-- commons-compress 1.28 needs commons-codec 1.19+ and commons-lang3 3.18+ -->
+    <commons-codec.version>1.19.0</commons-codec.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
+    <!-- H2 2.2+ can't open 2.1 database files; samples/db/sampledb.mv.db was rebuilt from backup.sql -->
+    <h2.version>2.3.232</h2.version>
+    <!-- 1.4.1 comes in through pentaho-vfs-browser -->
+    <commons-net.version>3.13.0</commons-net.version>
+    <!-- batik also reaches pdi-core-plugins through the reporting engine; managed here for every copy -->
+    <batik.version>1.19</batik.version>
+    <xmlgraphics-commons.version>2.11</xmlgraphics-commons.version>
     <encoder.version>1.2</encoder.version>
     <wstx-asl.version>3.2.4</wstx-asl.version>
 
@@ -119,6 +165,12 @@
         <artifactId>org.eclipse.jface</artifactId>
         <version>3.22.0</version>
       </dependency>
+      <!-- jface pulls org.eclipse.swt via an open version range; pin it so builds are reproducible -->
+      <dependency>
+        <groupId>org.eclipse.platform</groupId>
+        <artifactId>org.eclipse.swt</artifactId>
+        <version>3.120.0</version>
+      </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.core.commands</artifactId>
@@ -155,6 +207,123 @@
             <artifactId>*</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <!-- Java 21: Mockito 3.12's Byte Buddy (1.11) can't instrument class version 65 -->
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>${byte-buddy.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy-agent</artifactId>
+        <version>${byte-buddy.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-net</groupId>
+        <artifactId>commons-net</artifactId>
+        <version>${commons-net.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-anim</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-awt-util</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-bridge</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-codec</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-constants</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-css</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-dom</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-ext</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-gui-util</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-gvt</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-i18n</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-parser</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-script</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-svg-dom</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-transcoder</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-util</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>batik-xml</artifactId>
+        <version>${batik.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlgraphics</groupId>
+        <artifactId>xmlgraphics-commons</artifactId>
+        <version>${xmlgraphics-commons.version}</version>
+      </dependency>
+      <!-- force a single patched commons-io, including transitive copies (e.g. xmlgraphics-commons pulls 1.3.1) -->
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>${commons-io.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -233,11 +402,39 @@
         <version>${powermock-api-mockito.version}</version>
         <scope>test</scope>
       </dependency>
+      <!-- Java 21: PowerMock 1.7.3's runner breaks on Java 12+; 2.0.9 pairs with Mockito 2+/3 -->
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-api-mockito2</artifactId>
+        <version>${powermock2.version}</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <build>
     <plugins>
+      <!-- fail fast with a clear message instead of "release version 21 not supported" -->
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>require-java-21</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[21,)</version>
+                  <message>pentaho-kettle builds for Java 21. Run Maven with a JDK 21 (e.g. set JAVA_HOME, or `jenv local 21` in this directory).</message>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>

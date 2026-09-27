@@ -55,7 +55,6 @@ import org.pentaho.di.core.plugins.DatabasePluginType;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.plugins.PluginTypeListener;
-import org.pentaho.di.core.util.Utils;
 import org.pentaho.ui.database.Messages;
 import org.pentaho.ui.util.Launch;
 import org.pentaho.ui.util.Launch.Status;
@@ -108,10 +107,6 @@ public class DataHandler extends AbstractXulEventHandler {
   public static final SortedMap<String, DatabaseInterface> connectionMap = new TreeMap<>();
   public static final Map<String, String> connectionNametoID = new HashMap<>();
 
-  // Kettle thin related
-  private static final String EXTRA_OPTION_WEB_APPLICATION_NAME = BaseDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION
-    + "KettleThin.webappname";
-  private static final String DEFAULT_WEB_APPLICATION_NAME = "pentaho";
   private static final String SNOWFLAKE_TYPE = "SNOWFLAKEHV";
   private static final String EXTRA_OPT_WAREHOUSE = ATTRIBUTE_PREFIX_EXTRA_OPTION + SNOWFLAKE_TYPE + "." + WAREHOUSE;
 
@@ -204,9 +199,6 @@ public class DataHandler extends AbstractXulEventHandler {
 
   // MySQL specific
   private XulCheckbox resultStreamingCursorCheck;
-
-  // Hitachi Vantara data services specific
-  private XulTextbox webAppName;
 
   // ==== Options Panel ==== //
 
@@ -851,12 +843,6 @@ public class DataHandler extends AbstractXulEventHandler {
       return;
     }
 
-    if ( meta.getAttributes().containsKey( EXTRA_OPTION_WEB_APPLICATION_NAME ) ) {
-      meta.setDBName( (String) meta.getAttributes().get( EXTRA_OPTION_WEB_APPLICATION_NAME ) );
-      meta.getAttributes().remove( EXTRA_OPTION_WEB_APPLICATION_NAME );
-      meta.setChanged();
-    }
-
     getControls();
 
     // Name:
@@ -1448,10 +1434,6 @@ public class DataHandler extends AbstractXulEventHandler {
       meta.getAttributes().put( IAM_PROFILE_NAME, iamProfileName.getValue() );
     }
 
-    if ( webAppName != null ) {
-      meta.setDBName( webAppName.getValue() );
-    }
-
     if ( namedClusterList != null ) {
 
       meta.getDatabaseInterface().setNamedCluster( namedClusterList.getValue() );
@@ -1614,15 +1596,6 @@ public class DataHandler extends AbstractXulEventHandler {
     if ( iamProfileName != null ) {
       iamProfileName.setValue( meta.getAttributes().getProperty( IAM_PROFILE_NAME ) );
     }
-
-    if ( webAppName != null ) {
-      // Insert default value only for new connection, allowing it to be empty in case of editing existing one
-      if ( databaseMeta == null || Utils.isEmpty( databaseMeta.getDisplayName() ) ) {
-        webAppName.setValue( DEFAULT_WEB_APPLICATION_NAME );
-      } else {
-        webAppName.setValue( meta.getDatabaseName() );
-      }
-    }
   }
 
   protected void getControls() {
@@ -1653,7 +1626,6 @@ public class DataHandler extends AbstractXulEventHandler {
     clientBox = (XulTextbox) document.getElementById( "client-text" );
     doubleDecimalSeparatorCheck = (XulCheckbox) document.getElementById( "decimal-separator-check" );
     resultStreamingCursorCheck = (XulCheckbox) document.getElementById( "result-streaming-check" );
-    webAppName = (XulTextbox) document.getElementById( "web-application-name-text" );
     poolingCheck = (XulCheckbox) document.getElementById( "use-pool-check" );
     clusteringCheck = (XulCheckbox) document.getElementById( "use-cluster-check" );
     clusterParameterDescriptionLabel = (XulLabel) document.getElementById( "cluster-parameter-description-label" );

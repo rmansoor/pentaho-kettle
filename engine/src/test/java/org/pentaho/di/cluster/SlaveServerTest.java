@@ -190,7 +190,7 @@ public class SlaveServerTest {
     when( client.execute( any(), any( HttpContext.class ) ) ).then( new Answer<HttpResponse>() {
       @Override
       public HttpResponse answer( InvocationOnMock invocation ) throws Throwable {
-        HttpClientContext context = invocation.getArgumentAt( 1, HttpClientContext.class );
+        HttpClientContext context = invocation.getArgument( 1 );
         Credentials cred = context.getCredentialsProvider().getCredentials( new AuthScope( "hname", 1111 ) );
         assertEquals( "uname", cred.getUserPrincipal().getName() );
         return mockResponse( 200, responseContent );

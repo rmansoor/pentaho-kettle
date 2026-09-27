@@ -216,6 +216,8 @@ public class WebServer {
     constraintMapping.setPathSpec( "/*" );
 
     securityHandler.setConstraintMappings( new ConstraintMapping[] { constraintMapping } );
+    // Jetty 9.4.19+ no longer derives the authenticator from the constraint name; without this every request is 403
+    securityHandler.setAuthMethod( Constraint.__BASIC_AUTH );
 
     // Add all the servlets defined in kettle-servlets.xml ...
     //

@@ -200,7 +200,8 @@ public class XMLHandlerUnitTest {
   @Test
   public void addTagValueBinary() throws IOException {
     byte[] input = "Test Data".getBytes();
-    String result = "H4sIAAAAAAAAAAtJLS5RcEksSQQAL4PL8QkAAAA=";
+    // Java 16+ GZIPOutputStream writes OS=255 ("unknown") in the gzip header, hence "/w" instead of "AA"
+    String result = "H4sIAAAAAAAA/wtJLS5RcEksSQQAL4PL8QkAAAA=";
 
     assertEquals( "<bytedata>" + result + "</bytedata>" + cr, XMLHandler.addTagValue( "bytedata", input ) );
     assertEquals( "<bytedata>" + result + "</bytedata>" + cr, XMLHandler.addTagValue( "bytedata", input, true ) );

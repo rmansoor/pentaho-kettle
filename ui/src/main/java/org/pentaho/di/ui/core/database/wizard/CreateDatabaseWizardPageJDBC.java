@@ -49,9 +49,6 @@ import org.pentaho.di.ui.core.PropsUI;
  * @since 04-apr-2005
  */
 public class CreateDatabaseWizardPageJDBC extends WizardPage {
-  private static final String DATA_SERVICES_PLUGIN_ID = "KettleThin";
-  private static final String DEFAULT_WEB_APPLICATION_NAME = "pentaho";
-
   private static Class<?> PKG = CreateDatabaseWizard.class; // for i18n purposes, needed by Translator2!!
 
   private Label wlHostname;
@@ -68,8 +65,6 @@ public class CreateDatabaseWizardPageJDBC extends WizardPage {
 
   private PropsUI props;
   private DatabaseMeta databaseMeta;
-
-  private boolean defaultWebAppNameSet = false;
 
   public CreateDatabaseWizardPageJDBC( String arg, PropsUI props, DatabaseMeta info ) {
     super( arg );
@@ -169,18 +164,8 @@ public class CreateDatabaseWizardPageJDBC extends WizardPage {
     wHostname.setText( Const.NVL( databaseMeta.getHostname(), "" ) );
     wPort.setText( Const.NVL( databaseMeta.getDatabasePortNumberString(), "" ) );
 
-    if ( !defaultWebAppNameSet && isDataServiceConnection() ) {
-      wDBName.setText( DEFAULT_WEB_APPLICATION_NAME );
-      defaultWebAppNameSet = true;
-    } else {
-      wDBName.setText( Const.NVL( databaseMeta.getDatabaseName(), "" ) );
-    }
-
-    if ( isDataServiceConnection() ) {
-      wlDBName.setText( BaseMessages.getString( PKG, "CreateDatabaseWizardPageJDBC.WebAppName.Label" ) );
-    } else {
-      wlDBName.setText( BaseMessages.getString( PKG, "CreateDatabaseWizardPageJDBC.DBName.Label" ) );
-    }
+    wDBName.setText( Const.NVL( databaseMeta.getDatabaseName(), "" ) );
+    wlDBName.setText( BaseMessages.getString( PKG, "CreateDatabaseWizardPageJDBC.DBName.Label" ) );
   }
 
   public boolean canFlipToNextPage() {
@@ -188,14 +173,8 @@ public class CreateDatabaseWizardPageJDBC extends WizardPage {
     String port = wPort.getText().length() > 0 ? wPort.getText() : null;
     String dbname = wDBName.getText().length() > 0 ? wDBName.getText() : null;
 
-    if ( ( server == null || port == null || dbname == null ) && !isDataServiceConnection() ) {
+    if ( server == null || port == null || dbname == null ) {
       setErrorMessage( BaseMessages.getString( PKG, "CreateDatabaseWizardPageJDBC.ErrorMessage.InvalidInput" ) );
-
-      return false;
-    }
-
-    if ( ( server == null || port == null ) && isDataServiceConnection() ) {
-      setErrorMessage( BaseMessages.getString( PKG, "CreateDatabaseWizardPageJDBC.PDSHostPort.ErrorMessage" ) );
 
       return false;
     }
@@ -233,9 +212,5 @@ public class CreateDatabaseWizardPageJDBC extends WizardPage {
     }
 
     return nextPage;
-  }
-
-  private boolean isDataServiceConnection() {
-    return DATA_SERVICES_PLUGIN_ID.equals( databaseMeta.getPluginId() );
   }
 }

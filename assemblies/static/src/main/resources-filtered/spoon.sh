@@ -63,6 +63,21 @@ CURRENTDIR="."
 setPentahoEnv
 
 # **************************************************
+# ** Java version check: PDI is built for Java 21 **
+# **************************************************
+JAVA_VERSION_LINE=`"$_PENTAHO_JAVA" -version 2>&1 | grep -i "version" | head -1`
+JAVA_MAJOR=`echo "$JAVA_VERSION_LINE" | sed -E 's/.*version "([0-9]+)(\.([0-9]+))?.*/\1 \3/' | awk '{ if ($1 == 1) print $2; else print $1 }'`
+case "$JAVA_MAJOR" in
+	''|*[!0-9]*) JAVA_MAJOR=0 ;;
+esac
+if [ "$JAVA_MAJOR" -lt 21 ]; then
+	echo "Pentaho Data Integration requires Java 21 or newer."
+	echo "Found: $JAVA_VERSION_LINE ($_PENTAHO_JAVA)"
+	echo "Set PENTAHO_JAVA_HOME to a Java 21 installation and try again."
+	exit 1
+fi
+
+# **************************************************
 # ** Platform specific libraries ...              **
 # **************************************************
 
@@ -122,6 +137,11 @@ case `uname -s` in
                             else
 			  LIBPATH=$CURRENTDIR/../libswt/osx/
                             fi
+			;;
+
+		arm64)
+			# Apple Silicon: native aarch64 SWT
+			LIBPATH=$CURRENTDIR/../libswt/osx64_aarch/
 			;;
 
 		i[3-6]86)
@@ -234,20 +254,19 @@ export LIBPATH
 # ** Setup Karaf endorsed libraries directory     **
 # **************************************************
 JAVA_ENDORSED_DIRS=""
-JAVA_LOCALE_COMPAT=""
+# required for date/time formatting backwards compatibility
+JAVA_LOCALE_COMPAT="-Djava.locale.providers=COMPAT,SPI"
+# Java 17+ strong encapsulation: packages PDI and its libraries use reflectively
 JAVA_ADD_OPENS=""
-if $($_PENTAHO_JAVA -version 2>&1 | grep "version \"1\.8\..*" > /dev/null ) 
-then
-	if [ ! -z "$_PENTAHO_JAVA_HOME" ]; then
-		JAVA_ENDORSED_DIRS="${_PENTAHO_JAVA_HOME}/jre/lib/endorsed:${_PENTAHO_JAVA_HOME}/lib/endorsed:"
-	fi
-	JAVA_ENDORSED_DIRS="${JAVA_ENDORSED_DIRS}${BASEDIR}/system/karaf/lib/endorsed"
-	JAVA_ENDORSED_DIRS="-Djava.endorsed.dirs="${JAVA_ENDORSED_DIRS}
-else
-# required for Java 11 date/time formatting backwards compatibility
-  JAVA_LOCALE_COMPAT="-Djava.locale.providers=COMPAT,SPI"
-  JAVA_ADD_OPENS="--add-opens java.base/java.net=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/sun.net.www.protocol.jar=ALL-UNNAMED"
-fi
+for p in java.base/java.lang java.base/java.lang.reflect java.base/java.io java.base/java.net \
+         java.base/java.nio java.base/java.math java.base/java.security java.base/java.util \
+         java.base/sun.nio.ch java.base/sun.net.www.protocol.jar java.base/sun.net.www.protocol.file \
+         java.base/sun.net.www.protocol.ftp java.base/sun.net.www.protocol.http \
+         java.base/sun.net.www.protocol.https java.base/sun.reflect.misc \
+         java.management/javax.management java.management/javax.management.openmbean \
+         java.naming/com.sun.jndi.ldap java.security.jgss/sun.security.krb5; do
+	JAVA_ADD_OPENS="$JAVA_ADD_OPENS --add-opens=$p=ALL-UNNAMED"
+done
 
 # ******************************************************************
 # ** Set java runtime options                                     **

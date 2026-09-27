@@ -22,9 +22,14 @@
 
 package org.pentaho.di.core.config;
 
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import ognl.AbstractMemberAccess;
+import ognl.MemberAccess;
+import ognl.Ognl;
 import ognl.OgnlContext;
 import ognl.OgnlException;
 
@@ -45,7 +50,15 @@ public class PropertySetter {
 
   private Map<String, OgnlExpression> ognlExpressions = new HashMap<>();
 
-  private OgnlContext octx = new OgnlContext();
+  // OGNL 3.x requires an explicit MemberAccess; public members only, as OGNL 2.x allowed by default
+  private static final MemberAccess PUBLIC_MEMBER_ACCESS = new AbstractMemberAccess() {
+    @Override
+    public boolean isAccessible( OgnlContext context, Object target, Member member, String propertyName ) {
+      return Modifier.isPublic( member.getModifiers() );
+    }
+  };
+
+  private OgnlContext octx = Ognl.createDefaultContext( null, PUBLIC_MEMBER_ACCESS );
 
   // this should not be a static/factory method in order to allow caching of
   // compiled ognl expressions
