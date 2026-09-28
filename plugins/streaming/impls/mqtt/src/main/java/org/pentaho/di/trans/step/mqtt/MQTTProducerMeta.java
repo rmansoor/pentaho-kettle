@@ -22,6 +22,7 @@
 
 package org.pentaho.di.trans.step.mqtt;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.annotations.Step;
@@ -289,7 +290,7 @@ public class MQTTProducerMeta extends BaseSerializingMeta implements StepMetaInt
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper( this )
+    return MoreObjects.toStringHelper( this )
       .add( "mqttServer", mqttServer )
       .add( "clientId", clientId )
       .add( "topic", topic )

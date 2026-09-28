@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -166,7 +167,8 @@ public class SubtransExecutorTest {
     Trans parentTrans = new Trans( parentMeta, loggingObject );
     SubtransExecutor subtransExecutor =
       new SubtransExecutor( "subtransname", parentTrans, subMeta, true, new TransExecutorParameters(), "", 1001 );
-    subtransExecutor.running = Mockito.spy( subtransExecutor.running );
+    // the executor's own set (ConcurrentHashMap.newKeySet()) is a final class Mockito can't spy on
+    subtransExecutor.running = Mockito.spy( new CopyOnWriteArraySet<>( subtransExecutor.running ) );
     RowMetaInterface rowMeta = parentMeta.getStepFields( "Data Grid" );
     List<RowMetaAndData> rows = Arrays.asList(
       new RowMetaAndData( rowMeta, "Pentaho", 1L ),

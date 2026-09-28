@@ -39,12 +39,12 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.apache.poi.xssf.model.SharedStringsTable;
 import org.apache.poi.xssf.model.StylesTable;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTRst;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTXf;
 import org.pentaho.di.core.spreadsheet.KCell;
 import org.pentaho.di.core.spreadsheet.KCellType;
@@ -331,9 +331,7 @@ public class StaxPoiSheetTest {
   private SharedStringsTable mockSharedStringsTable( String... strings ) {
     SharedStringsTable sst = new SharedStringsTable();
     for ( String str : strings ) {
-      CTRst st = CTRst.Factory.newInstance();
-      st.setT( str );
-      sst.addEntry( st );
+      sst.addSharedStringItem( new XSSFRichTextString( str ) );
     }
     return sst;
   }

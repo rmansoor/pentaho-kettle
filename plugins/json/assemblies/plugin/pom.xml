@@ -37,6 +37,11 @@
     </dependency>
     <dependency>
       <groupId>net.minidev</groupId>
+      <artifactId>accessors-smart</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
       <scope>runtime</scope>
     </dependency>

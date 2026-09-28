@@ -162,7 +162,7 @@ public class PentahoAvroOutputFormat implements IPentahoAvroOutputFormat {
     if ( schema == null ) {
       ObjectNode schemaObjectNode = getSchemaObjectNode();
       if ( schemaObjectNode != null ) {
-        schema = new Schema.Parser().parse( schemaObjectNode.toString() );
+        schema = new Schema.Parser().setValidateDefaults( false ).parse( schemaObjectNode.toString() );
       }
     }
     return schema;

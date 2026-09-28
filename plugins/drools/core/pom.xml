@@ -19,9 +19,10 @@
     <maven.build.timestamp.format>yyyy/MM/dd hh\:mm</maven.build.timestamp.format>
 
     <pdi.version>9.4.0.0-SNAPSHOT</pdi.version>
-    <drools.version>6.4.0.Final</drools.version>
-    <mvel2.version>2.2.8.Final</mvel2.version>
-    <org.eclipse.jdt>3.4.2.v_883_R34x</org.eclipse.jdt>
+    <!-- 7.x: last line with the KIE API this plugin needs; fixes the drools-core advisories and drops protobuf -->
+    <drools.version>7.74.1.Final</drools.version>
+    <!-- 2.2.x/2.4.x reference java.lang.Compiler, removed in Java 21 -->
+    <mvel2.version>2.5.2.Final</mvel2.version>
     <org.eclipse.swt.version>4.6</org.eclipse.swt.version>
     <jface.version>3.3.0-I20070606-0010</jface.version>
     <mockito.version>1.9.5</mockito.version>
@@ -62,16 +63,23 @@
 
     <dependency>
       <groupId>org.drools</groupId>
-      <artifactId>knowledge-api</artifactId>
+      <artifactId>drools-compiler</artifactId>
       <version>${drools.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
         </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-mvel</artifactId>
+      <version>${drools.version}</version>
+      <exclusions>
         <exclusion>
-          <groupId>org.drools</groupId>
-          <artifactId>drools-reteoo</artifactId>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -80,17 +88,6 @@
       <groupId>org.mvel</groupId>
       <artifactId>mvel2</artifactId>
       <version>${mvel2.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jdt</groupId>
-      <artifactId>core</artifactId>
-      <version>${org.eclipse.jdt}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>

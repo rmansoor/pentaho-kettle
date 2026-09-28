@@ -33,6 +33,7 @@ import org.apache.commons.vfs2.FileUtil;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.exception.KettleFileException;
+import org.pentaho.di.core.vfs.SshAlgorithmDefaults;
 import org.pentaho.di.core.exception.KettleJobException;
 import org.pentaho.di.core.vfs.KettleVFS;
 
@@ -466,6 +467,7 @@ public class SFTPClient {
 
   @VisibleForTesting
   JSch createJSch() {
+    SshAlgorithmDefaults.apply();
     return new JSch();
   }
 

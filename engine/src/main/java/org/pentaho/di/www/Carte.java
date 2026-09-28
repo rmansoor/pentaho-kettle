@@ -24,6 +24,8 @@ package org.pentaho.di.www;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -39,6 +41,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.pentaho.di.cluster.SlaveServer;
+import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.encryption.Encr;
@@ -54,6 +57,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -249,6 +253,11 @@ public class Carte {
     Carte carte = new Carte( config, false );
     CarteSingleton.setCarte( carte );
 
+    if ( carte.getWebServer() == null ) {
+      // the constructor already logged why (e.g. a master in the config could not be reached)
+      throw new KettleException( "Carte did not start: registering with or reading properties from the configured "
+        + "master server(s) failed. Check that the masters in the configuration are running and reachable." );
+    }
     carte.getWebServer().join();
   }
 
@@ -322,8 +331,32 @@ public class Carte {
     try {
       callStopCarteRestService( hostname, port, username, password );
     } catch ( Exception e ) {
-      e.printStackTrace();
+      System.err.println( e.getMessage() + describeStopFailure( e.getCause() ) );
+      System.exit( 1 );
     }
+  }
+
+  /**
+   * Explains in one line why the stop call failed, instead of a client library stack trace.
+   */
+  @VisibleForTesting
+  static String describeStopFailure( Throwable cause ) {
+    for ( Throwable t = cause; t != null; t = t.getCause() ) {
+      if ( t instanceof UniformInterfaceException ) {
+        int status = ( (UniformInterfaceException) t ).getResponse().getStatus();
+        if ( status == 401 || status == 403 ) {
+          return " (HTTP " + status + ": the server rejected the username or password)";
+        }
+        return " (HTTP " + status + ": the server on that port is not Carte; another application may be using it)";
+      }
+      if ( t instanceof ConnectException ) {
+        return " (nothing is listening on that host and port)";
+      }
+      if ( t instanceof UnknownHostException ) {
+        return " (unknown host)";
+      }
+    }
+    return cause == null ? "" : " (" + cause + ")";
   }
 
   /**

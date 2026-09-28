@@ -14,7 +14,6 @@
   <name>PDI Excel Plugins Core</name>
 
   <properties>
-    <poi.version>4.1.1</poi.version>
     <platform.version>9.4.0.0-SNAPSHOT</platform.version>
   </properties>
 
@@ -75,7 +74,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
-      <artifactId>poi-ooxml-schemas</artifactId>
+      <artifactId>poi-ooxml-lite</artifactId>
       <version>${poi.version}</version>
       <exclusions>
         <exclusion>

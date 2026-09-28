@@ -23,12 +23,18 @@
 package org.pentaho.di.www;
 
 import com.sun.jersey.spi.container.servlet.ServletContainer;
+import org.eclipse.jetty.ee8.servlet.DefaultServlet;
+import org.eclipse.jetty.ee8.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee8.servlet.ServletHolder;
 import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.jaas.JAASLoginService;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.Constraint;
 import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.RolePrincipal;
+import org.eclipse.jetty.security.SecurityHandler;
+import org.eclipse.jetty.security.UserPrincipal;
 import org.eclipse.jetty.security.UserStore;
+import org.eclipse.jetty.security.authentication.BasicAuthenticator;
+import org.eclipse.jetty.security.jaas.JAASLoginService;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -39,12 +45,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.security.Password;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.pentaho.di.cluster.SlaveServer;
@@ -62,8 +64,10 @@ import org.pentaho.di.i18n.BaseMessages;
 
 import javax.servlet.Servlet;
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -158,12 +162,12 @@ public class WebServer {
   public void startServer() throws Exception {
     server = new Server();
 
-    List<String> roles = new ArrayList<>();
-    roles.add( Constraint.ANY_ROLE );
-
-    // Set up the security handler, optionally with JAAS
+    // Basic authentication on every path, optionally with JAAS. Jetty 12 keeps the servlets in its EE8 (javax.servlet)
+    // layer; security stays one core handler in front of all contexts, as it was with Jetty 9.
     //
-    ConstraintSecurityHandler securityHandler = new ConstraintSecurityHandler();
+    SecurityHandler.PathMapped securityHandler = new SecurityHandler.PathMapped();
+    securityHandler.setAuthenticator( new BasicAuthenticator() );
+    securityHandler.setRealmName( SERVICE_NAME );
 
     if ( System.getProperty( "loginmodulename" ) != null
         && System.getProperty( "java.security.auth.login.config" ) != null ) {
@@ -171,7 +175,6 @@ public class WebServer {
       jaasLoginService.setLoginModuleName( System.getProperty( "loginmodulename" ) );
       securityHandler.setLoginService( jaasLoginService );
     } else {
-      roles.add( DEFAULT_ROLE );
       HashLoginService hashLoginService;
       SlaveServer slaveServer = transformationMap.getSlaveServerConfig().getSlaveServer();
       if ( !Utils.isEmpty( slaveServer.getPassword() ) ) {
@@ -190,34 +193,24 @@ public class WebServer {
             passwordFile = Const.getKettleLocalCartePasswordFile();
           }
         }
-        hashLoginService = new HashLoginService( SERVICE_NAME, passwordFile ) {
+        hashLoginService = new HashLoginService( SERVICE_NAME,
+          ResourceFactory.of( server ).newResource( new File( passwordFile ).getAbsoluteFile().toPath() ) ) {
           @Override
-          protected String[] loadRoleInfo( UserPrincipal user ) {
-            List<String> newRoles = new ArrayList<>();
-            newRoles.add( DEFAULT_ROLE );
-            String[] roles = super.loadRoleInfo( user );
-            if ( null != roles ) {
-              Collections.addAll( newRoles, roles );
+          protected List<RolePrincipal> loadRoleInfo( UserPrincipal user ) {
+            List<RolePrincipal> roles = new ArrayList<>();
+            roles.add( new RolePrincipal( DEFAULT_ROLE ) );
+            List<RolePrincipal> fileRoles = super.loadRoleInfo( user );
+            if ( fileRoles != null ) {
+              roles.addAll( fileRoles );
             }
-            return newRoles.toArray( new String[ 0 ] );
+            return roles;
           }
         };
       }
       securityHandler.setLoginService( hashLoginService );
     }
-
-    Constraint constraint = new Constraint();
-    constraint.setName( Constraint.__BASIC_AUTH );
-    constraint.setRoles( roles.toArray( new String[ 0 ] ) );
-    constraint.setAuthenticate( true );
-
-    ConstraintMapping constraintMapping = new ConstraintMapping();
-    constraintMapping.setConstraint( constraint );
-    constraintMapping.setPathSpec( "/*" );
-
-    securityHandler.setConstraintMappings( new ConstraintMapping[] { constraintMapping } );
-    // Jetty 9.4.19+ no longer derives the authenticator from the constraint name; without this every request is 403
-    securityHandler.setAuthMethod( Constraint.__BASIC_AUTH );
+    // any authenticated user, whatever the roles (Jetty 9: roles "*" and "default" with authenticate=true)
+    securityHandler.put( "/*", Constraint.ANY_USER );
 
     // Add all the servlets defined in kettle-servlets.xml ...
     //
@@ -248,24 +241,19 @@ public class WebServer {
 
     // setup jersey (REST)
     ServletHolder jerseyServletHolder = new ServletHolder( ServletContainer.class );
+    // Resources are listed by name: Jersey 1's package scanner parses class files with an old ASM that fails on
+    // Java 21 class files (IllegalArgumentException -> HTTP 500 on /api/*)
     jerseyServletHolder.setInitParameter( "com.sun.jersey.config.property.resourceConfigClass",
-        "com.sun.jersey.api.core.PackagesResourceConfig" );
-    jerseyServletHolder.setInitParameter( "com.sun.jersey.config.property.packages", "org.pentaho.di.www.jaxrs" );
+        "com.sun.jersey.api.core.ClassNamesResourceConfig" );
+    jerseyServletHolder.setInitParameter( "com.sun.jersey.config.property.classnames",
+        "org.pentaho.di.www.jaxrs.CarteResource;org.pentaho.di.www.jaxrs.TransformationResource;"
+          + "org.pentaho.di.www.jaxrs.JobResource" );
     root.addServlet( jerseyServletHolder, "/api/*" );
-
-    // setup static resource serving
-    // ResourceHandler mobileResourceHandler = new ResourceHandler();
-    // mobileResourceHandler.setWelcomeFiles(new String[]{"index.html"});
-    // mobileResourceHandler.setResourceBase(getClass().getClassLoader().
-    // getResource("org/pentaho/di/www/mobile").toExternalForm());
-    // Context mobileContext = new Context(contexts, "/mobile", Context.SESSIONS);
-    // mobileContext.setHandler(mobileResourceHandler);
 
     // Allow png files to be shown for transformations and jobs...
     //
     ResourceHandler resourceHandler = new ResourceHandler();
-    resourceHandler.setResourceBase( "temp" );
-    // add all handlers/contexts to server
+    resourceHandler.setBaseResourceAsString( "temp" );
 
     // set up static servlet
     ServletHolder staticHolder = new ServletHolder( "static", DefaultServlet.class );
@@ -275,13 +263,13 @@ public class WebServer {
     staticHolder.setInitParameter( "pathInfoOnly", "true" );
     root.addServlet( staticHolder, "/static/*" );
 
-    HandlerList handlers = new HandlerList();
-    handlers.setHandlers( new Handler[] { resourceHandler, contexts } );
-    securityHandler.setHandler( handlers );
+    // files in temp/ first, then the contexts (Jetty 9: HandlerList)
+    securityHandler.setHandler( new Handler.Sequence( resourceHandler, contexts ) );
 
     server.setHandler( securityHandler );
 
     // Start execution
+    ensurePortIsFree();
     createListeners();
 
     server.start();
@@ -339,6 +327,21 @@ public class WebServer {
     }
   }
 
+  /**
+   * Refuses to start when something already answers on the host and port. On macOS a dual-stack IPv6
+   * listener (e.g. a local Tomcat on *:8080) does not stop Jetty binding 127.0.0.1:8080, so Carte would
+   * start but requests would reach the other server.
+   */
+  private void ensurePortIsFree() throws KettleException {
+    try ( Socket probe = new Socket() ) {
+      probe.connect( new InetSocketAddress( hostname, port ), 500 );
+    } catch ( IOException e ) {
+      return; // nothing is listening: the port is free
+    }
+    throw new KettleException( "Port " + port + " on " + hostname + " is already in use by another application. "
+      + "Stop that application or start Carte on a different port." );
+  }
+
   private void createListeners() {
 
     ServerConnector serverConnector = getServerConnector();
@@ -365,7 +368,7 @@ public class WebServer {
     // Create the server with the configurated number of acceptors
     if ( sslConfig != null ) {
       log.logBasic( BaseMessages.getString( PKG, "WebServer.Log.SslModeUsing" ) );
-      SslContextFactory sslContextFactory = new SslContextFactory();
+      SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
       sslContextFactory.setKeyStorePath( sslConfig.getKeyStore() );
       sslContextFactory.setKeyStorePassword( sslConfig.getKeyStorePassword() );
       sslContextFactory.setKeyManagerPassword( sslConfig.getKeyPassword() );

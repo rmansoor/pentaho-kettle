@@ -75,7 +75,20 @@
     <org.eclipse.swt.version>4.6</org.eclipse.swt.version>
     <js.version>1.7R3</js.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
-    <guava.version>17.0</guava.version>
+    <!-- CVE remediation, Step 3; 33.x needs failureaccess at runtime -->
+    <guava.version>33.7.1-jre</guava.version>
+    <failureaccess.version>1.0.3</failureaccess.version>
+    <!-- plugin libraries -->
+    <groovy-all.version>2.4.21</groovy-all.version>
+    <aws-java-sdk.version>1.12.797</aws-java-sdk.version>
+    <!-- POI 5: poi-ooxml-lite replaces poi-ooxml-schemas; classic-core must be the local 9.4 build
+         (~/Developer/pentaho-reporting-9.4, XSSFColor fix) -->
+    <poi.version>5.5.1</poi.version>
+    <!-- the reporting engine rebuilt from ~/Developer/pentaho-reporting-9.4 (branch 9.4-jdk21-poi5) against POI 5;
+         the other reporting jars stay ${pentaho-reporting.version}. See qa/build_local_deps.sh -->
+    <classic-core.version>9.4.0.0-jdk21-1</classic-core.version>
+    <!-- CVE remediation, planned work -->
+    <commons-vfs2.version>2.10.0</commons-vfs2.version>
 
     <!-- CVE remediation: overrides of versions inherited from pentaho-parent-pom -->
     <log4j.version>2.25.5</log4j.version>
@@ -92,7 +105,8 @@
     <!-- snakeyaml 2.x: the version jackson-dataformat-yaml 2.18 is built against -->
     <snakeyaml.version>2.3</snakeyaml.version>
     <!-- last 9.4 release; Jetty 12 needs Carte's server setup rewritten -->
-    <jetty.version>9.4.58.v20250814</jetty.version>
+    <!-- Jetty 12 (Carte runs its javax.servlet servlets in the EE8 layer); 9.4 is end of life -->
+    <jetty.version>12.1.13</jetty.version>
     <!-- last open-source 5.x releases; 6.x moves to jakarta.* which the Pentaho platform libraries don't support -->
     <spring.version>5.3.39</spring.version>
     <spring-security.version>5.8.16</spring-security.version>
@@ -163,28 +177,42 @@
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.jface</artifactId>
-        <version>3.22.0</version>
+        <version>3.31.0</version>
+        <exclusions>
+          <!-- PDI runs jface outside OSGi and never shipped the framework jar -->
+          <exclusion>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
-      <!-- jface pulls org.eclipse.swt via an open version range; pin it so builds are reproducible -->
+      <!-- jface pulls org.eclipse.swt via an open version range; pin it so builds are reproducible.
+           Keep jface, this SWT and the per-platform SWT jars in the client assemblies on matching versions. -->
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.swt</artifactId>
-        <version>3.120.0</version>
+        <version>3.124.100</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.core.commands</artifactId>
-        <version>3.9.800</version>
+        <version>3.11.100</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.equinox.common</artifactId>
-        <version>3.14.0</version>
+        <version>3.18.100</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.eclipse.platform</groupId>
         <artifactId>org.eclipse.equinox.bidi</artifactId>
-        <version>1.3.0</version>
+        <version>1.4.300</version>
       </dependency>
       <dependency>
         <groupId>rhino</groupId>
@@ -335,6 +363,71 @@
             <artifactId>*</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>failureaccess</artifactId>
+        <version>${failureaccess.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi</artifactId>
+        <version>${poi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml</artifactId>
+        <version>${poi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml-lite</artifactId>
+        <version>${poi.version}</version>
+      </dependency>
+      <!-- POI 5's companions; classic-core's pom still asks for xmlbeans 3.1 / curvesapi 1.06 -->
+      <dependency>
+        <groupId>org.apache.xmlbeans</groupId>
+        <artifactId>xmlbeans</artifactId>
+        <version>5.3.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.virtuald</groupId>
+        <artifactId>curvesapi</artifactId>
+        <version>1.08</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-collections4</artifactId>
+        <version>4.5.0</version>
+      </dependency>
+      <!-- pins classic-core also where other reporting jars bring it in transitively -->
+      <dependency>
+        <groupId>org.pentaho.reporting.engine</groupId>
+        <artifactId>classic-core</artifactId>
+        <version>${classic-core.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-schemas</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <!-- core plugins (Groovy script step) and reporting plugins -->
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>${groovy-all.version}</version>
+      </dependency>
+      <!-- S3 CSV Input (s3-vfs manages the same version itself) -->
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-core</artifactId>
+        <version>${aws-java-sdk.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-s3</artifactId>
+        <version>${aws-java-sdk.version}</version>
       </dependency>
       <dependency>
         <groupId>org.owasp.encoder</groupId>

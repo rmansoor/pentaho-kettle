@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.vfs2.FileObject;
-import org.ini4j.Wini;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.ResultFile;
@@ -441,14 +440,8 @@ public class PropertyInput extends BaseStep implements StepInterface {
         data.it = data.pro.keySet().iterator();
       } else {
 
-        // create wini object
-        data.wini = new Wini();
-        if ( !Utils.isEmpty( data.realEncoding ) ) {
-          data.wini.getConfig().setFileEncoding( Charset.forName( data.realEncoding ) );
-        }
-
         // load INI file
-        data.wini.load( fis );
+        data.wini = IniFile.load( fis, Utils.isEmpty( data.realEncoding ) ? null : Charset.forName( data.realEncoding ) );
 
         if ( data.realSection != null ) {
           // just one section
@@ -459,7 +452,7 @@ public class PropertyInput extends BaseStep implements StepInterface {
           }
         } else {
           // We need to fetch all sections
-          data.itSection = data.wini.keySet().iterator();
+          data.itSection = data.wini.sectionNames().iterator();
           data.iniSection = data.wini.get( data.itSection.next().toString() );
         }
         data.iniIt = data.iniSection.keySet().iterator();

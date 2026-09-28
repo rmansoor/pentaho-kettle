@@ -28,7 +28,8 @@
     <commons-dbcp.version>1.4</commons-dbcp.version>
     <commons-pool.version>1.5.7</commons-pool.version>
     <jug-lgpl.version>2.0.0</jug-lgpl.version>
-    <jsch.version>0.1.54</jsch.version>
+    <!-- maintained JSch fork (same com.jcraft.jsch packages); 0.1.54 cannot talk to current OpenSSH -->
+    <jsch.version>2.28.7</jsch.version>
     <jzlib.version>1.0.7</jzlib.version>
     <ognl.version>3.4.13</ognl.version>
     <scannotation.version>1.0.2</scannotation.version>
@@ -74,6 +75,10 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>failureaccess</artifactId>
     </dependency>
     <dependency>
       <groupId>org.owasp.encoder</groupId>
@@ -344,6 +349,7 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
+      <version>${jetty.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -363,7 +369,7 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.jcraft</groupId>
+      <groupId>com.github.mwiede</groupId>
       <artifactId>jsch</artifactId>
       <version>${jsch.version}</version>
       <exclusions>

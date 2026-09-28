@@ -24,9 +24,7 @@ package org.pentaho.di.www.cache;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
-import org.hibernate.cache.CacheException;
 import org.pentaho.di.core.Const;
-import org.hibernate.cache.Cache;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -40,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 
-public class CarteStatusCache implements Cache {
+public class CarteStatusCache {
 
   public static final String CARTE_STATUS_CACHE = "CARTE_CACHE";
 
@@ -143,33 +141,27 @@ public class CarteStatusCache implements Cache {
     return cachedMap;
   }
 
-  @Override
-  public Object read( Object key ) throws CacheException {
+  public Object read( Object key ) {
     return cachedMap.get( key );
   }
 
-  @Override
-  public Object get( Object key ) throws CacheException {
+  public Object get( Object key ) {
     return cachedMap.get( key );
   }
 
-  @Override
-  public void put( Object key, Object value ) throws CacheException {
+  public void put( Object key, Object value ) {
     cachedMap.put( (String) key, (CachedItem) value );
   }
 
-  @Override
-  public void update( Object key, Object value ) throws CacheException {
+  public void update( Object key, Object value ) {
     put( (String) key, (CachedItem) value );
   }
 
-  @Override
-  public void remove( Object key ) throws CacheException {
+  public void remove( Object key ) {
     remove( (String) key );
   }
 
-  @Override
-  public void clear() throws CacheException {
+  public void clear() {
     cachedMap.forEach( ( k, v ) -> {
       if ( LocalDate.now().isAfter( v.getExceedTime() ) ) {
         remove( k );
@@ -177,45 +169,41 @@ public class CarteStatusCache implements Cache {
     } );
   }
 
-  @Override
-  public void destroy() throws CacheException {
+  public void destroy() {
     clear();
   }
 
-  @Override
   public Map toMap() {
     return cachedMap;
   }
 
-  @Override
-  public void lock( Object key ) throws CacheException {
+  public void lock( Object key ) {
   }
 
-  @Override
-  public void unlock( Object key ) throws CacheException {
+  public void unlock( Object key ) {
   }
 
-  @Override public long nextTimestamp() {
+  public long nextTimestamp() {
     return 0;
   }
 
-  @Override public int getTimeout() {
+  public int getTimeout() {
     return 0;
   }
 
-  @Override public String getRegionName() {
+  public String getRegionName() {
     return null;
   }
 
-  @Override public long getSizeInMemory() {
+  public long getSizeInMemory() {
     return 0;
   }
 
-  @Override public long getElementCountInMemory() {
+  public long getElementCountInMemory() {
     return 0;
   }
 
-  @Override public long getElementCountOnDisk() {
+  public long getElementCountOnDisk() {
     return 0;
   }
 }

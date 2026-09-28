@@ -48,20 +48,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.admin.cluster.state.ClusterStateRequestBuilder;
-import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.elasticsearch.action.admin.indices.recovery.RecoveryRequestBuilder;
-import org.elasticsearch.action.admin.indices.recovery.RecoveryResponse;
-import org.elasticsearch.client.AdminClient;
-import org.elasticsearch.client.transport.NoNodeAvailableException;
-import org.elasticsearch.cluster.ClusterState;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.discovery.MasterNotDiscoveredException;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.Props;
 import org.pentaho.di.core.exception.KettleException;
@@ -80,7 +66,13 @@ import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
-import java.net.InetAddress;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.pentaho.di.trans.steps.elasticsearchbulk.ElasticSearchRestConnection;
+
+import java.net.ConnectException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ElasticSearchBulkDialog extends BaseStepDialog implements StepDialogInterface {
@@ -891,68 +883,62 @@ public class ElasticSearchBulkDialog extends BaseStepDialog implements StepDialo
 
   private void test( TestType testType ) {
 
+    ElasticSearchBulkMeta tempMeta = new ElasticSearchBulkMeta();
     try {
-
-      ElasticSearchBulkMeta tempMeta = new ElasticSearchBulkMeta();
       toModel( tempMeta );
+    } catch ( KettleException e ) {
+      showError( e.getLocalizedMessage() );
+      return;
+    }
 
-      // if ( !tempMeta.getServers().isEmpty() ) {
+    Map<String, String> settings = new HashMap<>();
+    tempMeta.getSettingsMap().forEach( ( key, value ) -> settings.put( key, transMeta.environmentSubstitute( value ) ) );
+    List<Server> servers = new ArrayList<>();
+    for ( Server server : tempMeta.getServers() ) {
+      Server resolved = new Server();
+      resolved.address = transMeta.environmentSubstitute( server.getAddress() );
+      resolved.port = server.getPort();
+      servers.add( resolved );
+    }
+    if ( servers.isEmpty() ) {
+      showError( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.Error.NoNodesFound" ) );
+      return;
+    }
 
-      Settings.Builder settingsBuilder = Settings.builder();
-      settingsBuilder.put( Settings.Builder.EMPTY_SETTINGS );
-      tempMeta.getSettingsMap().entrySet().stream().forEach( ( s ) -> settingsBuilder.put( s.getKey(), transMeta
-              .environmentSubstitute( s.getValue() ) ) );
+    try ( ElasticSearchRestConnection connection =
+            new ElasticSearchRestConnection( servers, settings, 10000L, null ) ) {
 
-      try ( PreBuiltTransportClient client = new PreBuiltTransportClient( settingsBuilder.build() ) ) {
-
-        for ( Server server : tempMeta.getServers() ) {
-
-          client.addTransportAddress( new TransportAddress(
-                  InetAddress.getByName( transMeta.environmentSubstitute( server.getAddress() ) ),
-                  server.getPort() ) );
-
-        }
-
-        AdminClient admin = client.admin();
-
-        switch ( testType ) {
-          case INDEX:
-            if ( StringUtils.isBlank( tempMeta.getIndex() ) ) {
-              showError( BaseMessages.getString( PKG, "ElasticSearchBulk.Error.NoIndex" ) );
-              break;
-            }
-            // First check to see if the index exists
-            IndicesExistsRequestBuilder indicesExistBld = admin.indices().prepareExists( tempMeta.getIndex() );
-            IndicesExistsResponse indicesExistResponse = indicesExistBld.execute().get();
-            if ( !indicesExistResponse.isExists() ) {
-              showError( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.Error.NoIndex" ) );
-              return;
-            }
-
-            RecoveryRequestBuilder indicesBld = admin.indices().prepareRecoveries( tempMeta.getIndex() );
-            ActionFuture<RecoveryResponse> lafInd = indicesBld.execute();
-            String shards = "" + lafInd.get().getSuccessfulShards() + "/" + lafInd.get().getTotalShards();
-            showMessage( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.TestIndex.TestOK", shards ) );
+      switch ( testType ) {
+        case INDEX:
+          String index = transMeta.environmentSubstitute( tempMeta.getIndex() );
+          if ( StringUtils.isBlank( index ) ) {
+            showError( BaseMessages.getString( PKG, "ElasticSearchBulk.Error.NoIndex" ) );
             break;
-          case CLUSTER:
-            ClusterStateRequestBuilder clusterBld = admin.cluster().prepareState();
-            ActionFuture<ClusterStateResponse> lafClu = clusterBld.execute();
-            ClusterStateResponse cluResp = lafClu.actionGet();
-            String name = cluResp.getClusterName().value();
-            ClusterState cluState = cluResp.getState();
-            int numNodes = cluState.getNodes().getSize();
-            showMessage( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.TestCluster.TestOK", name, numNodes ) );
-            break;
-          default:
-            break;
-        }
-
+          }
+          // First check to see if the index exists
+          if ( !connection.indexExists( index ) ) {
+            showError( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.Error.NoIndex" ) );
+            return;
+          }
+          JsonNode shardInfo = connection.indexStats( index ).path( "_shards" );
+          String shards = shardInfo.path( "successful" ).asInt() + "/" + shardInfo.path( "total" ).asInt();
+          showMessage( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.TestIndex.TestOK", shards ) );
+          break;
+        case CLUSTER:
+          JsonNode health = connection.clusterHealth();
+          String name = health.path( "cluster_name" ).asText();
+          int numNodes = health.path( "number_of_nodes" ).asInt();
+          showMessage( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.TestCluster.TestOK", name, numNodes ) );
+          break;
+        default:
+          break;
       }
 
-    } catch ( NoNodeAvailableException | MasterNotDiscoveredException e ) {
-      showError( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.Error.NoNodesFound" ) );
+    } catch ( ConnectException e ) {
+      showError( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.Error.NoNodesFound" ) + ": "
+        + e.getLocalizedMessage() );
     } catch ( Exception e ) {
-      showError( e.getLocalizedMessage() );
+      showError( ElasticSearchRestConnection.describe( e ) );
     }
   }
 

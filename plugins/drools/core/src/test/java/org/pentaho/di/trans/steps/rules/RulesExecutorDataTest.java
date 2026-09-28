@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.drools.runtime.StatefulKnowledgeSession;
+import org.kie.api.runtime.KieSession;
 import org.junit.Before;
 import org.junit.Test;
 import org.pentaho.di.core.row.RowMetaInterface;
@@ -57,7 +57,7 @@ public class RulesExecutorDataTest {
     List<Rules.Column> fetchedColumns = new ArrayList<Rules.Column>( Arrays.asList( fc1 ) );
     List<Rules.Column> fetchedColumnsSpy = spy( fetchedColumns );
 
-    StatefulKnowledgeSession session = mock( StatefulKnowledgeSession.class );
+    KieSession session = mock( KieSession.class );
     doReturn( session ).when( data ).initNewKnowledgeSession();
     doReturn( fetchedColumnsSpy ).when( data ).fetchColumns( session );
 

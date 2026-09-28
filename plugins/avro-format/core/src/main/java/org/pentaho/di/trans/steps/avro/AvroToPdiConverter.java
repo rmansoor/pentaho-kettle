@@ -29,7 +29,7 @@ import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.util.Utf8;
-import org.codehaus.jackson.node.NullNode;
+import org.apache.avro.JsonProperties;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 
@@ -408,6 +408,6 @@ public class AvroToPdiConverter {
   }
 
   private boolean isNotNull( Object avroData ) {
-    return avroData != null && !( avroData instanceof NullNode );
+    return avroData != null && avroData != JsonProperties.NULL_VALUE;
   }
 }

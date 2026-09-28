@@ -29,16 +29,14 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import org.drools.KnowledgeBase;
-import org.drools.KnowledgeBaseFactory;
-import org.drools.builder.KnowledgeBuilder;
-import org.drools.builder.KnowledgeBuilderFactory;
-import org.drools.builder.ResourceType;
-import org.drools.definition.KnowledgePackage;
-import org.drools.io.Resource;
-import org.drools.io.ResourceFactory;
-import org.drools.runtime.ObjectFilter;
-import org.drools.runtime.StatefulKnowledgeSession;
+import org.kie.api.KieBase;
+import org.kie.api.io.Resource;
+import org.kie.api.io.ResourceType;
+import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.ObjectFilter;
+import org.kie.internal.builder.KnowledgeBuilder;
+import org.kie.internal.builder.KnowledgeBuilderFactory;
+import org.kie.internal.io.ResourceFactory;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.trans.step.BaseStepData;
@@ -53,7 +51,7 @@ public class RulesAccumulatorData extends BaseStepData implements StepDataInterf
 
   private KnowledgeBuilder kbuilder;
 
-  private KnowledgeBase kbase;
+  private KieBase kbase;
 
   private List<Object[]> results;
 
@@ -109,11 +107,8 @@ public class RulesAccumulatorData extends BaseStepData implements StepDataInterf
       throw new RuntimeException( BaseMessages.getString( PKG, "RulesData.Error.CompileDRL" ) );
     }
 
-    Collection<KnowledgePackage> pkgs = kbuilder.getKnowledgePackages();
-
-    kbase = KnowledgeBaseFactory.newKnowledgeBase();
     // Cache the knowledge base as its creation is intensive
-    kbase.addKnowledgePackages( pkgs );
+    kbase = kbuilder.newKieBase();
 
     // reset classloader back to original
     Thread.currentThread().setContextClassLoader( orig );
@@ -144,7 +139,7 @@ public class RulesAccumulatorData extends BaseStepData implements StepDataInterf
 
   public void execute() throws Exception {
     if ( kbase != null ) {
-      StatefulKnowledgeSession session = kbase.newStatefulKnowledgeSession();
+      KieSession session = kbase.newKieSession();
 
       for ( Row row : rowList ) {
         session.insert( row );
@@ -152,7 +147,7 @@ public class RulesAccumulatorData extends BaseStepData implements StepDataInterf
 
       session.fireAllRules();
 
-      Collection<Object> oList = session.getObjects( new ObjectFilter() {
+      Collection<?> oList = session.getObjects( new ObjectFilter() {
         @Override
         public boolean accept( Object o ) {
           if ( o instanceof Row && !( (Row) o ).isExternalSource() ) {

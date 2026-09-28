@@ -22,6 +22,7 @@
 
 package org.pentaho.di.ui.trans.steps.propertyinput;
 
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -53,7 +54,6 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.ini4j.Wini;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.Props;
@@ -71,6 +71,7 @@ import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.trans.TransPreviewFactory;
 import org.pentaho.di.trans.step.BaseStepMeta;
 import org.pentaho.di.trans.step.StepDialogInterface;
+import org.pentaho.di.trans.steps.propertyinput.IniFile;
 import org.pentaho.di.trans.steps.propertyinput.PropertyInputField;
 import org.pentaho.di.trans.steps.propertyinput.PropertyInputMeta;
 import org.pentaho.di.ui.core.dialog.EnterNumberDialog;
@@ -1664,7 +1665,7 @@ public class PropertyInputDialog extends BaseStepDialog implements StepDialogInt
   }
 
   private void getSections() {
-    Wini wini = new Wini();
+    IniFile wini = null;
     PropertyInputMeta meta = new PropertyInputMeta();
     try {
       getInfo( meta );
@@ -1676,9 +1677,11 @@ public class PropertyInputDialog extends BaseStepDialog implements StepDialogInt
         if ( fileInputList.getFile( 0 ).exists() ) {
           // Open the file (only first file) in readOnly ...
           //
-          wini = new Wini( KettleVFS.getInputStream( fileInputList.getFile( 0 ) ) );
-          Iterator<String> itSection = wini.keySet().iterator();
-          String[] sectionsList = new String[wini.keySet().size()];
+          try ( InputStream in = KettleVFS.getInputStream( fileInputList.getFile( 0 ) ) ) {
+            wini = IniFile.load( in, null );
+          }
+          Iterator<String> itSection = wini.sectionNames().iterator();
+          String[] sectionsList = new String[wini.sectionNames().size()];
           int i = 0;
           while ( itSection.hasNext() ) {
             sectionsList[i] = itSection.next().toString();

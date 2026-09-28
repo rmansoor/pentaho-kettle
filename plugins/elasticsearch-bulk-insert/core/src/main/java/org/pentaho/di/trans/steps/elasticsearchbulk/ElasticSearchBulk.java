@@ -2,7 +2,7 @@
  *
  * Pentaho Data Integration
  *
- * Copyright (C) 2002-2018 by Hitachi Vantara : http://www.pentaho.com
+ * Copyright (C) 2002-2026 by Hitachi Vantara : http://www.pentaho.com
  *
  *******************************************************************************
  *
@@ -22,25 +22,12 @@
 
 package org.pentaho.di.trans.steps.elasticsearchbulk;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.ElasticsearchTimeoutException;
-import org.elasticsearch.action.ActionFuture;
-import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.NoNodeAvailableException;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleStepException;
 import org.pentaho.di.core.row.RowDataUtil;
@@ -54,19 +41,25 @@ import org.pentaho.di.trans.step.StepDataInterface;
 import org.pentaho.di.trans.step.StepInterface;
 import org.pentaho.di.trans.step.StepMeta;
 import org.pentaho.di.trans.step.StepMetaInterface;
-import org.pentaho.di.trans.steps.elasticsearchbulk.ElasticSearchBulkMeta.Server;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.ConnectException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.SocketTimeoutException;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Does bulk insert of data into ElasticSearch
+ * Does bulk insert of data into ElasticSearch, through the REST bulk API.
  *
  * @author webdetails
  * @since 16-02-2011
@@ -75,16 +68,28 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
 
   private static final String INSERT_ERROR_CODE = null;
   private static Class<?> PKG = ElasticSearchBulkMeta.class; // for i18n
+
+  static final String OP_CREATE = "create";
+  static final String OP_INDEX = "index";
+
+  /** Dates as the transport client wrote them: ISO 8601 in UTC with milliseconds. */
+  static final DateTimeFormatter DATE_FORMAT =
+    DateTimeFormatter.ofPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSX" ).withZone( ZoneOffset.UTC );
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final JsonFactory JSON = MAPPER.getFactory();
+
   private ElasticSearchBulkMeta meta;
   private ElasticSearchBulkData data;
 
-  TransportClient tc;
-
-  private Client client;
+  private ElasticSearchRestConnection connection;
   private String index;
   private String type;
+  /** Whether the bulk actions carry {@code _type}: only for servers before 7.0, which still have mapping types. */
+  private boolean sendType;
 
-  BulkRequestBuilder currentRequest;
+  private StringBuilder currentRequest;
+  private int actionsInRequest;
 
   private int batchSize = 2;
 
@@ -97,10 +102,7 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
   private Long timeout = null;
   private TimeUnit timeoutUnit = TimeUnit.MILLISECONDS;
 
-  // private long duration = 0L;
   private int numberOfErrors = 0;
-
-  private List<IndexRequestBuilder> requestsBuffer;
 
   private boolean stopOnError = true;
   private boolean useOutput = true;
@@ -108,7 +110,7 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
   private Map<String, String> columnsToJson;
   private boolean hasFields;
 
-  private IndexRequest.OpType opType = org.elasticsearch.action.DocWriteRequest.OpType.CREATE;
+  private String opType = OP_CREATE;
 
   public ElasticSearchBulk( StepMeta stepMeta, StepDataInterface stepDataInterface, int copyNr, TransMeta transMeta,
                             Trans trans ) {
@@ -119,7 +121,7 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
 
     Object[] rowData = getRow();
     if ( rowData == null ) {
-      if ( currentRequest != null && currentRequest.numberOfActions() > 0 ) {
+      if ( currentRequest != null && actionsInRequest > 0 ) {
         // didn't fill a whole batch
         processBatch( false );
       }
@@ -130,8 +132,8 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
     if ( first ) {
       first = false;
       setupData();
-      currentRequest = client.prepareBulk();
-      requestsBuffer = new ArrayList<IndexRequestBuilder>( this.batchSize );
+      detectServerVersion();
+      newRequest();
       initFieldIndexes();
     }
 
@@ -159,6 +161,34 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
     data.inputRowBuffer = new Object[batchSize][];
     data.outputRowMeta = data.inputRowMeta.clone();
     meta.getFields( data.outputRowMeta, getStepname(), null, null, this, repository, metaStore );
+  }
+
+  /** Mapping types went away in Elasticsearch 7: only older servers get the step's type. */
+  private void detectServerVersion() throws KettleStepException {
+    int major;
+    try {
+      major = connection.majorVersion();
+    } catch ( IOException e ) {
+      String msg = isUnreachable( e )
+        ? BaseMessages.getString( PKG, "ElasticSearchBulkDialog.Error.NoNodesFound" ) + ": " + e.getLocalizedMessage()
+        : BaseMessages.getString( PKG, "ElasticSearchBulk.Log.Exception", ElasticSearchRestConnection.describe( e ) );
+      logError( msg );
+      throw new KettleStepException( msg, e );
+    }
+    sendType = major < 7 && StringUtils.isNotBlank( type );
+    if ( major >= 7 && StringUtils.isNotBlank( type ) ) {
+      logBasic( "Elasticsearch " + major + " has no mapping types: type '" + type + "' is not sent" );
+    }
+  }
+
+  private static boolean isUnreachable( IOException e ) {
+    return e instanceof ConnectException || e instanceof ConnectTimeoutException
+      || e.getCause() instanceof ConnectException;
+  }
+
+  private void newRequest() {
+    currentRequest = new StringBuilder();
+    actionsInRequest = 0;
   }
 
   private void initFieldIndexes() throws KettleStepException {
@@ -205,23 +235,14 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
   private boolean indexRow( RowMetaInterface rowMeta, Object[] row ) throws KettleStepException {
     try {
 
-      IndexRequestBuilder requestBuilder = client.prepareIndex( index, type );
-      requestBuilder.setOpType( this.opType );
+      String id = idFieldIndex != null ? "" + row[idFieldIndex] : null; // "" just in case field isn't string
+      String source = isJsonInsert ? sourceFromJsonField( row[jsonFieldIdx] ) : sourceFromRowFields( rowMeta, row );
 
-      if ( idFieldIndex != null ) {
-        requestBuilder.setId( "" + row[idFieldIndex] ); // "" just in case field isn't string
-      }
+      currentRequest.append( actionLine( opType, index, sendType ? type : null, id ) ).append( '\n' );
+      currentRequest.append( source ).append( '\n' );
+      actionsInRequest++;
 
-      if ( isJsonInsert ) {
-        addSourceFromJsonString( row, requestBuilder );
-      } else {
-        addSourceFromRowFields( requestBuilder, rowMeta, row );
-      }
-
-      currentRequest.add( requestBuilder );
-      requestsBuffer.add( requestBuilder );
-
-      if ( currentRequest.numberOfActions() >= batchSize ) {
+      if ( actionsInRequest >= batchSize ) {
         return processBatch( true );
       } else {
         return true;
@@ -229,59 +250,94 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
 
     } catch ( KettleStepException e ) {
       throw e;
-    } catch ( NoNodeAvailableException e ) {
-      throw new KettleStepException( BaseMessages.getString( PKG, "ElasticSearchBulkDialog.Error.NoNodesFound" ) );
     } catch ( Exception e ) {
       throw new KettleStepException( BaseMessages.getString( PKG, "ElasticSearchBulk.Log.Exception", e
               .getLocalizedMessage() ), e );
     }
   }
 
-  /**
-   * @param row
-   * @param requestBuilder
-   */
-  private void addSourceFromJsonString( Object[] row, IndexRequestBuilder requestBuilder ) throws KettleStepException {
-    Object jsonString = row[jsonFieldIdx];
-    if ( jsonString instanceof byte[] ) {
-      requestBuilder.setSource( (byte[]) jsonString, XContentType.JSON );
-    } else if ( jsonString instanceof String ) {
-      requestBuilder.setSource( (String) jsonString, XContentType.JSON );
-    } else {
-      throw new KettleStepException( BaseMessages.getString( "ElasticSearchBulk.Error.NoJsonFieldFormat" ) );
+  /** The bulk action line, e.g. <code>{"create":{"_index":"i","_id":"1"}}</code>. */
+  static String actionLine( String opType, String index, String type, String id ) throws IOException {
+    StringWriter out = new StringWriter();
+    try ( JsonGenerator json = JSON.createGenerator( out ) ) {
+      json.writeStartObject();
+      json.writeObjectFieldStart( opType );
+      json.writeStringField( "_index", index );
+      if ( type != null ) {
+        json.writeStringField( "_type", type );
+      }
+      if ( id != null ) {
+        json.writeStringField( "_id", id );
+      }
+      json.writeEndObject();
+      json.writeEndObject();
     }
+    return out.toString();
   }
 
-  /**
-   * @param requestBuilder
-   * @param rowMeta
-   * @param row
-   * @throws IOException
-   */
-  private void addSourceFromRowFields( IndexRequestBuilder requestBuilder, RowMetaInterface rowMeta, Object[] row )
-          throws IOException {
-    XContentBuilder jsonBuilder = XContentFactory.jsonBuilder().startObject();
-
-    for ( int i = 0; i < rowMeta.size(); i++ ) {
-      if ( idFieldIndex != null && i == idFieldIndex ) { // skip id
-        continue;
-      }
-
-      ValueMetaInterface valueMeta = rowMeta.getValueMeta( i );
-      String name = hasFields ? columnsToJson.get( valueMeta.getName() ) : valueMeta.getName();
-      Object value = row[i];
-      if ( value instanceof Date && value.getClass() != Date.class ) {
-        Date subDate = (Date) value;
-        // create a genuine Date object, or jsonBuilder will not recognize it
-        value = new Date( subDate.getTime() );
-      }
-      if ( StringUtils.isNotBlank( name ) ) {
-        jsonBuilder.field( name, value );
-      }
+  /** A JSON document from the JSON field, on one line as the bulk API needs. */
+  static String sourceFromJsonField( Object jsonString ) throws KettleStepException, IOException {
+    JsonNode document;
+    if ( jsonString instanceof byte[] ) {
+      document = MAPPER.readTree( (byte[]) jsonString );
+    } else if ( jsonString instanceof String ) {
+      document = MAPPER.readTree( (String) jsonString );
+    } else {
+      throw new KettleStepException( BaseMessages.getString( PKG, "ElasticSearchBulk.Error.NoJsonFieldFormat" ) );
     }
+    if ( document == null || !document.isObject() ) {
+      throw new KettleStepException( BaseMessages.getString( PKG, "ElasticSearchBulk.Error.NoJsonFieldFormat" ) );
+    }
+    return MAPPER.writeValueAsString( document );
+  }
 
-    jsonBuilder.endObject();
-    requestBuilder.setSource( jsonBuilder );
+  private String sourceFromRowFields( RowMetaInterface rowMeta, Object[] row ) throws IOException {
+    StringWriter out = new StringWriter();
+    try ( JsonGenerator json = JSON.createGenerator( out ) ) {
+      json.writeStartObject();
+      for ( int i = 0; i < rowMeta.size(); i++ ) {
+        if ( idFieldIndex != null && i == idFieldIndex ) { // skip id
+          continue;
+        }
+
+        ValueMetaInterface valueMeta = rowMeta.getValueMeta( i );
+        String name = hasFields ? columnsToJson.get( valueMeta.getName() ) : valueMeta.getName();
+        if ( StringUtils.isNotBlank( name ) ) {
+          json.writeFieldName( name );
+          writeValue( json, row[i] );
+        }
+      }
+      json.writeEndObject();
+    }
+    return out.toString();
+  }
+
+  /** Writes a field value the way the transport client's XContentBuilder did. */
+  static void writeValue( JsonGenerator json, Object value ) throws IOException {
+    if ( value == null ) {
+      json.writeNull();
+    } else if ( value instanceof String ) {
+      json.writeString( (String) value );
+    } else if ( value instanceof Long || value instanceof Integer || value instanceof Short
+      || value instanceof Byte ) {
+      json.writeNumber( ( (Number) value ).longValue() );
+    } else if ( value instanceof Double || value instanceof Float ) {
+      json.writeNumber( ( (Number) value ).doubleValue() );
+    } else if ( value instanceof BigDecimal ) {
+      json.writeNumber( (BigDecimal) value );
+    } else if ( value instanceof BigInteger ) {
+      json.writeNumber( (BigInteger) value );
+    } else if ( value instanceof Boolean ) {
+      json.writeBoolean( (Boolean) value );
+    } else if ( value instanceof Date ) { // includes Timestamp; millisecond precision, as before
+      json.writeString( DATE_FORMAT.format( ( (Date) value ).toInstant() ) );
+    } else if ( value instanceof byte[] ) {
+      json.writeBinary( (byte[]) value ); // base64
+    } else if ( value instanceof InetAddress ) {
+      json.writeString( ( (InetAddress) value ).getHostAddress() );
+    } else {
+      json.writeString( value.toString() );
+    }
   }
 
   public boolean init( StepMetaInterface smi, StepDataInterface sdi ) {
@@ -303,7 +359,6 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
         logError( BaseMessages.getString( PKG, "ElasticSearchBulk.Log.ErrorOccurredDuringStepInitialize" )
                 + e.getMessage() );
       }
-      return true;
     }
     return false;
   }
@@ -326,26 +381,21 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
     this.hasFields = columnsToJson.size() > 0;
 
     this.opType =
-            StringUtils.isNotBlank( meta.getIdInField() ) && meta.isOverWriteIfSameId() ? OpType.INDEX : OpType.CREATE;
+            StringUtils.isNotBlank( meta.getIdInField() ) && meta.isOverWriteIfSameId() ? OP_INDEX : OP_CREATE;
 
   }
 
   private boolean processBatch( boolean makeNew ) throws KettleStepException {
 
-
-    ActionFuture<BulkResponse> actionFuture = currentRequest.execute();
     boolean responseOk = false;
 
-    BulkResponse response = null;
+    JsonNode response = null;
     try {
-      if ( timeout != null && timeoutUnit != null ) {
-        response = actionFuture.actionGet( timeout, timeoutUnit );
-      } else {
-        response = actionFuture.actionGet();
-      }
-    } catch ( ElasticsearchException e ) {
-      String msg = BaseMessages.getString( PKG, "ElasticSearchBulk.Error.BatchExecuteFail", e.getLocalizedMessage() );
-      if ( e instanceof ElasticsearchTimeoutException ) {
+      response = connection.bulk( currentRequest.toString() );
+    } catch ( IOException e ) {
+      String msg = BaseMessages.getString( PKG, "ElasticSearchBulk.Error.BatchExecuteFail",
+        ElasticSearchRestConnection.describe( e ) );
+      if ( e instanceof SocketTimeoutException ) {
         msg = BaseMessages.getString( PKG, "ElasticSearchBulk.Error.Timeout" );
       }
       logError( msg );
@@ -354,15 +404,13 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
 
     if ( response != null ) {
       responseOk = handleResponse( response );
-      requestsBuffer.clear();
     } else { // have to assume all failed
-      numberOfErrors += currentRequest.numberOfActions();
+      numberOfErrors += actionsInRequest;
       setErrors( numberOfErrors );
     }
-    // duration += response.getTookInMillis(); //just in trunk..
 
     if ( makeNew ) {
-      currentRequest = client.prepareBulk();
+      newRequest();
       data.nextBufferRowIdx = 0;
       data.inputRowBuffer = new Object[batchSize][];
     } else {
@@ -374,40 +422,43 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
   }
 
   /**
-   * @param response
+   * @param response the bulk API response
    * @return <code>true</code> if no errors
    */
-  private boolean handleResponse( BulkResponse response ) {
+  private boolean handleResponse( JsonNode response ) {
 
-    boolean hasErrors = response.hasFailures();
+    boolean hasErrors = response.path( "errors" ).asBoolean( false );
+    JsonNode items = response.path( "items" );
 
     if ( hasErrors ) {
-      logError( response.buildFailureMessage() );
+      logError( buildFailureMessage( items ) );
     }
 
     int errorsInBatch = 0;
 
     if ( hasErrors || useOutput ) {
-      for ( BulkItemResponse item : response ) {
-        if ( item.isFailed() ) {
+      for ( int itemId = 0; itemId < items.size(); itemId++ ) {
+        JsonNode item = itemResult( items.get( itemId ) );
+        String failure = failureMessage( item );
+        if ( failure != null ) {
           // log
-          logDetailed( item.getFailureMessage() );
+          logDetailed( failure );
           errorsInBatch++;
           if ( getStepMeta().isDoingErrorHandling() ) {
-            rejectRow( item.getItemId(), item.getFailureMessage() );
+            rejectRow( itemId, failure );
           }
         } else if ( useOutput ) {
           if ( idOutFieldName != null ) {
-            addIdToRow( item.getId(), item.getItemId() );
+            addIdToRow( item.path( "_id" ).asText(), itemId );
           }
-          echoRow( item.getItemId() );
+          echoRow( itemId );
         }
       }
     }
 
     numberOfErrors += errorsInBatch;
     setErrors( numberOfErrors );
-    int linesOK = currentRequest.numberOfActions() - errorsInBatch;
+    int linesOK = actionsInRequest - errorsInBatch;
 
     if ( useOutput ) {
       setLinesOutput( getLinesOutput() + linesOK );
@@ -416,6 +467,40 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
     }
 
     return !hasErrors;
+  }
+
+  /** Each bulk response item is <code>{"create"|"index": {...}}</code>: returns the inner object. */
+  static JsonNode itemResult( JsonNode item ) {
+    return item != null && item.size() > 0 ? item.elements().next() : MAPPER.createObjectNode();
+  }
+
+  /** The failure of one bulk item, or <code>null</code> if it succeeded. */
+  static String failureMessage( JsonNode itemResult ) {
+    JsonNode error = itemResult.get( "error" );
+    if ( error == null || error.isNull() ) {
+      int status = itemResult.path( "status" ).asInt( 200 );
+      return status >= 300 ? "HTTP status " + status : null;
+    }
+    if ( error.isTextual() ) {
+      return error.asText();
+    }
+    String type = error.path( "type" ).asText( "" );
+    String reason = error.path( "reason" ).asText( "" );
+    return type.isEmpty() ? reason : type + ": " + reason;
+  }
+
+  static String buildFailureMessage( JsonNode items ) {
+    StringBuilder sb = new StringBuilder( "failure in bulk execution:" );
+    for ( int i = 0; i < items.size(); i++ ) {
+      JsonNode item = itemResult( items.get( i ) );
+      String failure = failureMessage( item );
+      if ( failure != null ) {
+        sb.append( "\n[" ).append( i ).append( "]: index [" ).append( item.path( "_index" ).asText() )
+          .append( "], id [" ).append( item.path( "_id" ).asText() ).append( "], message [" ).append( failure )
+          .append( ']' );
+      }
+    }
+    return sb.toString();
   }
 
   private void addIdToRow( String id, int rowIndex ) {
@@ -467,38 +552,28 @@ public class ElasticSearchBulk extends BaseStep implements StepInterface {
     }
   }
 
-  private void initClient() throws UnknownHostException {
+  private void initClient() {
+    Map<String, String> settings = new HashMap<>();
+    meta.getSettingsMap().forEach( ( key, value ) -> settings.put( key, environmentSubstitute( value ) ) );
 
-
-    Settings.Builder settingsBuilder = Settings.builder();
-    settingsBuilder.put( Settings.Builder.EMPTY_SETTINGS );
-    meta.getSettingsMap().entrySet().stream().forEach( ( s ) -> settingsBuilder.put( s.getKey(),
-            environmentSubstitute( s.getValue() ) ) );
-
-    PreBuiltTransportClient tClient = new PreBuiltTransportClient( settingsBuilder.build() );
-
-    for ( Server server : meta.getServers() ) {
-      tClient.addTransportAddress( new TransportAddress(
-              InetAddress.getByName( environmentSubstitute( server.getAddress() ) ),
-              server.getPort() ) );
+    List<ElasticSearchBulkMeta.Server> servers = new ArrayList<>();
+    for ( ElasticSearchBulkMeta.Server server : meta.getServers() ) {
+      ElasticSearchBulkMeta.Server resolved = new ElasticSearchBulkMeta.Server();
+      resolved.address = environmentSubstitute( server.getAddress() );
+      resolved.port = server.getPort();
+      servers.add( resolved );
     }
 
-    client = tClient;
-
-    /** With the upgrade to elasticsearch 6.3.0, removed the NodeBuilder,
-     *  which was removed from the elasticsearch 5.0 API, see:
-     *  https://www.elastic.co/guide/en/elasticsearch/reference/5.0/breaking_50_java_api_changes
-     *  .html#_nodebuilder_removed
-     */
-
+    Long timeoutMillis = timeout != null && timeoutUnit != null ? timeoutUnit.toMillis( timeout ) : null;
+    connection = new ElasticSearchRestConnection( servers, settings, timeoutMillis, getLogChannel() );
   }
 
-  private void disposeClient() {
+  private void disposeClient() throws IOException {
 
-    if ( client != null ) {
-      client.close();
+    if ( connection != null ) {
+      connection.close();
+      connection = null;
     }
-
 
   }
 

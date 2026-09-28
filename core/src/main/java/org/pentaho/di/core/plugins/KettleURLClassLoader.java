@@ -102,6 +102,10 @@ public class KettleURLClassLoader extends URLClassLoader {
 
   @Override
   protected synchronized Class<?> loadClass( String arg0, boolean arg1 ) throws ClassNotFoundException {
+    if ( arg0.startsWith( "java." ) ) {
+      // only the JDK can define java.* classes; some plugin jars (e.g. high-scale-lib) still carry copies
+      return loadClassFromParent( arg0, arg1 );
+    }
     try {
       return loadClassFromThisLoader( arg0, arg1 );
     } catch ( ClassNotFoundException | NoClassDefFoundError e ) {

@@ -72,6 +72,7 @@ public class SftpFileSystemWindowsProvider extends SftpFileProvider {
    */
   static Session createSession( final GenericFileName rootName, final FileSystemOptions fileSystemOptions )
     throws FileSystemException {
+    SshAlgorithmDefaults.apply();
     UserAuthenticationData authData = null;
     try {
       authData = UserAuthenticatorUtils.authenticate( fileSystemOptions, AUTHENTICATOR_TYPES );
