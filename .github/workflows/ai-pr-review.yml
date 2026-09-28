@@ -1,0 +1,41 @@
+# First-pass AI review on every PR (human- or AI-authored). Advisory only:
+# merging still needs a human code owner's approval and green CI.
+name: AI PR review (Claude)
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+jobs:
+  review:
+    if: vars.AI_REVIEW_ENABLED != 'false' && vars.LLM_PROVIDER != 'openai' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 1 }
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          use_sticky_comment: true
+          claude_args: |
+            --model ${{ vars.REVIEW_MODEL || 'claude-sonnet-5' }}
+            --max-turns 15
+            --allowedTools "Read,Glob,Grep,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+          prompt: |
+            REPO: ${{ github.repository }}  PR: ${{ github.event.pull_request.number }}
+            Review this pull request against AGENTS.md. Report only real problems, most severe first:
+            1. Correctness: does the change fix the root cause described? Edge cases (nulls, empty rows,
+               data types, locale/encoding, large volumes)? Backward compatibility of saved .ktr/.kjb files?
+            2. Test: is there a test that would fail without the fix? Is it asserting the right thing?
+            3. Scope: changes unrelated to the bug, new dependencies, edits to .github/, license files, or pom versions.
+            4. Licensing: flag any code that looks copied from Pentaho/Kettle 10.2+ (BSL) sources or other
+               non-Apache-compatible code.
+            5. Security: SQL built by string concatenation, credentials in logs, unsafe deserialisation, path traversal.
+            Use inline comments for specific lines and one summary comment with a verdict:
+            "Looks good for human review" or "Needs changes".

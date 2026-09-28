@@ -1,0 +1,43 @@
+# Keeps the private support ticket in step with the product PR:
+#   PR opened  -> support issue gets `fix-in-review`
+#   PR merged  -> internal note "merged, ships in next patch"
+# Customers are told only when staff run `/release <version>` on the support issue.
+name: Sync support status
+
+on:
+  pull_request:
+    types: [opened, closed]
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - id: app
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.SUPPORT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SUPPORT_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          ACTION: ${{ github.event.action }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          SUPPORT_REPO: ${{ vars.SUPPORT_REPO }}
+        run: |
+          set -euo pipefail
+          for N in $(grep -oiE '(fixes|closes|resolves) #[0-9]+' <<< "$PR_BODY" | grep -oE '[0-9]+' | sort -u); do
+            BODY=$(gh issue view "$N" -R "$GITHUB_REPOSITORY" --json body -q .body)
+            for S in $(grep -oE 'support#[0-9]+' <<< "$BODY" | cut -d# -f2 | sort -u); do
+              if [ "$ACTION" = "opened" ]; then
+                gh issue edit "$S" -R "$SUPPORT_REPO" --add-label fix-in-review
+                gh issue comment "$S" -R "$SUPPORT_REPO" --body "Fix PR opened: $PR_URL (internal)"
+              elif [ "$MERGED" = "true" ]; then
+                gh issue comment "$S" -R "$SUPPORT_REPO" --body "Fix merged: $PR_URL. Run \`/release <version>\` here when it ships. (internal)"
+              fi
+            done
+          done

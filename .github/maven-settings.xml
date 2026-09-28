@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings for CI and AI agents.
+  The 10.1 build resolves its parent POMs and sibling Pentaho artifacts
+  (commons-xul, metastore, ...) from Hitachi Vantara's public repository.
+  ACTION ITEM: mirror every 10.1.0.0-317 artifact you depend on into YOUR OWN
+  repository (GitHub Packages, Artifactory, Nexus, or S3) and point MIRROR_URL
+  at it, so your builds never depend on a vendor-controlled server.
+-->
+<settings>
+  <profiles>
+    <profile>
+      <id>build</id>
+      <repositories>
+        <repository>
+          <id>product-mirror</id>
+          <url>${env.MIRROR_URL}</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <repository>
+          <id>pentaho-public</id>
+          <url>https://repo.pentaho.com/artifactory/pnt-mvn/</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>pentaho-public</id>
+          <url>https://repo.pentaho.com/artifactory/pnt-mvn/</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <activeProfile>build</activeProfile>
+  </activeProfiles>
+</settings>
