@@ -1,0 +1,1797 @@
+{
+ "modules": {
+  "core": {
+   "tests": 1202,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 1
+  },
+  "dbdialog": {
+   "tests": 36,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "engine-ext/api": {
+   "tests": 12,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "engine": {
+   "tests": 2437,
+   "failures": 44,
+   "errors": 82,
+   "skipped": 4
+  },
+  "plugins/aggregate-rows/core": {
+   "tests": 1,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/avro-format/core": {
+   "tests": 42,
+   "failures": 1,
+   "errors": 1,
+   "skipped": 0
+  },
+  "plugins/connections/ui": {
+   "tests": 0,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/core/impl": {
+   "tests": 79,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 1
+  },
+  "plugins/drools/core": {
+   "tests": 1,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/dummy/core": {
+   "tests": 0,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/edi2xml/impl": {
+   "tests": 1,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/elasticsearch-bulk-insert/core": {
+   "tests": 8,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/engine-configuration/impl": {
+   "tests": 42,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/excel/core": {
+   "tests": 110,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/file-open-save-new/core": {
+   "tests": 15,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/google-analytics/core": {
+   "tests": 12,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/gp-bulk-loader/core": {
+   "tests": 1,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/gpload/core": {
+   "tests": 12,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/infobright-bulk-loader/impl": {
+   "tests": 2,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/ivw-bulk-loader/impl": {
+   "tests": 9,
+   "failures": 4,
+   "errors": 0,
+   "skipped": 1
+  },
+  "plugins/json/core": {
+   "tests": 107,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 5
+  },
+  "plugins/kafka/core": {
+   "tests": 53,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/ldap/impl": {
+   "tests": 4,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/meta-inject/impl": {
+   "tests": 17,
+   "failures": 0,
+   "errors": 1,
+   "skipped": 0
+  },
+  "plugins/metastore-locator/core": {
+   "tests": 15,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/mondrianinput/impl": {
+   "tests": 3,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/monet-db-bulk-loader/impl": {
+   "tests": 16,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 1
+  },
+  "plugins/ms-access/impl": {
+   "tests": 10,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/mysql-bulk-loader/impl": {
+   "tests": 9,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/oracle-bulk-loader/impl": {
+   "tests": 11,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/pentaho-googledrive-vfs/core": {
+   "tests": 3,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/pentaho-reporting/impl": {
+   "tests": 8,
+   "failures": 0,
+   "errors": 1,
+   "skipped": 0
+  },
+  "plugins/postgresql-db-bulk-loader/impl": {
+   "tests": 11,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/pur/core": {
+   "tests": 253,
+   "failures": 0,
+   "errors": 5,
+   "skipped": 0
+  },
+  "plugins/pur/repository-proxy": {
+   "tests": 9,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/repositories/core": {
+   "tests": 20,
+   "failures": 0,
+   "errors": 18,
+   "skipped": 0
+  },
+  "plugins/repository-locator/impl/locator": {
+   "tests": 3,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/repository-locator/impl/platform": {
+   "tests": 4,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/repository-locator/impl/spoon": {
+   "tests": 2,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/rss/impl": {
+   "tests": 2,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/s3-vfs/core": {
+   "tests": 80,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/s3csvinput/core": {
+   "tests": 13,
+   "failures": 0,
+   "errors": 1,
+   "skipped": 0
+  },
+  "plugins/salesforce/core": {
+   "tests": 88,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/sap/core": {
+   "tests": 2,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/shapefilereader/core": {
+   "tests": 1,
+   "failures": 0,
+   "errors": 1,
+   "skipped": 0
+  },
+  "plugins/streaming/impls/jms": {
+   "tests": 26,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/streaming/impls/mqtt": {
+   "tests": 40,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 1
+  },
+  "plugins/terafast-bulk-loader/impl": {
+   "tests": 2,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/xml/core": {
+   "tests": 80,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "plugins/yaml-input/impl": {
+   "tests": 1,
+   "failures": 0,
+   "errors": 0,
+   "skipped": 0
+  },
+  "ui": {
+   "tests": 339,
+   "failures": 0,
+   "errors": 6,
+   "skipped": 0
+  }
+ },
+ "rows": [
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.getpop.MailConnectionTest",
+   "test": "findValidTargetTest",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "Original file name should be tried first.",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.sftpput.SFTPPutTest",
+   "test": "remoteFilenameFieldIsMandatoryWhenStreamingFromInputField",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Error connecting! For a SFTP connection server name and username must be set and server port must be greater than zero. ",
+   "cause": "Caused by: org.pentaho.di.core.exception.KettleJobException:"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.fuzzymatch.FuzzyMatchTest",
+   "test": "testProcessRow",
+   "kind": "error",
+   "type": "java.lang.ClassCastException",
+   "msg": "class org.mockito.codegen.Object$MockitoMock$511968903 cannot be cast to class org.pentaho.di.core.row.RowMetaInterface (org.mockito.codegen.Object$MockitoMock$511968903 and org.pentaho.di.core.row.RowMetaInterface are in unnamed module of loader 'app')",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.copyfiles.JobEntryCopyFilesTest",
+   "test": "fileCopied",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: namedClusterEmbedManager.passEmbeddedMetastoreKey( <any>, <any string> ); -> at org.pentaho.di.job.entries.copyfiles.JobEntryCopyFilesTest.fileCopied(JobEntryCopyFilesTest.java:104) Actual invocations have different arguments: namedClusterEmbedManager.passEmbedded",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.core.HTTPProtocolTest",
+   "test": "org.pentaho.di.core.HTTPProtocolTest",
+   "kind": "error",
+   "type": "com.github.tomakehurst.wiremock.common.FatalStartupException",
+   "msg": "java.lang.RuntimeException: java.io.IOException: Failed to bind to /0.0.0.0:55555",
+   "cause": "Caused by: java.net.BindException: Address already in use"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testMemoryPreservationWithBinaryLookupStream",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testMemoryPreservationWithBinaryDateStream",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testWithBinaryLookupStream",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testWithBinaryStreams",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testWithNormalStreams",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testWithBinaryDateStream",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testMemoryPreservationWithBinaryStreams",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.streamlookup.StreamLookupTest",
+   "test": "testMemoryPreservationWithNormalStreams",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Output row is of wrong size expected:<3> but was:<2>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.core.attributes.AttributesUtilTest",
+   "test": "testGetAttributesXml_DefaultTag_NullParameter",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.core.attributes.AttributesUtilTest",
+   "test": "testGetAttributesXml_CustomTag_NullParameter",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.www.RegisterPackageServletTest",
+   "test": "testCopyRequestToDirectory_Exception2",
+   "kind": "error",
+   "type": "org.mockito.exceptions.base.MockitoException",
+   "msg": " Checked exception is invalid for this method! Invalid: java.io.IOException",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobRunnerTest",
+   "test": "testRunWithExceptionOnFireJobSetsResult",
+   "kind": "error",
+   "type": "org.mockito.exceptions.base.MockitoException",
+   "msg": " Checked exception is invalid for this method! Invalid: java.lang.Exception",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobRunnerTest",
+   "test": "testRunWithExceptionOnExecuteAndFireJobSetsResult",
+   "kind": "error",
+   "type": "org.mockito.exceptions.base.MockitoException",
+   "msg": " Checked exception is invalid for this method! Invalid: java.lang.Exception",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobRunnerTest",
+   "test": "testRunWithException",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: result.setNrErrors(<any integer>); -> at org.pentaho.di.job.entries.job.JobEntryJobRunnerTest.testRunWithException(JobEntryJobRunnerTest.java:142) Actual invocations have different arguments: result.setResult(false); -> at org.pentaho.di.job.entries.job.JobEntryJo",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.mail.MailTest",
+   "test": "testSendMailWithPlainPassword",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Can not send mail! 530-5.7.0 Must issue a STARTTLS command first. For more information, go to 530-5.7.0 https://support.google.com/a/answer/3221692 and review RFC 3207 530 5.7.0 specifications. 71dfb90a1353d-5cde5a70282sm3510655e0c.10 - gsmtp ",
+   "cause": "Caused by: com.sun.mail.smtp.SMTPSendFailedException:"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.mail.MailTest",
+   "test": "testSendMailWithEncryptedPassword",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Can not send mail! 530-5.7.0 Must issue a STARTTLS command first. For more information, go to 530-5.7.0 https://support.google.com/a/answer/3221692 and review RFC 3207 530 5.7.0 specifications. a1e0cc1a2514c-9889afc5b62sm720005241.1 - gsmtp ",
+   "cause": "Caused by: com.sun.mail.smtp.SMTPSendFailedException:"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.switchcase.SwitchCaseTest",
+   "test": "processRow_NullsArePutIntoDefaultWhenNotSpecified",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<1> but was:<0>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.switchcase.SwitchCaseTest",
+   "test": "testProcessRow",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "First row set collects 2 rows expected:<2> but was:<0>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.switchcase.SwitchCaseTest",
+   "test": "testCreateOutputValueMappingWithBinaryType",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "Cannot invoke \"java.util.Set.size()\" because \"ones\" is null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.switchcase.SwitchCaseTest",
+   "test": "testCreateOutputValueMapping",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "Cannot invoke \"java.util.Set.size()\" because \"ones\" is null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "createsReadOnlyCache_WhenReadAll_AndNotAllEquals",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": " Expected: is an instance of org.pentaho.di.trans.steps.databaselookup.readallcache.ReadAllCache but: null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "testEqualsAndIsNullAreCached",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "determineFieldsTypesQueryingDbDefaultTest",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleStepException",
+   "msg": " Unable to determine the fields of table [null] ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "determineFieldsTypesQueryingDbKettlePropertyTrueTest",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleStepException",
+   "msg": " Unable to determine the fields of table [null] ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "createsReadDefaultCache_WhenReadAll_AndAllEquals",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": " Expected: is an instance of org.pentaho.di.trans.steps.databaselookup.DefaultCache but: null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "mySqlVariantDbIsLazyConverted",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.WantedButNotInvoked",
+   "msg": " Wanted but not invoked: database.getLookup( <any java.sql.PreparedStatement>, <any boolean>, false ); -> at org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest.mySqlVariantDbIsLazyConverted(DatabaseLookupUTest.java:139) However, there were exactly 7 interactions with this mock: database.s",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "determineFieldsTypesQueryingDbKettlePropertyFalseTest",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleStepException",
+   "msg": " Unable to determine the fields of table [null] ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "createsReadDefaultCache_AndUsesOnlyNeededFieldsFromMeta",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "Cannot invoke \"org.pentaho.di.trans.steps.databaselookup.DatabaseLookupData$Cache.getRowFromCache(org.pentaho.di.core.row.RowMetaInterface, Object[])\" because \"data.cache\" is null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.DatabaseLookupUTest",
+   "test": "determineFieldsTypesQueryingDbKettlePropertyWrongValueTest",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleStepException",
+   "msg": " Unable to determine the fields of table [null] ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.columnsexist.JobEntryColumnsExistTest",
+   "test": "jobSuccess",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "Should be no error expected:<0> but was:<1>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testNotConnectedLoad_RepByRef",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testNotConnectedLoad_RepByName",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testNotConnectedLoad_Filename",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedImport_RepByName",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedImport_Filename",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedImport_RepByName_Guess",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedImport_Filename_Guess",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedLoad_RepByName",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedLoad_Filename",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedLoad_RepByName_HDFS",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedLoad_RepByName_SingleParameter",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedLoad_RepByName_MultipleParameters",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedLoad_RepByName_Guess",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testConnectedLoad_Filename_Guess",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.environmentSubstitute(String)\" because \"tmpSpace\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.job.JobEntryJobTest",
+   "test": "testExportResources",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unexpected error during job metadata load !JobTrans.Exception.MetaDataLoad! Cannot invoke \"java.lang.Enum.ordinal()\" because \"<local13>\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"java.lang.Enum.ordinal()\" because \"<local13>\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "transWithNoStepsIsNotEndless",
+   "kind": "error",
+   "type": "java.lang.IllegalAccessError",
+   "msg": "class org.pentaho.di.trans.Trans tried to access private field org.pentaho.di.trans.Trans$BitMaskStatus.mask (org.pentaho.di.trans.Trans and org.pentaho.di.trans.Trans$BitMaskStatus are in unnamed module of loader org.powermock.core.classloader.javassist.JavassistMockClassLoader @318b2ce1), (Type or",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testLoggingObjectIsNotLeakInTrans",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "test should never throw an exception to this level",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testTransFinishListenersConcurrentModification",
+   "kind": "error",
+   "type": "java.lang.IllegalStateException",
+   "msg": "Failed to transform class with name org.pentaho.di.trans.TransTest$TransFinishListenerAdder. Reason: Cannot read field \"string\" because \"utf\" is null",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot read field \"string\" because \"utf\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testTransStartListenersConcurrentModification",
+   "kind": "error",
+   "type": "java.lang.IllegalStateException",
+   "msg": "Failed to transform class with name org.pentaho.di.trans.TransTest$TransFinishListenerAdder. Reason: Cannot read field \"string\" because \"utf\" is null",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot read field \"string\" because \"utf\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testTransStoppedListenersConcurrentModification",
+   "kind": "error",
+   "type": "java.lang.IllegalStateException",
+   "msg": "Failed to transform class with name org.pentaho.di.trans.TransTest$TransStoppedCaller. Reason: Cannot read field \"string\" because \"utf\" is null",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot read field \"string\" because \"utf\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testRecordsCleanUpMethodIsCalled",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unable to write information to the step log table Cannot invoke \"org.pentaho.di.core.database.DatabaseMeta.shareVariablesWith(org.pentaho.di.core.variables.VariableSpace)\" because \"<local3>\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.database.DatabaseMeta.shareVariablesWith(org.pentaho.di.core.variables.VariableSpace)\" because \"<local3>\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testFinishStatus",
+   "kind": "error",
+   "type": "java.lang.IllegalAccessError",
+   "msg": "class org.pentaho.di.trans.Trans tried to access private field org.pentaho.di.trans.Trans$BitMaskStatus.mask (org.pentaho.di.trans.Trans and org.pentaho.di.trans.Trans$BitMaskStatus are in unnamed module of loader org.powermock.core.classloader.javassist.JavassistMockClassLoader @318b2ce1), (Type or",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testSafeStop",
+   "kind": "error",
+   "type": "java.lang.IllegalAccessError",
+   "msg": "class org.pentaho.di.trans.Trans tried to access private field org.pentaho.di.trans.Trans$BitMaskStatus.mask (org.pentaho.di.trans.Trans and org.pentaho.di.trans.Trans$BitMaskStatus are in unnamed module of loader org.powermock.core.classloader.javassist.JavassistMockClassLoader @318b2ce1), (Type or",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testCleanup_WithSteps",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: stepInterface.dispose( <any org.pentaho.di.trans.step.StepMetaInterface>, <any org.pentaho.di.trans.step.StepDataInterface> ); -> at org.pentaho.di.trans.TransTest.testCleanup_WithSteps(TransTest.java:660) Actual invocations have different arguments: stepInterface",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testEndProcessing_StatusCalculation_Stopped",
+   "kind": "error",
+   "type": "java.lang.IllegalAccessError",
+   "msg": "class org.pentaho.di.trans.Trans tried to access private field org.pentaho.di.trans.Trans$BitMaskStatus.mask (org.pentaho.di.trans.Trans and org.pentaho.di.trans.Trans$BitMaskStatus are in unnamed module of loader org.powermock.core.classloader.javassist.JavassistMockClassLoader @318b2ce1), (Type or",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testEndProcessing_StatusCalculation_Finished",
+   "kind": "error",
+   "type": "java.lang.IllegalAccessError",
+   "msg": "class org.pentaho.di.trans.Trans tried to access private field org.pentaho.di.trans.Trans$BitMaskStatus.mask (org.pentaho.di.trans.Trans and org.pentaho.di.trans.Trans$BitMaskStatus are in unnamed module of loader org.powermock.core.classloader.javassist.JavassistMockClassLoader @318b2ce1), (Type or",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testEndProcessing_StatusCalculation_Paused",
+   "kind": "error",
+   "type": "java.lang.IllegalAccessError",
+   "msg": "class org.pentaho.di.trans.Trans tried to access private field org.pentaho.di.trans.Trans$BitMaskStatus.mask (org.pentaho.di.trans.Trans and org.pentaho.di.trans.Trans$BitMaskStatus are in unnamed module of loader org.powermock.core.classloader.javassist.JavassistMockClassLoader @318b2ce1), (Type or",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testEndProcessing_StatusCalculation_Running",
+   "kind": "error",
+   "type": "java.lang.IllegalAccessError",
+   "msg": "class org.pentaho.di.trans.Trans tried to access private field org.pentaho.di.trans.Trans$BitMaskStatus.mask (org.pentaho.di.trans.Trans and org.pentaho.di.trans.Trans$BitMaskStatus are in unnamed module of loader org.powermock.core.classloader.javassist.JavassistMockClassLoader @318b2ce1), (Type or",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransTest",
+   "test": "testFailOnInitialization",
+   "kind": "error",
+   "type": "java.lang.Exception",
+   "msg": "Unexpected exception, expected<org.pentaho.di.core.exception.KettleException> but was<java.lang.IllegalAccessError>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.streaming.common.FixedTimeStreamWindowTest",
+   "test": "unnecessary Mockito stubbings",
+   "kind": "error",
+   "type": "org.mockito.exceptions.misusing.UnnecessaryStubbingException",
+   "msg": " Unnecessary stubbings detected in test class: FixedTimeStreamWindowTest Clean & maintainable test code requires zero unnecessary code. Following stubbings are unnecessary (click to navigate to relevant line of code): 1. -> at org.pentaho.di.trans.streaming.common.FixedTimeStreamWindowTest.testShare",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.rest.RestTest",
+   "test": "testCallEndpointWithDeleteVerb",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Can not result from [null] Cannot invoke \"com.sun.jersey.api.client.WebResource.getRequestBuilder()\" because \"webResource\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"com.sun.jersey.api.client.WebResource.getRequestBuilder()\" because \"webResource\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.jobexecutor.JobExecutorMetaTest",
+   "test": "testExportResources",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " It was not possible to load the specified job ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.tableinput.TableInputMetaTest",
+   "test": "testGetFields",
+   "kind": "failure",
+   "type": "org.junit.ComparisonFailure",
+   "msg": "expected:<[[field1 String<binary-string>]]> but was:<[]>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.kitchen.KitchenCommandExecutorTest",
+   "test": "testFilesystemBase64Zip",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.www.RunTransServletTest",
+   "test": "unnecessary Mockito stubbings",
+   "kind": "error",
+   "type": "org.mockito.exceptions.misusing.UnnecessaryStubbingException",
+   "msg": " Unnecessary stubbings detected in test class: RunTransServletTest Clean & maintainable test code requires zero unnecessary code. Following stubbings are unnecessary (click to navigate to relevant line of code): 1. -> at org.pentaho.di.www.RunTransServletTest.testRunTransServletCheckParameter(RunTra",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.www.ExecuteJobServletTest",
+   "test": "testExecuteJobServletTest",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "Cannot invoke \"org.pentaho.di.job.JobMeta.listParameters()\" because \"jobMeta\" is null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.repository.kdr.delegates.KettleDatabaseRepositoryStepDelegateUnitTest",
+   "test": "getStepTypeIDs_WhenNeedToUseNotAllValues",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: kettleDatabaseRepositoryConnectionDelegate.getIDsWithValues( <any string>, <any string>, <any string>, ); -> at org.pentaho.di.repository.kdr.delegates.KettleDatabaseRepositoryStepDelegateUnitTest.getStepTypeIDs_WhenNeedToUseNotAllValues(KettleDatabaseRepositorySt",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.streaming.common.BaseStreamStepTest",
+   "test": "unnecessary Mockito stubbings",
+   "kind": "error",
+   "type": "org.mockito.exceptions.misusing.UnnecessaryStubbingException",
+   "msg": " Unnecessary stubbings detected in test class: BaseStreamStepTest Clean & maintainable test code requires zero unnecessary code. Following stubbings are unnecessary (click to navigate to relevant line of code): 1. -> at org.pentaho.di.trans.streaming.common.BaseStreamStepTest.testInitFilenameSubstit",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.update.PDI_11152_Test",
+   "test": "testInputLazyConversion",
+   "kind": "failure",
+   "type": "junit.framework.AssertionFailedError",
+   "msg": "Failure during row processing",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.www.ExecuteTransServletTest",
+   "test": "org.pentaho.di.www.ExecuteTransServletTest",
+   "kind": "error",
+   "type": "java.lang.reflect.InaccessibleObjectException",
+   "msg": "Unable to make protected java.util.Collection java.util.concurrent.locks.ReentrantReadWriteLock.getQueuedWriterThreads() accessible: module java.base does not \"opens java.util.concurrent.locks\" to unnamed module @1efbd816",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.TransMetaTest",
+   "test": "getThisStepFieldsPassesCloneRowMeta",
+   "kind": "failure",
+   "type": "org.junit.ComparisonFailure",
+   "msg": "expected:<[overridden]> but was:<[value]>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.cluster.SlaveServerTest",
+   "test": "testExecService",
+   "kind": "error",
+   "type": "java.lang.Exception",
+   "msg": "Unexpected exception, expected<org.pentaho.di.core.exception.KettleException> but was<java.lang.NullPointerException>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.cluster.SlaveServerTest",
+   "test": "testSendExport",
+   "kind": "error",
+   "type": "java.lang.Exception",
+   "msg": "Unexpected exception, expected<org.pentaho.di.core.exception.KettleException> but was<java.lang.NullPointerException>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.cluster.SlaveServerTest",
+   "test": "testSendExportOk",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.cluster.SlaveServerTest",
+   "test": "testSendXML",
+   "kind": "error",
+   "type": "java.lang.Exception",
+   "msg": "Unexpected exception, expected<org.pentaho.di.core.exception.KettleException> but was<java.lang.NullPointerException>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.jobexecutor.JobExecutorTest",
+   "test": "shouldAccumulateRowsByCount",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.job.JobMeta.getContainerObjectId()\" because \"jobMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.job.JobMeta.getContainerObjectId()\" because \"jobMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.jobexecutor.JobExecutorTest",
+   "test": "shouldAccumulateRowsWhenGroupFieldIsSpecified",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.job.JobMeta.getContainerObjectId()\" because \"jobMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.job.JobMeta.getContainerObjectId()\" because \"jobMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.core.util.SerializationHelperTest",
+   "test": "readingStepRepoThrowsExceptionWhenParsingXmlWithBigAmountOfExternalEntities",
+   "kind": "error",
+   "type": "java.lang.Exception",
+   "msg": "Unexpected exception, expected<org.pentaho.di.core.exception.KettleException> but was<java.lang.NullPointerException>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.core.util.SerializationHelperTest",
+   "test": "readingJobRepoThrowsExceptionWhenParsingXmlWithBigAmountOfExternalEntities",
+   "kind": "error",
+   "type": "java.lang.Exception",
+   "msg": "Unexpected exception, expected<org.pentaho.di.core.exception.KettleException> but was<java.lang.NullPointerException>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.fieldsplitter.FieldSplitterTest",
+   "test": "testSplitFields",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "Output row is of an unexpected length expected:<4> but was:<3>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.streaming.common.BaseStreamStepMetaTest",
+   "test": "unnecessary Mockito stubbings",
+   "kind": "error",
+   "type": "org.mockito.exceptions.misusing.UnnecessaryStubbingException",
+   "msg": " Unnecessary stubbings detected in test class: BaseStreamStepMetaTest Clean & maintainable test code requires zero unnecessary code. Following stubbings are unnecessary (click to navigate to relevant line of code): 1. -> at org.pentaho.di.trans.streaming.common.BaseStreamStepMetaTest.setUp(BaseStrea",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.repository.RepositoryImporterTest",
+   "test": "unnecessary Mockito stubbings",
+   "kind": "error",
+   "type": "org.mockito.exceptions.misusing.UnnecessaryStubbingException",
+   "msg": " Unnecessary stubbings detected in test class: RepositoryImporterTest Clean & maintainable test code requires zero unnecessary code. Following stubbings are unnecessary (click to navigate to relevant line of code): 1. -> at org.pentaho.di.repository.RepositoryImporterTest$1.createJobMetaForNode(Repo",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.shared.SharedObjectsTest",
+   "test": "writeToFileTest",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.WantedButNotInvoked",
+   "msg": " Wanted but not invoked: sharedObjectsMock.restoreFileFromBackup( <any string> ); -> at org.pentaho.di.shared.SharedObjectsTest.writeToFileTest(SharedObjectsTest.java:76) However, there was exactly 1 interaction with this mock: sharedObjectsMock.writeToFile(null, \"\"); -> at org.pentaho.di.shared.Sha",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.groupby.GroupByTest",
+   "test": "testAddToBuffer",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.mailinput.ParseMailInputTest",
+   "test": "testMessageAttachedFilesCountNameIsParsed",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "Message Attached files count is correct expected:<3> but was:<0>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.base.AbstractMetaTest",
+   "test": "testGetSetSharedObjects",
+   "kind": "error",
+   "type": "org.mockito.exceptions.base.MockitoException",
+   "msg": " Checked exception is invalid for this method! Invalid: org.pentaho.di.core.exception.KettleException: null ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.simplemapping.SimpleMappingTest",
+   "test": "testStepShouldStopProcessingInput_IfUnderlyingTransitionIsStopped",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " java.lang.ClassCastException: class org.mockito.codegen.Object$MockitoMock$511968903 cannot be cast to class org.pentaho.di.core.row.RowMetaInterface (org.mockito.codegen.Object$MockitoMock$511968903 and org.pentaho.di.core.row.RowMetaInterface are in unnamed module of loader 'app') class org.mocki",
+   "cause": "Caused by: java.lang.ClassCastException: class org.mockito.codegen.Object$MockitoMock$511968903 cannot be cast to class org.pentaho.di.core.row.RowMetaInterface (org.mockito.codegen.Object$MockitoMock$511968903 and org.pentaho.di.core.row.RowMetaInterface are in unnamed module of loader 'app')"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.simplemapping.SimpleMappingTest",
+   "test": "testStepSetUpAsWasStarted_AtProcessingFirstRow",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " java.lang.ClassCastException: class org.mockito.codegen.Object$MockitoMock$511968903 cannot be cast to class org.pentaho.di.core.row.RowMetaInterface (org.mockito.codegen.Object$MockitoMock$511968903 and org.pentaho.di.core.row.RowMetaInterface are in unnamed module of loader 'app') class org.mocki",
+   "cause": "Caused by: java.lang.ClassCastException: class org.mockito.codegen.Object$MockitoMock$511968903 cannot be cast to class org.pentaho.di.core.row.RowMetaInterface (org.mockito.codegen.Object$MockitoMock$511968903 and org.pentaho.di.core.row.RowMetaInterface are in unnamed module of loader 'app')"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.cluster.TransSplitterTest",
+   "test": "testTransSplitterReadsRep",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.WantedButNotInvoked",
+   "msg": " Wanted but not invoked: repository.readTransSharedObjects( Mock for TransMeta, hashCode: 1939292118 ); -> at org.pentaho.di.trans.cluster.TransSplitterTest.testTransSplitterReadsRep(TransSplitterTest.java:81) Actually, there were zero interactions with this mock. ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.core.logging.MetricsPainterTest",
+   "test": "testIllegalArgumentExceptionNullArgPaint",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "Expected exception: java.lang.IllegalArgumentException",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.httppost.HTTPPOSTTest",
+   "test": "getRequestBodyParametersAsStringWithNullEncoding",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<u=usr&p=pass> but was:<null>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.repository.kdr.KettleDatabaseRepositoryCreationHelperTest",
+   "test": "testCreateIndexLenghts",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "Cannot invoke \"String.toUpperCase()\" because \"sql\" is null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.transexecutor.TransExecutorUnitTest",
+   "test": "testSafeStop",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.transexecutor.TransExecutorUnitTest",
+   "test": "testAbortWithError",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.transexecutor.TransExecutorUnitTest",
+   "test": "shouldAccumulateRowsByCount",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.transexecutor.TransExecutorUnitTest",
+   "test": "collectsResultsFromInternalTransformation",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.transexecutor.TransExecutorUnitTest",
+   "test": "collectsExecutionResults",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.transexecutor.TransExecutorUnitTest",
+   "test": "testGetLastIncomingFieldValuesWithData",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.transexecutor.TransExecutorUnitTest",
+   "test": "shouldAccumulateRowsWhenGroupFieldIsSpecified",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " There was an unexpected error: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.getPreviousResult()\" because \"this.transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.base.MetaFileLoaderImplTest",
+   "test": "unnecessary Mockito stubbings",
+   "kind": "error",
+   "type": "org.mockito.exceptions.misusing.UnnecessaryStubbingException",
+   "msg": " Unnecessary stubbings detected in test class: MetaFileLoaderImplTest Clean & maintainable test code requires zero unnecessary code. Following stubbings are unnecessary (click to navigate to relevant line of code): 1. -> at org.pentaho.di.base.MetaFileLoaderImplTest.setupTransExecutorMeta(MetaFileLo",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.StepWithMappingMetaTest",
+   "test": "testExportResources",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: transMeta.setFilename( \"${Internal.Entry.Current.Directory}/test\" ); -> at org.pentaho.di.trans.StepWithMappingMetaTest.testExportResources(StepWithMappingMetaTest.java:157) Actual invocations have different arguments: transMeta.exportResources( Mock for TransMeta",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.StepWithMappingMetaTest",
+   "test": "loadMappingMetaTest_PathShouldBeTakenFromParentTrans",
+   "kind": "error",
+   "type": "java.lang.reflect.InaccessibleObjectException",
+   "msg": "Unable to make public sun.nio.fs.UnixPath sun.nio.fs.UnixPath.getName(int) accessible: module java.base does not \"opens sun.nio.fs\" to unnamed module @1efbd816",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.StepWithMappingMetaTest",
+   "test": "loadMappingMeta",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Unable to load transformation [{0}] : can't find directory The transformation path /testFolder/CDA-91/testTrans.ktr is invalid, and will not run successfully. ",
+   "cause": "Caused by: org.pentaho.di.core.exception.KettleXMLException:"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.repository.RepositoryExporterTest",
+   "test": "testExportAllRulesViolation",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Error while exporting repository transformations Cannot invoke \"org.pentaho.di.trans.TransMeta.setRepository(org.pentaho.di.repository.Repository)\" because \"transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.setRepository(org.pentaho.di.repository.Repository)\" because \"transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.repository.RepositoryExporterTest",
+   "test": "testExportTransformationsWithFeedback",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Error while exporting repository transformations Cannot invoke \"org.pentaho.di.trans.TransMeta.setRepository(org.pentaho.di.repository.Repository)\" because \"transMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.trans.TransMeta.setRepository(org.pentaho.di.repository.Repository)\" because \"transMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.repository.RepositoryExporterTest",
+   "test": "testExportJobsWithFeedback",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " Error while exporting repository jobs Cannot invoke \"org.pentaho.di.job.JobMeta.setRepository(org.pentaho.di.repository.Repository)\" because \"jobMeta\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.job.JobMeta.setRepository(org.pentaho.di.repository.Repository)\" because \"jobMeta\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.tableoutput.TableOutputTest",
+   "test": "testTruncateTable_on",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: database.truncateTable( <any string>, <any string> ); -> at org.pentaho.di.trans.steps.tableoutput.TableOutputTest.testTruncateTable_on(TableOutputTest.java:116) Actual invocations have different arguments: database.truncateTable( null, null ); -> at org.pentaho.d",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.tableoutput.TableOutputTest",
+   "test": "testTruncateTable_on_PartitionId",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: database.truncateTable( <any string>, <any string> ); -> at org.pentaho.di.trans.steps.tableoutput.TableOutputTest.testTruncateTable_on_PartitionId(TableOutputTest.java:127) Actual invocations have different arguments: database.truncateTable( null, null ); -> at o",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.JobTest",
+   "test": "recordsCleanUpMethodIsCalled_JobEntryLogTable",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "Cannot invoke \"org.pentaho.di.core.database.Database.isAutoCommit()\" because \"db\" is null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.JobTest",
+   "test": "recordsCleanUpMethodIsCalled_JobLogTable",
+   "kind": "error",
+   "type": "java.lang.NullPointerException",
+   "msg": "Cannot invoke \"org.pentaho.di.core.database.Database.shareVariablesWith(org.pentaho.di.core.variables.VariableSpace)\" because \"ldb\" is null",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.trans.steps.databaselookup.PDI5436Test",
+   "test": "testCacheAllTable",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleStepException",
+   "msg": " Unable to determine the fields of table [null] ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.trans.JobEntryTransTest",
+   "test": "testExportResources",
+   "kind": "error",
+   "type": "org.pentaho.di.core.exception.KettleException",
+   "msg": " !JobTrans.Exception.MetaDataLoad! Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.getClass()\" because \"parentVariables\" is null ",
+   "cause": "Caused by: java.lang.NullPointerException: Cannot invoke \"org.pentaho.di.core.variables.VariableSpace.getClass()\" because \"parentVariables\" is null"
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "filesWithPath_AreProcessed_ArgsOfCurrentJob",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: jobEntryDeleteFiles.processFile( <any string>, <any string>, <any org.pentaho.di.job.Job> ); -> at org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest.filesWithPath_AreProcessed_ArgsOfCurrentJob(JobEntryDeleteFilesTest.java:147) Actual invocations have ",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "filesPath_AreProcessed_ArgsOfPreviousMeta",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: jobEntryDeleteFiles.processFile( <any string>, <any string>, <any org.pentaho.di.job.Job> ); -> at org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest.filesPath_AreProcessed_ArgsOfPreviousMeta(JobEntryDeleteFilesTest.java:182) Actual invocations have di",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "filesPathVariables_AreProcessed_OnlyIfValueIsNotBlank",
+   "kind": "failure",
+   "type": "org.mockito.exceptions.verification.junit.ArgumentsAreDifferent",
+   "msg": " Argument(s) are different! Wanted: jobEntryDeleteFiles.processFile( \"path/to/file\", <any string>, <any org.pentaho.di.job.Job> ); -> at org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest.filesPathVariables_AreProcessed_OnlyIfValueIsNotBlank(JobEntryDeleteFilesTest.java:202) Actual invoc",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "testExecute_MaskMatch_WithSubfolders",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<2> but was:<6>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "testExecute_MaskMatch_WithoutSubfolders",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<2> but was:<6>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "testExecute_EmptyMask_WithSubfolders",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<0> but was:<78>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "testExecute_EmptyMask_WithoutSubfolders",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<0> but was:<6>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "testExecute_NullMask_WithSubfolders",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<0> but was:<78>",
+   "cause": ""
+  },
+  {
+   "module": "engine",
+   "cls": "org.pentaho.di.job.entries.deletefiles.JobEntryDeleteFilesTest",
+   "test": "testExecute_NullMask_WithoutSubfolders",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<0> but was:<6>",
+   "cause": ""
+  },
+  {
+   "module": "plugins/avro-format/core",
+   "cls": "org.pentaho.di.trans.steps.avro.input.PentahoAvroReadWriteTest",
+   "test": "testAvroFileWriteAndRead",
+   "kind": "error",
+   "type": "org.xerial.snappy.SnappyError",
+   "msg": "[FAILED_TO_LOAD_NATIVE_LIBRARY] no native library is found for os.name=Mac and os.arch=aarch64",
+   "cause": ""
+  },
+  {
+   "module": "plugins/avro-format/core",
+   "cls": "org.pentaho.di.trans.steps.avro.input.AvroInputMetaTest",
+   "test": "testGetFields_unknownPluginForFieldType",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "Expected exception: org.pentaho.di.core.exception.KettleStepException",
+   "cause": ""
+  },
+  {
+   "module": "plugins/ivw-bulk-loader/impl",
+   "cls": "org.pentaho.di.trans.steps.ivwloader.IngresVectorwiseTest",
+   "test": "testWaitForFinish",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<2> but was:<0>",
+   "cause": ""
+  },
+  {
+   "module": "plugins/ivw-bulk-loader/impl",
+   "cls": "org.pentaho.di.trans.steps.ivwloader.IngresVectorwiseTest",
+   "test": "testGuiErrorsWithErrorsAllowed",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<2> but was:<0>",
+   "cause": ""
+  },
+  {
+   "module": "plugins/ivw-bulk-loader/impl",
+   "cls": "org.pentaho.di.trans.steps.ivwloader.IngresVectorwiseTest",
+   "test": "testGuiSuccess",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<3> but was:<0>",
+   "cause": ""
+  },
+  {
+   "module": "plugins/ivw-bulk-loader/impl",
+   "cls": "org.pentaho.di.trans.steps.ivwloader.IngresVectorwiseTest",
+   "test": "testGuiErrors",
+   "kind": "failure",
+   "type": "java.lang.AssertionError",
+   "msg": "expected:<3> but was:<1>",
+   "cause": ""
+  },
+  {
+   "module": "plugins/meta-inject/impl",
+   "cls": "org.pentaho.di.trans.steps.metainject.MetaInjectTest",
+   "test": "initializationError",
+   "kind": "error",
+   "type": "java.lang.IllegalStateException",
+   "msg": "Failed to transform class with name org.pentaho.di.trans.steps.metainject.MetaInjectTest. Reason: [source error] the called constructor is private in org.pentaho.di.trans.steps.metainject.MetaInjectTest$InjectableTestStepMeta",
+   "cause": "Caused by: javassist.compiler.CompileError: the called constructor is private in org.pentaho.di.trans.steps.metainject.MetaInjectTest$InjectableTestStepMeta"
+  },
+  {
+   "module": "plugins/pentaho-reporting/impl",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.trans.steps.pentahoreporting.PentahoReportingOutputTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "plugins/pur/core",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.repository.pur.JobDelegateTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "plugins/pur/core",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "com.pentaho.repository.importexport.PDIImportUtilTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "plugins/pur/core",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "com.pentaho.di.purge.RepositoryCleanupUtilTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "plugins/pur/core",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.repository.pur.PurRepositoryStressTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "plugins/pur/core",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.repository.pur.AttributesMapUtilTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.timeout.SessionTimeoutHandlerTest",
+   "test": "handleSecondExecutionFailed",
+   "kind": "error",
+   "type": "java.lang.ExceptionInInitializerError",
+   "msg": "",
+   "cause": "Caused by: java.lang.RuntimeException: Central Log Store is not initialized!!!"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.timeout.SessionTimeoutHandlerTest",
+   "test": "handle",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController$$EnhancerByMockitoWithCGLIB$$33a50b",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.timeout.RepositorySessionTimeoutHandlerTest",
+   "test": "connectedToRepository",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController$$EnhancerByMockitoWithCGLIB$$33a50b",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.timeout.RepositorySessionTimeoutHandlerTest",
+   "test": "wrapMetastoreWithTimeoutHandler",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController$$EnhancerByMockitoWithCGLIB$$33a50b",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.timeout.RepositorySessionTimeoutHandlerTest",
+   "test": "connectedToRepositoryReturnsFalse",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController$$EnhancerByMockitoWithCGLIB$$33a50b",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testEditConnectedRepository",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testCreateRepository",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testGetRepository",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testConnectToRepository",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testDeleteRepository",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testOnlySetConnectedOnConnect",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testGetPlugins",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testAddDatabase",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testGetSetParentShell",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testRepoSwitch",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testIsDatabaseWithNameExist",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testGetDatabases",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/repositories/core",
+   "cls": "org.pentaho.di.ui.repo.controller.RepositoryConnectControllerTest",
+   "test": "testSetDefaultRepository",
+   "kind": "error",
+   "type": "java.lang.NoClassDefFoundError",
+   "msg": "Could not initialize class org.pentaho.di.ui.repo.controller.RepositoryConnectController",
+   "cause": "Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.RuntimeException: Central Log Store is not initialized!!! [in thread \"main\"]"
+  },
+  {
+   "module": "plugins/s3csvinput/core",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.trans.steps.s3csvinput.S3CsvInputMetaTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "plugins/shapefilereader/core",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.shapefilereader.ShapeFileReaderTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "ui",
+   "cls": "org.pentaho.di.ui.job.entries.job.JobEntryJobDialogTest",
+   "test": "initializationError",
+   "kind": "error",
+   "type": "java.lang.ClassFormatError",
+   "msg": "Nest member class_info_index 764 has bad constant type in class file org/pentaho/di/ui/core/PropsUI",
+   "cause": ""
+  },
+  {
+   "module": "ui",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.ui.spoon.delegates.SpoonTreeDelegateTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "ui",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.ui.core.database.dialog.GetDatabaseInfoProgressDialogTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "ui",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.ui.trans.steps.fileinput.text.TextFileInputTextCSVImportProgressDialogTest",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "ui",
+   "cls": "org.apache.maven.surefire.junit4.JUnit4Provider",
+   "test": "org.pentaho.di.ui.core.dialog.EditRowsDialog_EmptyStringVsNull_Test",
+   "kind": "error",
+   "type": "java.lang.RuntimeException",
+   "msg": "Internal error: Failed to find the \"modifiers\" field in method setInternalState.",
+   "cause": "Caused by: java.lang.NoSuchFieldException: modifiers"
+  },
+  {
+   "module": "ui",
+   "cls": "org.pentaho.di.ui.core.widget.ControlSpaceKeyAdapterTest",
+   "test": "initializationError",
+   "kind": "error",
+   "type": "java.lang.ClassFormatError",
+   "msg": "Nest member class_info_index 764 has bad constant type in class file org/pentaho/di/ui/core/PropsUI",
+   "cause": ""
+  }
+ ]
+}
