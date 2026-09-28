@@ -84,6 +84,11 @@
     <!-- POI 5: poi-ooxml-lite replaces poi-ooxml-schemas; classic-core must be the local 9.4 build
          (~/Developer/pentaho-reporting-9.4, XSSFColor fix) -->
     <poi.version>5.5.1</poi.version>
+    <!-- Trivy findings: Derby CVE-2022-46337 (10.17 is built for Java 21; drivers now in derbytools),
+         dom4j CVE-2020-10683, xerces CVE-2022-23437 / CVE-2020-14338 -->
+    <derby.version>10.17.1.0</derby.version>
+    <dom4j.version>2.1.5</dom4j.version>
+    <xercesImpl.version>2.12.2</xercesImpl.version>
     <!-- the reporting engine rebuilt from ~/Developer/pentaho-reporting-9.4 (branch 9.4-jdk21-poi5) against POI 5;
          the other reporting jars stay ${pentaho-reporting.version}. See qa/build_local_deps.sh -->
     <classic-core.version>9.4.0.0-jdk21-1</classic-core.version>
@@ -96,7 +101,8 @@
     <httpclient.version>4.5.14</httpclient.version>
     <httpcore.version>4.4.16</httpcore.version>
     <xstream.version>1.4.21</xstream.version>
-    <snowflake-jdbc.version>3.28.0</snowflake-jdbc.version>
+    <!-- 4.x: CVE-2026-3293 fixed after 4.0.1 -->
+    <snowflake-jdbc.version>4.3.4</snowflake-jdbc.version>
     <commons-io.version>2.22.0</commons-io.version>
 
     <!-- CVE remediation, Step 2 -->
