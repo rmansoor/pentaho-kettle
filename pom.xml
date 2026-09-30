@@ -68,7 +68,14 @@
     <license.licenseName>apache_v2</license.licenseName>
 
     <!-- Pentaho dependencies -->
-    <commons-xul.version>9.4.0.0-SNAPSHOT</commons-xul.version>
+    <!-- commons-xul core/swt/swing built locally from ~/Developer/pentaho-commons-xul-9.4 (branch 9.4-jdk21-lang3) on
+         commons-lang3; same API as 9.4. See qa/build_local_deps.sh -->
+    <commons-xul.version>9.4.0.0-jdk21-1</commons-xul.version>
+    <!-- pentaho-metadata, pentaho-registry and mondrian built locally on commons-lang3 from their 9.4 branches
+         (~/Developer/<repo>-9.4, branch 9.4-jdk21-lang3); same API as 9.4. See qa/build_local_deps.sh -->
+    <pentaho-metadata.version>9.4.0.0-jdk21-1</pentaho-metadata.version>
+    <pentaho-registry.version>9.4.0.0-jdk21-1</pentaho-registry.version>
+    <mondrian.version>9.4.0.0-jdk21-1</mondrian.version>
     <pentaho-metastore.version>9.4.0.0-SNAPSHOT</pentaho-metastore.version>
 
     <!-- Third-party dependencies -->
@@ -92,9 +99,6 @@
     <!-- the reporting engine rebuilt from ~/Developer/pentaho-reporting-9.4 (branch 9.4-jdk21-poi5) against POI 5;
          the other reporting jars stay ${pentaho-reporting.version}. See qa/build_local_deps.sh -->
     <classic-core.version>9.4.0.0-jdk21-2</classic-core.version>
-    <!-- CVE-2025-48924: commons-lang 2.6 rebuilt from ~/Developer/commons-lang-2.6-pentaho (branch 2.6-pentaho)
-         with the ClassUtils.getClass fix from commons-lang3 3.18; same classes and API. See qa/build_local_deps.sh -->
-    <commons-lang.version>2.6.0.1-pentaho-jdk21</commons-lang.version>
     <!-- CVE-2025-46392: lineage opens its TinkerGraph without commons-configuration, which is no longer shipped;
          pentaho-metaverse-api rebuilt from ~/Developer/pentaho-metaverse-9.4 (branch 9.4-jdk21-lineage).
          The metaverse-plugin zip stays ${pentaho-metaverse.version}. See qa/build_local_deps.sh -->
@@ -127,6 +131,9 @@
     <spring-security.version>7.1.1</spring-security.version>
     <!-- ~/Developer/pentaho-platform-9.4 (branch 9.4-jdk21-spring7); see qa/build_local_deps.sh -->
     <platform-spring7.version>9.4.0.0-jdk21-2</platform-spring7.version>
+    <!-- pentaho-platform-extensions rebuilt from the same worktree only to move to commons-lang3 (still compiled against
+         Spring 5 like the 9.4 jar PDI shipped before) -->
+    <platform-extensions.version>9.4.0.0-jdk21-2</platform-extensions.version>
     <commons-compress.version>1.28.0</commons-compress.version>
     <!-- commons-compress 1.28 needs commons-codec 1.19+ and commons-lang3 3.18+ -->
     <commons-codec.version>1.19.0</commons-codec.version>
@@ -418,9 +425,19 @@
         <version>4.5.0</version>
       </dependency>
       <dependency>
-        <groupId>commons-lang</groupId>
-        <artifactId>commons-lang</artifactId>
-        <version>${commons-lang.version}</version>
+        <groupId>org.pentaho</groupId>
+        <artifactId>pentaho-metadata</artifactId>
+        <version>${pentaho-metadata.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.pentaho</groupId>
+        <artifactId>pentaho-registry</artifactId>
+        <version>${pentaho-registry.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>pentaho</groupId>
+        <artifactId>mondrian</artifactId>
+        <version>${mondrian.version}</version>
       </dependency>
       <dependency>
         <groupId>pentaho</groupId>

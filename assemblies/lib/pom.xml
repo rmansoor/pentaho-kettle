@@ -23,7 +23,6 @@
     <pentaho-json.version>9.4.0.0-SNAPSHOT</pentaho-json.version>
     <pdi-spark-driver.version>${project.version}</pdi-spark-driver.version>
     <commons-database.version>9.4.0.0-SNAPSHOT</commons-database.version>
-    <pentaho-registry.version>9.4.0.0-SNAPSHOT</pentaho-registry.version>
     <pentaho-metaverse.version>9.4.0.0-SNAPSHOT</pentaho-metaverse.version>
     <platform.version>9.4.0.0-SNAPSHOT</platform.version>
     <pentaho-reporting.version>9.4.0.0-SNAPSHOT</pentaho-reporting.version>
@@ -52,7 +51,6 @@
     <tyrus-standalone-client.version>1.13.1</tyrus-standalone-client.version>
     <databricks.version>4.0.0</databricks.version>
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
-    <pentaho-metadata.version>9.4.0.0-SNAPSHOT</pentaho-metadata.version>
   </properties>
 
   <dependencies>
@@ -230,7 +228,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-extensions</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-extensions.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>

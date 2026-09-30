@@ -22,7 +22,6 @@
         <pentaho-json.version>9.4.0.0-SNAPSHOT</pentaho-json.version>
         <pdi-spark-driver.version>${project.version}</pdi-spark-driver.version>
         <commons-database.version>9.4.0.0-SNAPSHOT</commons-database.version>
-        <pentaho-registry.version>9.4.0.0-SNAPSHOT</pentaho-registry.version>
         <pentaho-metaverse.version>9.4.0.0-SNAPSHOT</pentaho-metaverse.version>
         <platform.version>9.4.0.0-SNAPSHOT</platform.version>
         <pentaho-reporting.version>9.4.0.0-SNAPSHOT</pentaho-reporting.version>
@@ -167,7 +166,7 @@
         <dependency>
             <groupId>pentaho</groupId>
             <artifactId>pentaho-platform-extensions</artifactId>
-            <version>${platform.version}</version>
+            <version>${platform-extensions.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>

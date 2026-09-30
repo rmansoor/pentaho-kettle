@@ -453,6 +453,13 @@
       <groupId>pentaho</groupId>
       <artifactId>simple-jndi</artifactId>
       <version>${simple-jndi.version}</version>
+      <exclusions>
+        <!-- declared by simple-jndi 1.0.10 but never used by its classes; PDI is on commons-lang3 -->
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Endorsed Standards Excluded from Java 11+ -->

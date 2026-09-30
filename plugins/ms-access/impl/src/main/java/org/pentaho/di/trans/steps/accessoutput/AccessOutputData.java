@@ -31,10 +31,12 @@ import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
 import org.pentaho.di.trans.step.StepDataInterface;
 
-import com.healthmarketscience.jackcess.Column;
+import com.healthmarketscience.jackcess.ColumnBuilder;
 import com.healthmarketscience.jackcess.Cursor;
+import com.healthmarketscience.jackcess.CursorBuilder;
 import com.healthmarketscience.jackcess.Database;
 import com.healthmarketscience.jackcess.Table;
+import com.healthmarketscience.jackcess.TableBuilder;
 
 /**
  * @author Matt
@@ -54,11 +56,11 @@ public class AccessOutputData extends BaseStepData implements StepDataInterface 
   }
 
   void createDatabase( File databaseFile ) throws IOException {
-    db = Database.create( databaseFile );
+    db = AccessOutputMeta.createDatabase( databaseFile );
   }
 
   void openDatabase( File databaseFile ) throws IOException {
-    db = Database.open( databaseFile );
+    db = AccessOutputMeta.openDatabase( databaseFile, false );
   }
 
   void closeDatabase() throws IOException {
@@ -66,9 +68,8 @@ public class AccessOutputData extends BaseStepData implements StepDataInterface 
   }
 
   void createTable( String tableName, RowMetaInterface rowMeta ) throws IOException {
-    List<Column> columns = AccessOutputMeta.getColumns( rowMeta );
-    db.createTable( tableName, columns );
-    table = db.getTable( tableName );
+    List<ColumnBuilder> columns = AccessOutputMeta.getColumns( rowMeta );
+    table = new TableBuilder( tableName ).addColumns( columns ).toTable( db );
   }
 
   void addRowToTable( Object... row ) throws IOException {
@@ -83,7 +84,7 @@ public class AccessOutputData extends BaseStepData implements StepDataInterface 
     if ( table == null ) {
       return;
     }
-    Cursor tableRows = Cursor.createCursor( table );
+    Cursor tableRows = CursorBuilder.createCursor( table );
     while ( tableRows.moveToNextRow() ) {
       tableRows.deleteCurrentRow();
     }

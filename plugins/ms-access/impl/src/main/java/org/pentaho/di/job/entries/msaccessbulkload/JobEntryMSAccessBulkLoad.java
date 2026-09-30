@@ -60,6 +60,8 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 import com.healthmarketscience.jackcess.Database;
+import com.healthmarketscience.jackcess.util.ImportUtil;
+import org.pentaho.di.trans.steps.accessoutput.AccessOutputMeta;
 
 /**
  * This defines a 'MS Access Bulk Load' job entry. It will compare to load data from files into Microsoft Access files
@@ -395,11 +397,11 @@ public class JobEntryMSAccessBulkLoad extends JobEntryBase implements Cloneable,
 
       // create database if needed
       if ( !targetDbFile.exists() ) {
-        Database.create( targetDbFile );
+        AccessOutputMeta.createDatabase( targetDbFile ).close();
         logBasic( BaseMessages.getString( PKG, "JobEntryMSAccessBulkLoad.Log.DbCreated", targetFilename ) );
       } else {
         // Database exists
-        Database db = Database.open( targetDbFile );
+        Database db = AccessOutputMeta.openDatabase( targetDbFile, false );
         logBasic( BaseMessages.getString( PKG, "JobEntryMSAccessBulkLoad.Log.DbOpened", targetFilename ) );
         // Let's check table
         if ( db.getTable( tablename ) != null ) {
@@ -413,7 +415,9 @@ public class JobEntryMSAccessBulkLoad extends JobEntryBase implements Cloneable,
         logBasic( BaseMessages.getString( PKG, "JobEntryMSAccessBulkLoad.Log.DbCosed", targetFilename ) );
       }
       // load data from file
-      Database.open( targetDbFile ).importFile( tablename, sourceDataFile, delimiter );
+      try ( Database db = AccessOutputMeta.openDatabase( targetDbFile, false ) ) {
+        new ImportUtil.Builder( db, tablename ).setDelimiter( delimiter ).importFile( sourceDataFile );
+      }
 
       logBasic( BaseMessages.getString(
         PKG, "JobEntryMSAccessBulkLoad.Log.FileImported", sourceFilename, tablename, targetFilename ) );

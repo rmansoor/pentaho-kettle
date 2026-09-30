@@ -49,11 +49,12 @@
     <pdi-sap-plugin.version>9.4.0.0-SNAPSHOT</pdi-sap-plugin.version>
     <!-- built locally from ~/Developer/pentaho-cassandra-plugin (branch 9.4-jdk21-cve); see qa/build_local_deps.sh -->
     <pentaho-cassandra-plugin.version>9.4.0.0-jdk21-3</pentaho-cassandra-plugin.version>
-    <pdi-teradata-tpt-plugin-package.version>${project.version}</pdi-teradata-tpt-plugin-package.version>
+    <!-- Teradata TPT and Vertica bulk loaders built locally on commons-lang3 (qa/build_local_deps.sh) -->
+    <pdi-teradata-tpt-plugin-package.version>9.4.0.0-jdk21-1</pdi-teradata-tpt-plugin-package.version>
     <pdi-platform-utils-plugin.version>9.4.0.0-SNAPSHOT</pdi-platform-utils-plugin.version>
-    <vertica-bulkloader-plugin.version>9.4.0.0-SNAPSHOT</vertica-bulkloader-plugin.version>
+    <vertica-bulkloader-plugin.version>9.4.0.0-jdk21-1</vertica-bulkloader-plugin.version>
     <pdi-pur-plugin.version>9.4.0.0-SNAPSHOT</pdi-pur-plugin.version>
-    <pentaho-mongodb-plugin.version>9.4.0.0-SNAPSHOT</pentaho-mongodb-plugin.version>
+    <pentaho-mongodb-plugin.version>9.4.0.0-jdk21-1</pentaho-mongodb-plugin.version>  <!-- local build on commons-lang3 -->
     <engine-configuration-plugin.version>${project.version}</engine-configuration-plugin.version>
     <metastore-locator-plugin.version>${project.version}</metastore-locator-plugin.version>
     <repository-locator-plugin.version>${project.version}</repository-locator-plugin.version>
@@ -67,7 +68,9 @@
     <pentaho-s3-vfs-plugin.version>${project.version}</pentaho-s3-vfs-plugin.version>
     <pentaho-streaming-kafka-plugin.version>${project.version}</pentaho-streaming-kafka-plugin.version>
     <pdi-avro-format-plugin.version>${project.version}</pdi-avro-format-plugin.version>
-    <pentaho-metaverse.version>9.4.0.0-SNAPSHOT</pentaho-metaverse.version>
+    <!-- metaverse-plugin (lineage) built locally from ~/Developer/pentaho-metaverse-9.4 on commons-lang3;
+         see qa/build_local_deps.sh -->
+    <pentaho-metaverse.version>9.4.0.0-jdk21-2</pentaho-metaverse.version>
     <pdi-xml-plugin.version>9.4.0.0-SNAPSHOT</pdi-xml-plugin.version>
     <pdi-json-plugin.version>9.4.0.0-SNAPSHOT</pdi-json-plugin.version>
   </properties>

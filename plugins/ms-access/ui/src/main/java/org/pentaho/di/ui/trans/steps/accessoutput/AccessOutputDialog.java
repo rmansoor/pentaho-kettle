@@ -481,7 +481,7 @@ public class AccessOutputDialog extends BaseStepDialog implements StepDialogInte
           PKG, "AccessOutputMeta.Exception.FileDoesNotExist", realFilename ) );
       }
 
-      database = Database.open( file );
+      database = AccessOutputMeta.openDatabase( file, true );
       Set<String> set = database.getTableNames();
       String[] tablenames = set.toArray( new String[set.size()] );
       EnterSelectionDialog dialog =

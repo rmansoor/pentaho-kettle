@@ -157,7 +157,6 @@
                 groovy-all,
                 openpdf,
                 openrtf,
-                jackcess,
                 legacy-charts,
                 libbase,
                 libdocbundle,
