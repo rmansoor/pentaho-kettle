@@ -7,19 +7,25 @@
 #   CASSANDRA_DIR  pentaho-cassandra-plugin checkout, branch 9.4-jdk21-cve   (default ~/Developer/pentaho-cassandra-plugin)
 #   REPORTING_DIR  pentaho-reporting checkout or worktree, branch 9.4-jdk21-poi5 (default ~/Developer/pentaho-reporting-9.4)
 #   PLATFORM_DIR   pentaho-platform checkout or worktree, branch 9.4-jdk21-spring7 (default ~/Developer/pentaho-platform-9.4)
+#   LANG2_DIR      commons-lang 2.6 source, branch 2.6-pentaho                (default ~/Developer/commons-lang-2.6-pentaho)
+#   METAVERSE_DIR  pentaho-metaverse checkout or worktree, branch 9.4-jdk21-lineage (default ~/Developer/pentaho-metaverse-9.4)
 #
-# Both carry their own release version (the *_VERSION below), which kettle pins (assemblies/plugins/pom.xml
-# pentaho-cassandra-plugin.version, root pom classic-core.version). A release version is never replaced by the
+# Each carries their own release version (the *_VERSION below), which kettle pins (assemblies/plugins/pom.xml
+# pentaho-cassandra-plugin.version, root pom classic-core.version, platform-spring7.version, commons-lang.version, metaverse-api.version). A release version is never replaced by the
 # remote 9.4.0.0-SNAPSHOT builds, so kettle always packages exactly these. When one of them changes, bump its
 # version in its repo, here, in the kettle pom that pins it and in qa/cve-remediation/verify_dist.py.
 set -euo pipefail
 
 CASSANDRA_VERSION=9.4.0.0-jdk21-2     # pentaho-kettle assemblies/plugins/pom.xml pentaho-cassandra-plugin.version
-CLASSIC_CORE_VERSION=9.4.0.0-jdk21-1  # pentaho-kettle pom.xml classic-core.version
+CLASSIC_CORE_VERSION=9.4.0.0-jdk21-2  # pentaho-kettle pom.xml classic-core.version
 PLATFORM_VERSION=9.4.0.0-jdk21-1      # pentaho-kettle pom.xml platform-spring7.version (api, core, repository)
+LANG2_VERSION=2.6.0.1-pentaho-jdk21   # pentaho-kettle pom.xml commons-lang.version
+METAVERSE_VERSION=9.4.0.0-jdk21-1     # pentaho-kettle pom.xml metaverse-api.version (pentaho-metaverse-api only)
 CASSANDRA_DIR="${CASSANDRA_DIR:-$HOME/Developer/pentaho-cassandra-plugin}"
 REPORTING_DIR="${REPORTING_DIR:-$HOME/Developer/pentaho-reporting-9.4}"
 PLATFORM_DIR="${PLATFORM_DIR:-$HOME/Developer/pentaho-platform-9.4}"
+LANG2_DIR="${LANG2_DIR:-$HOME/Developer/commons-lang-2.6-pentaho}"
+METAVERSE_DIR="${METAVERSE_DIR:-$HOME/Developer/pentaho-metaverse-9.4}"
 TESTS="-DskipTests"
 [[ "${1:-}" == "--tests" ]] && TESTS=""
 
@@ -58,12 +64,23 @@ check "$PLATFORM_DIR" core/pom.xml "$PLATFORM_VERSION"
 (cd "$PLATFORM_DIR" && mvn -q -N install && mvn -q clean install -pl api,core,repository $TESTS \
   "-Dmaven-surefire-plugin.argLine=--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED -Dnet.bytebuddy.experimental=true")
 
+# commons-lang 2.6 with the ClassUtils.getClass fix (CVE-2025-48924); same classes and API as Apache's 2.6.
+check "$LANG2_DIR" pom.xml "$LANG2_VERSION"
+(cd "$LANG2_DIR" && mvn -q clean install $TESTS)
+
+# pentaho-metaverse-api: lineage opens its TinkerGraph without commons-configuration (CVE-2025-46392). Only the
+# api jar is rebuilt; the metaverse-plugin zip still comes from Artifactory.
+check "$METAVERSE_DIR" api/pom.xml "$METAVERSE_VERSION"
+(cd "$METAVERSE_DIR" && mvn -q -N install && mvn -q clean install -pl api $TESTS)
+
 M2="${MAVEN_REPO:-$HOME/.m2/repository}"
 for f in "org/pentaho/pentaho-cassandra-plugin-package/$CASSANDRA_VERSION/pentaho-cassandra-plugin-package-$CASSANDRA_VERSION.zip" \
          "org/pentaho/reporting/engine/classic-core/$CLASSIC_CORE_VERSION/classic-core-$CLASSIC_CORE_VERSION.jar" \
          "pentaho/pentaho-platform-api/$PLATFORM_VERSION/pentaho-platform-api-$PLATFORM_VERSION.jar" \
          "pentaho/pentaho-platform-core/$PLATFORM_VERSION/pentaho-platform-core-$PLATFORM_VERSION.jar" \
-         "pentaho/pentaho-platform-repository/$PLATFORM_VERSION/pentaho-platform-repository-$PLATFORM_VERSION.jar"; do
+         "pentaho/pentaho-platform-repository/$PLATFORM_VERSION/pentaho-platform-repository-$PLATFORM_VERSION.jar" \
+         "commons-lang/commons-lang/$LANG2_VERSION/commons-lang-$LANG2_VERSION.jar" \
+         "pentaho/pentaho-metaverse-api/$METAVERSE_VERSION/pentaho-metaverse-api-$METAVERSE_VERSION.jar"; do
   [[ -f "$M2/$f" ]] || { echo "not installed: $M2/$f"; exit 1; }
   echo "installed $(basename "$f")"
 done

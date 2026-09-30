@@ -17,7 +17,6 @@
   <properties>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy/MM/dd hh\:mm</maven.build.timestamp.format>
-    <commons-lang.version>2.6</commons-lang.version>
     <pdi.version>9.4.0.0-SNAPSHOT</pdi.version>
     <!-- 1.8 shades guava 11; 1.11 has no shaded guava and carries Avro security fixes -->
     <org.apache.avro.version>1.11.4</org.apache.avro.version>

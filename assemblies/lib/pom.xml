@@ -43,7 +43,6 @@
     <webservices-rt.version>2.3.1</webservices-rt.version>
     <asm.version>3.2</asm.version>
     <blueprints-core.version>2.6.0</blueprints-core.version>
-    <commons-configuration.version>1.9</commons-configuration.version>
     <flexjson.version>2.1</flexjson.version>
     <jersey-multipart.version>1.19.1</jersey-multipart.version>
     <mimepull.version>1.9.3</mimepull.version>
@@ -242,7 +241,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metaverse-api</artifactId>
-      <version>${pentaho-metaverse.version}</version>
+      <version>${metaverse-api.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -555,17 +554,6 @@
       <groupId>com.tinkerpop.blueprints</groupId>
       <artifactId>blueprints-core</artifactId>
       <version>${blueprints-core.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>${commons-configuration.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
