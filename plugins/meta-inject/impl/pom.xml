@@ -53,7 +53,7 @@
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-platform-core</artifactId>
-        <version>${platform.version}</version>
+        <version>${platform-spring7.version}</version>
         <scope>provided</scope>
       </dependency>
         <!-- Test dependencies -->
