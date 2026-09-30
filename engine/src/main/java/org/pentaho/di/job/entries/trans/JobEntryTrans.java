@@ -22,7 +22,7 @@
 
 package org.pentaho.di.job.entries.trans;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.di.base.IMetaFileLoader;
 import org.pentaho.di.base.MetaFileLoaderImpl;
 import org.pentaho.di.cluster.SlaveServer;

@@ -22,7 +22,7 @@
 
 package org.pentaho.di.plugins.fileopensave.api.providers;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.plugins.fileopensave.api.file.FileDetails;
 import org.pentaho.di.plugins.fileopensave.api.providers.exception.FileException;

@@ -25,7 +25,7 @@ package org.pentaho.di.ui.trans.steps.elasticsearchbulk;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.events.ModifyEvent;
@@ -98,7 +98,8 @@ public class LabelTimeComposite extends Composite {
 
     wText.addModifyListener( new ModifyListener() {
       public void modifyText( ModifyEvent e ) {
-        if ( !StringUtils.isNumeric( wText.getText() ) ) {
+        // lang3's isNumeric( "" ) is false (lang 2: true); an empty field stays allowed
+        if ( !wText.getText().isEmpty() && !StringUtils.isNumeric( wText.getText() ) ) {
           wText.setText( lastValidValue );
         } else {
           lastValidValue = wText.getText();

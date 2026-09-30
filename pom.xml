@@ -98,7 +98,7 @@
     <!-- CVE-2025-46392: lineage opens its TinkerGraph without commons-configuration, which is no longer shipped;
          pentaho-metaverse-api rebuilt from ~/Developer/pentaho-metaverse-9.4 (branch 9.4-jdk21-lineage).
          The metaverse-plugin zip stays ${pentaho-metaverse.version}. See qa/build_local_deps.sh -->
-    <metaverse-api.version>9.4.0.0-jdk21-1</metaverse-api.version>
+    <metaverse-api.version>9.4.0.0-jdk21-2</metaverse-api.version>
     <!-- CVE remediation, planned work -->
     <commons-vfs2.version>2.10.0</commons-vfs2.version>
 
@@ -126,7 +126,7 @@
     <spring.version>7.0.9</spring.version>
     <spring-security.version>7.1.1</spring-security.version>
     <!-- ~/Developer/pentaho-platform-9.4 (branch 9.4-jdk21-spring7); see qa/build_local_deps.sh -->
-    <platform-spring7.version>9.4.0.0-jdk21-1</platform-spring7.version>
+    <platform-spring7.version>9.4.0.0-jdk21-2</platform-spring7.version>
     <commons-compress.version>1.28.0</commons-compress.version>
     <!-- commons-compress 1.28 needs commons-codec 1.19+ and commons-lang3 3.18+ -->
     <commons-codec.version>1.19.0</commons-codec.version>

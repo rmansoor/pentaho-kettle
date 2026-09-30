@@ -22,8 +22,8 @@
 
 package org.pentaho.di.pan;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.pentaho.di.base.AbstractBaseCommandExecutor;
 import org.pentaho.di.base.CommandExecutorCodes;
 import org.pentaho.di.base.Params;
@@ -201,7 +201,7 @@ public class PanCommandExecutor extends AbstractBaseCommandExecutor {
 
         if ( !StringUtils.isEmpty( params.getResultSetStepName() ) ) {
 
-          int copyNr = NumberUtils.isNumber( params.getResultSetCopyNumber() ) ? Integer.parseInt( params.getResultSetCopyNumber() ) : 0 /* default */;
+          int copyNr = NumberUtils.isCreatable( params.getResultSetCopyNumber() ) ? Integer.parseInt( params.getResultSetCopyNumber() ) : 0 /* default */;
 
           logDebug( "Collecting result-set for step '" +  params.getResultSetStepName() + "' and copy number " + copyNr );
 

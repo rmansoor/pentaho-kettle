@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.di.cluster.SlaveServer;
 import org.pentaho.di.core.util.Utils;
 import org.pentaho.di.core.NotePadMeta;

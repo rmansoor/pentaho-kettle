@@ -46,7 +46,7 @@ import org.antlr.runtime.TokenStream;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateGroup;
 import org.antlr.stringtemplate.language.AngleBracketTemplateLexer;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.pentaho.di.core.Const;
 
 @SuppressWarnings( { "all", "warnings", "unchecked" } )
 public class FastSimpleGenericEdifactDirectXMLParser extends Parser {
@@ -141,7 +141,7 @@ public class FastSimpleGenericEdifactDirectXMLParser extends Parser {
     }
 
     // enocde XML entities
-    return StringEscapeUtils.escapeXml( txt );
+    return Const.escapeXml( txt );
   }
 
   // assume about 8k for an edifact message

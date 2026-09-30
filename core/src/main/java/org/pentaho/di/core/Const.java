@@ -23,9 +23,10 @@
 
 package org.pentaho.di.core;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrBuilder;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
+import org.apache.commons.lang3.text.translate.NumericEntityEscaper;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.provider.UriParser;
 import org.apache.http.conn.util.InetAddressUtils;
@@ -3090,7 +3091,7 @@ public class Const {
     if ( firstIndex == lastIndex ) {
       return stringToSplit;
     }
-    StrBuilder strBuilder = new StrBuilder( stringToSplit );
+    StringBuilder strBuilder = new StringBuilder( stringToSplit );
     strBuilder.replace( firstIndex, enclosure.length() + firstIndex, "" );
     strBuilder.replace( lastIndex - enclosure.length(), lastIndex, "" );
 
@@ -3686,11 +3687,24 @@ public class Const {
    *          content
    * @return escaped content
    */
+  /**
+   * XML escaping as commons-lang 2 did it: the five XML entities, and every character above 0x7f as a numeric
+   * reference (lang3's escapeXml leaves those as they are). Keeps saved .ktr/.kjb files byte-for-byte the same.
+   */
+  private static final CharSequenceTranslator ESCAPE_XML =
+    StringEscapeUtils.ESCAPE_XML.with( NumericEntityEscaper.above( 0x7f ) );
+
+  /**
+   * HTML escaping as commons-lang 2 did it: HTML 4 entities, other characters above 0x7f as numeric references.
+   */
+  private static final CharSequenceTranslator ESCAPE_HTML =
+    StringEscapeUtils.ESCAPE_HTML4.with( NumericEntityEscaper.above( 0x7f ) );
+
   public static String escapeXML( String content ) {
     if ( Utils.isEmpty( content ) ) {
       return content;
     }
-    return StringEscapeUtils.escapeXml( content );
+    return ESCAPE_XML.translate( content );
   }
 
   /**
@@ -3704,7 +3718,7 @@ public class Const {
     if ( Utils.isEmpty( content ) ) {
       return content;
     }
-    return StringEscapeUtils.escapeHtml( content );
+    return ESCAPE_HTML.translate( content );
   }
 
   /**
@@ -3718,7 +3732,7 @@ public class Const {
     if ( Utils.isEmpty( content ) ) {
       return content;
     }
-    return StringEscapeUtils.unescapeHtml( content );
+    return StringEscapeUtils.unescapeHtml4( content );
   }
 
   /**
@@ -3746,7 +3760,7 @@ public class Const {
     if ( Utils.isEmpty( content ) ) {
       return content;
     }
-    return StringEscapeUtils.escapeSql( content );
+    return content.replace( "'", "''" );
   }
 
   /**
@@ -3978,7 +3992,7 @@ public class Const {
     if ( Utils.isEmpty( content ) ) {
       return content;
     }
-    return StringEscapeUtils.escapeXml( content );
+    return ESCAPE_XML.translate( content );
   }
 
 

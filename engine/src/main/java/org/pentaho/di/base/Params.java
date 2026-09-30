@@ -22,7 +22,7 @@
 
 package org.pentaho.di.base;
 
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.pentaho.di.core.parameters.NamedParams;
 import org.pentaho.di.core.parameters.UnknownParamException;
 
@@ -272,7 +272,7 @@ public class Params implements IParams {
       params.oldLogFile = oldLogFile;
       params.version = version;
       params.resultSetStepName = resultSetStepName;
-      params.resultSetCopyNumber = NumberUtils.isNumber( resultSetCopyNumber ) ? resultSetCopyNumber : "0" /* default */;
+      params.resultSetCopyNumber = NumberUtils.isCreatable( resultSetCopyNumber ) ? resultSetCopyNumber : "0" /* default */;
       params.base64Zip = base64Zip;
       params.namedParams = namedParams;
       params.customNamedParams = customNamedParams;

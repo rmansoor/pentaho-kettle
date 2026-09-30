@@ -16,11 +16,11 @@
 # version in its repo, here, in the kettle pom that pins it and in qa/cve-remediation/verify_dist.py.
 set -euo pipefail
 
-CASSANDRA_VERSION=9.4.0.0-jdk21-2     # pentaho-kettle assemblies/plugins/pom.xml pentaho-cassandra-plugin.version
+CASSANDRA_VERSION=9.4.0.0-jdk21-3     # pentaho-kettle assemblies/plugins/pom.xml pentaho-cassandra-plugin.version
 CLASSIC_CORE_VERSION=9.4.0.0-jdk21-2  # pentaho-kettle pom.xml classic-core.version
-PLATFORM_VERSION=9.4.0.0-jdk21-1      # pentaho-kettle pom.xml platform-spring7.version (api, core, repository)
+PLATFORM_VERSION=9.4.0.0-jdk21-2      # pentaho-kettle pom.xml platform-spring7.version (api, core, repository)
 LANG2_VERSION=2.6.0.1-pentaho-jdk21   # pentaho-kettle pom.xml commons-lang.version
-METAVERSE_VERSION=9.4.0.0-jdk21-1     # pentaho-kettle pom.xml metaverse-api.version (pentaho-metaverse-api only)
+METAVERSE_VERSION=9.4.0.0-jdk21-2     # pentaho-kettle pom.xml metaverse-api.version (pentaho-metaverse-api only)
 CASSANDRA_DIR="${CASSANDRA_DIR:-$HOME/Developer/pentaho-cassandra-plugin}"
 REPORTING_DIR="${REPORTING_DIR:-$HOME/Developer/pentaho-reporting-9.4}"
 PLATFORM_DIR="${PLATFORM_DIR:-$HOME/Developer/pentaho-platform-9.4}"

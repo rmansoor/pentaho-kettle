@@ -48,7 +48,7 @@
     <elasticsearch-bulk-insert-plugin.version>${project.version}</elasticsearch-bulk-insert-plugin.version>
     <pdi-sap-plugin.version>9.4.0.0-SNAPSHOT</pdi-sap-plugin.version>
     <!-- built locally from ~/Developer/pentaho-cassandra-plugin (branch 9.4-jdk21-cve); see qa/build_local_deps.sh -->
-    <pentaho-cassandra-plugin.version>9.4.0.0-jdk21-2</pentaho-cassandra-plugin.version>
+    <pentaho-cassandra-plugin.version>9.4.0.0-jdk21-3</pentaho-cassandra-plugin.version>
     <pdi-teradata-tpt-plugin-package.version>${project.version}</pdi-teradata-tpt-plugin-package.version>
     <pdi-platform-utils-plugin.version>9.4.0.0-SNAPSHOT</pdi-platform-utils-plugin.version>
     <vertica-bulkloader-plugin.version>9.4.0.0-SNAPSHOT</vertica-bulkloader-plugin.version>

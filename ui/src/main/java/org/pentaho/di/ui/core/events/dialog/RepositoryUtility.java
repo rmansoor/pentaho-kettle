@@ -22,7 +22,7 @@
 
 package org.pentaho.di.ui.core.events.dialog;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.di.ui.spoon.Spoon;
 
 import java.util.function.Supplier;
