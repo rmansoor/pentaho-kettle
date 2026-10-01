@@ -38,7 +38,7 @@ import org.hamcrest.Matcher;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.hamcrest.MockitoHamcrest;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
@@ -81,7 +81,7 @@ public class HTTPProtocolTest {
       }
     };
     String urlAsString = "http://url/path";
-    when( httpClient.execute( Matchers.argThat( matchesGet() ) ) ).thenReturn( response );
+    when( httpClient.execute( MockitoHamcrest.argThat( matchesGet() ) ) ).thenReturn( response );
     StatusLine statusLine = new BasicStatusLine( new ProtocolVersion( "http", 2, 0 ), HttpStatus.SC_OK, "blah" );
     BasicHttpEntity entity = new BasicHttpEntity();
     String content = "plenty of mocks for this test";

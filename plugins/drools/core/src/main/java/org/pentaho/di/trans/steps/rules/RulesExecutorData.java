@@ -23,21 +23,20 @@
 package org.pentaho.di.trans.steps.rules;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.drools.KnowledgeBase;
-import org.drools.KnowledgeBaseFactory;
-import org.drools.builder.KnowledgeBuilder;
-import org.drools.builder.KnowledgeBuilderFactory;
-import org.drools.builder.ResourceType;
-import org.drools.definition.KnowledgePackage;
-import org.drools.io.Resource;
-import org.drools.io.ResourceFactory;
-import org.drools.runtime.ObjectFilter;
-import org.drools.runtime.StatefulKnowledgeSession;
+import org.kie.api.KieBase;
+import org.kie.api.io.Resource;
+import org.kie.api.io.ResourceType;
+import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.ObjectFilter;
+import org.kie.internal.builder.KnowledgeBuilder;
+import org.kie.internal.builder.KnowledgeBuilderFactory;
+import org.kie.internal.io.ResourceFactory;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.i18n.BaseMessages;
@@ -62,7 +61,7 @@ public class RulesExecutorData extends BaseStepData implements StepDataInterface
 
   private KnowledgeBuilder kbuilder;
 
-  private KnowledgeBase kbase;
+  private KieBase kbase;
 
   private Column[] columnList;
 
@@ -117,11 +116,8 @@ public class RulesExecutorData extends BaseStepData implements StepDataInterface
       throw new RuntimeException( BaseMessages.getString( PKG, "RulesData.Error.CompileDRL" ) );
     }
 
-    Collection<KnowledgePackage> pkgs = kbuilder.getKnowledgePackages();
-
-    kbase = KnowledgeBaseFactory.newKnowledgeBase();
     // Cache the knowledge base as its creation is intensive
-    kbase.addKnowledgePackages( pkgs );
+    kbase = kbuilder.newKieBase();
 
     // reset classloader back to original
     Thread.currentThread().setContextClassLoader( orig );
@@ -159,7 +155,7 @@ public class RulesExecutorData extends BaseStepData implements StepDataInterface
   }
 
   public void execute() {
-    StatefulKnowledgeSession session = initNewKnowledgeSession();
+    KieSession session = initNewKnowledgeSession();
 
     Collection<Object> oList = fetchColumns( session );
     for ( Object o : oList ) {
@@ -169,8 +165,8 @@ public class RulesExecutorData extends BaseStepData implements StepDataInterface
     session.dispose();
   }
 
-  protected StatefulKnowledgeSession initNewKnowledgeSession() {
-    StatefulKnowledgeSession session = kbase.newStatefulKnowledgeSession();
+  protected KieSession initNewKnowledgeSession() {
+    KieSession session = kbase.newKieSession();
     for ( int i = 0; i < columnList.length; i++ ) {
       session.insert( columnList[i] );
     }
@@ -179,8 +175,8 @@ public class RulesExecutorData extends BaseStepData implements StepDataInterface
     return session;
   }
 
-  protected Collection<Object> fetchColumns( StatefulKnowledgeSession session ) {
-    Collection<Object> oList = session.getObjects( new ObjectFilter() {
+  protected Collection<Object> fetchColumns( KieSession session ) {
+    Collection<Object> oList = new ArrayList<Object>( session.getObjects( new ObjectFilter() {
       @Override
       public boolean accept( Object o ) {
         if ( o instanceof Column && !( (Column) o ).isExternalSource() ) {
@@ -188,7 +184,7 @@ public class RulesExecutorData extends BaseStepData implements StepDataInterface
         }
         return false;
       }
-    } );
+    } ) );
     return oList;
   }
 

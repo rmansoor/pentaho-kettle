@@ -21,8 +21,8 @@
  ******************************************************************************/
 package org.pentaho.di.www;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.xml.XMLHandler;
@@ -97,7 +97,8 @@ public class SslConfiguration {
    *          the keyStorePath to set
    */
   public void setKeyStore( String keyStore ) {
-    Validate.notNull( keyStore, BaseMessages.getString( PKG, "WebServer.Error.IllegalSslParameter", XML_TAG_KEY_STORE,
+    // isTrue, not notNull: lang3's notNull throws NullPointerException, callers expect IllegalArgumentException
+    Validate.isTrue( keyStore != null, BaseMessages.getString( PKG, "WebServer.Error.IllegalSslParameter", XML_TAG_KEY_STORE,
         NULL ) );
     Validate.notEmpty( keyStore, BaseMessages.getString( PKG, "WebServer.Error.IllegalSslParameter", XML_TAG_KEY_STORE,
         EMPTY ) );
@@ -116,7 +117,7 @@ public class SslConfiguration {
    *          the keyStorePassword to set
    */
   public void setKeyStorePassword( String keyStorePassword ) {
-    Validate.notNull( keyStorePassword, BaseMessages.getString( PKG, "WebServer.Error.IllegalSslParameter",
+    Validate.isTrue( keyStorePassword != null, BaseMessages.getString( PKG, "WebServer.Error.IllegalSslParameter",
         XML_TAG_KEY_STORE_PASSWORD, NULL ) );
     Validate.notEmpty( keyStorePassword, BaseMessages.getString( PKG, "WebServer.Error.IllegalSslParameter",
         XML_TAG_KEY_STORE_PASSWORD, EMPTY ) );

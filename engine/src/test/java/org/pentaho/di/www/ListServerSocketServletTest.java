@@ -87,7 +87,7 @@ public class ListServerSocketServletTest {
     String response = byteArrayOutputStream.toString();
     assertFalse( ServletTestUtils.hasBadText( ServletTestUtils.getInsideOfTag( "H1", response ) ) );
 
-    PowerMockito.verifyStatic( atLeastOnce() );
+    PowerMockito.verifyStatic( Encode.class, atLeastOnce() );
     Encode.forHtml( anyString() );
   }
 }

@@ -25,16 +25,9 @@ package org.pentaho.di.www.cache;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.FileUtils;
 
-import org.apache.commons.lang3.NotImplementedException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.cache.CacheException;
-import org.hibernate.cfg.Configuration;
 import org.pentaho.di.core.Const;
-import org.hibernate.Cache;
 
 import java.io.File;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.Map;
@@ -45,11 +38,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-public class CarteStatusCache implements Cache {
+public class CarteStatusCache {
 
   public static final String CARTE_STATUS_CACHE = "CARTE_CACHE";
-  private static SessionFactory SESSION_FACTORY;
-  private Session session;
 
   /**
    * Switching the thread launched to be daemon otherwise it blocks the pentaho server shutdown
@@ -83,7 +74,7 @@ public class CarteStatusCache implements Cache {
     removeService.scheduleAtFixedRate( this::clear, 1, 1, TimeUnit.DAYS );
   }
 
-  public void clear() throws CacheException {
+  public void clear() {
     cachedMap.forEach( ( k, v ) -> {
       if ( LocalDate.now().isAfter( v.getExceedTime() ) ) {
         remove( k );
@@ -110,7 +101,7 @@ public class CarteStatusCache implements Cache {
     }
   }
 
-  public void put( Object key, Object value ) throws CacheException {
+  public void put( Object key, Object value ) {
     cachedMap.put( (String) key, (CachedItem) value );
   }
 
@@ -158,115 +149,5 @@ public class CarteStatusCache implements Cache {
   @VisibleForTesting
   Map<String, CachedItem> getMap() {
     return cachedMap;
-  }
-
-  // We have to stub out the methods in the new hibernate cache to fool it into thinking it's
-  // a normal cache object so it can creating the region. But thereafter hibernate never seems
-  // to maintain it as all our code taps this object directly.
-  @Override public SessionFactory getSessionFactory() {
-    throwNotImplemented();
-    return null;
-  }
-
-  @Override public boolean containsEntity( Class entityClass, Serializable identifier ) {
-    throwNotImplemented();
-    return false;
-  }
-
-  @Override public boolean containsEntity( String entityName, Serializable identifier ) {
-    throwNotImplemented();
-    return false;
-  }
-
-  @Override public void evictEntityData( Class entityClass, Serializable identifier ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictEntityData( String entityName, Serializable identifier ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictEntityData( Class entityClass ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictEntityData( String entityName ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictEntityData() {
-    throwNotImplemented();
-  }
-
-  @Override public void evictNaturalIdData( Class entityClass ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictNaturalIdData( String entityName ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictNaturalIdData() {
-    throwNotImplemented();
-  }
-
-  @Override public boolean containsCollection( String role, Serializable ownerIdentifier ) {
-    throwNotImplemented();
-    return false;
-  }
-
-  @Override public void evictCollectionData( String role, Serializable ownerIdentifier ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictCollectionData( String role ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictCollectionData() {
-    throwNotImplemented();
-  }
-
-  @Override public boolean containsQuery( String regionName ) {
-    throwNotImplemented();
-    return false;
-  }
-
-  @Override public void evictDefaultQueryRegion() {
-    throwNotImplemented();
-  }
-
-  @Override public void evictQueryRegion( String regionName ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evictQueryRegions() {
-    throwNotImplemented();
-  }
-
-  @Override public void evictRegion( String regionName ) {
-    throwNotImplemented();
-  }
-
-  @Override public boolean contains( Class cls, Object primaryKey ) {
-    throwNotImplemented();
-    return false;
-  }
-
-  @Override public void evict( Class cls, Object primaryKey ) {
-    throwNotImplemented();
-  }
-
-  @Override public void evict( Class cls ) {
-    throwNotImplemented();
-  }
-
-  @Override public <T> T unwrap( Class<T> cls ) {
-    throwNotImplemented();
-    return null;
-  }
-
-  private void throwNotImplemented(){
-    throw new NotImplementedException( "Method not Implemented with upgrade to hibernate 5.4.24");
   }
 }

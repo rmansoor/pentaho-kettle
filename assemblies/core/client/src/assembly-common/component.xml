@@ -57,7 +57,7 @@
     </dependencySet>
     <dependencySet>
       <includes>
-        <include>org.eclipse.swt:*.macosx.x86_64</include>
+        <include>org.eclipse.platform:*.macosx.x86_64</include>
       </includes>
       <outputDirectory>libswt/osx64</outputDirectory>
       <outputFileNameMapping>swt.jar</outputFileNameMapping>

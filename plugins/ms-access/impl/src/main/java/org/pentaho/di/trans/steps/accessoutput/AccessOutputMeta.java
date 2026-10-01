@@ -64,6 +64,9 @@ import org.pentaho.metastore.api.IMetaStore;
 import org.w3c.dom.Node;
 
 import com.healthmarketscience.jackcess.Column;
+import com.healthmarketscience.jackcess.ColumnBuilder;
+import com.healthmarketscience.jackcess.DatabaseBuilder;
+import com.healthmarketscience.jackcess.DateTimeType;
 import com.healthmarketscience.jackcess.DataType;
 import com.healthmarketscience.jackcess.Database;
 import com.healthmarketscience.jackcess.Table;
@@ -259,7 +262,7 @@ public class AccessOutputMeta extends BaseStepMeta implements StepMetaInterface 
       }
 
       // open the database and get the table
-      db = Database.open( file );
+      db = openDatabase( file, true );
       String realTablename = space.environmentSubstitute( tablename );
       Table table = db.getTable( realTablename );
       if ( table == null ) {
@@ -283,9 +286,9 @@ public class AccessOutputMeta extends BaseStepMeta implements StepMetaInterface 
     }
   }
 
-  public static final RowMetaInterface getLayout( Table table ) throws SQLException, KettleStepException {
+  public static final RowMetaInterface getLayout( Table table ) throws SQLException, IOException, KettleStepException {
     RowMetaInterface row = new RowMeta();
-    List<Column> columns = table.getColumns();
+    List<? extends Column> columns = table.getColumns();
     for ( int i = 0; i < columns.size(); i++ ) {
       Column column = columns.get( i );
 
@@ -398,14 +401,32 @@ public class AccessOutputMeta extends BaseStepMeta implements StepMetaInterface 
     return row;
   }
 
-  public static final List<Column> getColumns( RowMetaInterface row ) {
-    List<Column> list = new ArrayList<Column>();
+  /**
+   * Opens an Access database the way jackcess 1.x did: {@link java.util.Date} values for date columns (jackcess 4
+   * can hand out LocalDateTime instead).
+   */
+  public static Database openDatabase( File file, boolean readOnly ) throws IOException {
+    Database db = new DatabaseBuilder( file ).setReadOnly( readOnly ).open();
+    db.setDateTimeType( DateTimeType.DATE );
+    return db;
+  }
+
+  /**
+   * Creates an Access database in the format jackcess 1.x created: Access 2000 (.mdb).
+   */
+  public static Database createDatabase( File file ) throws IOException {
+    Database db = new DatabaseBuilder( file ).setFileFormat( Database.FileFormat.V2000 ).create();
+    db.setDateTimeType( DateTimeType.DATE );
+    return db;
+  }
+
+  public static final List<ColumnBuilder> getColumns( RowMetaInterface row ) {
+    List<ColumnBuilder> list = new ArrayList<ColumnBuilder>();
 
     for ( int i = 0; i < row.size(); i++ ) {
       ValueMetaInterface value = row.getValueMeta( i );
 
-      Column column = new Column();
-      column.setName( value.getName() );
+      ColumnBuilder column = new ColumnBuilder( value.getName() );
 
       int length = value.getLength();
 
@@ -459,7 +480,9 @@ public class AccessOutputMeta extends BaseStepMeta implements StepMetaInterface 
       if ( length >= 0 ) {
         column.setLength( (short) length );
       }
-      if ( value.getPrecision() >= 1 && value.getPrecision() <= 28 ) {
+      // jackcess 1.x kept a precision on any column; 4 validates it, and only numeric columns have one
+      if ( value.getPrecision() >= 1 && value.getPrecision() <= 28 && column.getType() != null
+        && column.getType().getHasScalePrecision() ) {
         column.setPrecision( (byte) value.getPrecision() );
       }
 

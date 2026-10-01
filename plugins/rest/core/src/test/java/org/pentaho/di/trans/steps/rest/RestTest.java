@@ -48,7 +48,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
+import static org.powermock.reflect.Whitebox.setInternalState;
 
 @RunWith( PowerMockRunner.class )
 @PowerMockIgnore( "jdk.internal.reflect.*" )

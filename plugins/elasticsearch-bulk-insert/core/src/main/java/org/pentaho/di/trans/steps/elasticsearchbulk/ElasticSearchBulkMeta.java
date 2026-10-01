@@ -22,7 +22,7 @@
 
 package org.pentaho.di.trans.steps.elasticsearchbulk;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.pentaho.di.core.CheckResult;
 import org.pentaho.di.core.CheckResultInterface;
 import org.pentaho.di.core.Const;
@@ -112,7 +112,7 @@ public class ElasticSearchBulkMeta extends BaseStepMeta implements StepMetaInter
   public static final int DEFAULT_BATCH_SIZE = 50000;
   public static final Long DEFAULT_TIMEOUT = 10L;
   public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
-  public static final int DEFAULT_PORT = 9300;
+  public static final int DEFAULT_PORT = ElasticSearchRestConnection.DEFAULT_HTTP_PORT;
 
   // ///////////
   // FIELDS //

@@ -41,7 +41,19 @@
     <dependency>
       <groupId>org.pentaho.reporting.engine</groupId>
       <artifactId>classic-core</artifactId>
-      <version>${pentaho-reporting.version}</version>
+      <version>${classic-core.version}</version>
+      <exclusions>
+        <exclusion>
+          <!-- POI 5 uses poi-ooxml-lite (comes with poi-ooxml) -->
+          <groupId>org.apache.poi</groupId>
+          <artifactId>poi-ooxml-schemas</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <!-- classic-core's pom cuts poi-ooxml's own dependencies; POI 5 needs its schema classes -->
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml-lite</artifactId>
     </dependency>
     <dependency>
       <groupId>org.pentaho.reporting.engine</groupId>
@@ -145,7 +157,6 @@
                 groovy-all,
                 openpdf,
                 openrtf,
-                jackcess,
                 legacy-charts,
                 libbase,
                 libdocbundle,
@@ -161,7 +172,7 @@
                 libxml,
                 poi,
                 poi-ooxml,
-                poi-ooxml-schemas,
+                poi-ooxml-lite,
                 reactive-streams,
                 rsyntaxtextarea,
                 sac,

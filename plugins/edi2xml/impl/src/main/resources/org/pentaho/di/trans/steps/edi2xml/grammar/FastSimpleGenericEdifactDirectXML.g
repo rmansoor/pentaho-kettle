@@ -6,7 +6,7 @@ options {
 
 @header {
 package org.pentaho.di.trans.steps.edi2xml.grammar;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.pentaho.di.core.Const;
 import java.util.LinkedList;
 }
 
@@ -39,7 +39,7 @@ package org.pentaho.di.trans.steps.edi2xml.grammar;
 		}
 		
 		// enocde XML entities
-		return StringEscapeUtils.escapeXml(txt);
+		return Const.escapeXml(txt);
 	}
 	
 	// assume about 8k for an edifact message

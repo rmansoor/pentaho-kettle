@@ -172,7 +172,7 @@ public class TableOutputTest {
     Object[] row = new Object[]{};
     doReturn( row ).when( tableOutputSpy ).getRow();
     tableOutputSpy.first = false;
-    doReturn( null ).when( tableOutputSpy ).writeToTable( any( RowMetaInterface.class ), any( row.getClass() ) );
+    doReturn( null ).when( tableOutputSpy ).writeToTable( any(), any() );
 
     boolean result = tableOutputSpy.processRow( tableOutputMeta, tableOutputData );
 

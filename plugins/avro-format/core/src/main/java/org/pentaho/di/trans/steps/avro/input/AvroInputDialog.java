@@ -22,7 +22,7 @@
 package org.pentaho.di.trans.steps.avro.input;
 
 import org.pentaho.di.trans.steps.avro.BaseAvroStepDialog;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;

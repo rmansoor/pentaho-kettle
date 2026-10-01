@@ -26,8 +26,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +33,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import org.elasticsearch.common.transport.TransportAddress;
 import org.junit.Test;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettleValueException;
@@ -226,31 +223,6 @@ public class ElasticSearchBulkMetaTest {
     @Override
     public String[] listVariables() {
       return null;
-    }
-  }
-
-  public class InetSocketTransportAddressFieldLoadSaveValidator implements
-      FieldLoadSaveValidator<TransportAddress> {
-    @Override
-    public TransportAddress getTestObject() {
-      byte[] randomIP;
-      // Test IPv4 and IPv6 addresses
-      if ( new Random().nextBoolean() ) {
-        randomIP = new byte[4];
-      } else {
-        randomIP = new byte[16];
-      }
-      new Random().nextBytes( randomIP );
-      try {
-        return new TransportAddress( InetAddress.getByAddress( randomIP ), new Random().nextInt( 65536 ) );
-      } catch ( UnknownHostException e ) {
-        return new TransportAddress( InetAddress.getLoopbackAddress(), new Random().nextInt( 65536 ) );
-      }
-    }
-
-    @Override
-    public boolean validateTestObject( TransportAddress testObject, Object actual ) {
-      return testObject.equals( (TransportAddress) actual );
     }
   }
 

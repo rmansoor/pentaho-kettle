@@ -108,8 +108,8 @@ public class SnappyCompressionInputStreamTest {
     SnappyOutputStream sos = new SnappyOutputStream( baos );
     byte[] testBytes = "Test".getBytes();
     sos.write( testBytes );
-    ByteArrayInputStream in = new ByteArrayInputStream( Snappy.compress( testBytes ) );
     sos.close();
+    ByteArrayInputStream in = new ByteArrayInputStream( baos.toByteArray() );
 
     return new SnappyInputStream( in );
   }

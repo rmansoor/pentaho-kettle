@@ -51,6 +51,7 @@ import org.pentaho.di.trans.step.StepMetaInterface;
 import com.rometools.modules.georss.GeoRSSModule;
 import com.rometools.modules.georss.SimpleModuleImpl;
 import com.rometools.modules.georss.W3CGeoModuleImpl;
+import com.rometools.modules.georss.geometries.Position;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndContentImpl;
 import com.rometools.rome.feed.synd.SyndEntry;
@@ -59,7 +60,6 @@ import com.rometools.rome.feed.synd.SyndFeedImpl;
 import com.rometools.rome.feed.synd.SyndImage;
 import com.rometools.rome.feed.synd.SyndImageImpl;
 import com.rometools.rome.io.SyndFeedOutput;
-import com.rometools.modules.georss.geometries.Position;
 
 /**
  * Output rows to RSS feed and create a file.

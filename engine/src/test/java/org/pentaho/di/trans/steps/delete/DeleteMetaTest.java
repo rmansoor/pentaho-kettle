@@ -22,7 +22,7 @@
 
 package org.pentaho.di.trans.steps.delete;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -59,7 +59,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.internal.util.reflection.Whitebox.getInternalState;
+import static org.powermock.reflect.Whitebox.getInternalState;
 
 
 public class DeleteMetaTest implements InitializerInterface<StepMetaInterface> {

@@ -29,8 +29,7 @@ import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.util.Utf8;
-import org.codehaus.jackson.node.NullNode;
-import org.codehaus.jackson.node.TextNode;
+import org.apache.avro.JsonProperties;
 import org.pentaho.di.core.row.ValueMetaInterface;
 import org.pentaho.di.core.row.value.ValueMetaBase;
 
@@ -120,8 +119,9 @@ public class AvroToPdiConverter {
         case STRING:
           if ( avroData instanceof GenericData.EnumSymbol ) {
             pentahoData = ( (GenericData.EnumSymbol) avroData ).toString();
-          } else if ( avroData instanceof TextNode ) {
-            pentahoData = convertToPentahoType( pentahoType, ( (TextNode) avroData ).asText(), avroInputField );
+          } else if ( avroData instanceof CharSequence ) {
+            // Avro 1.11 hands out String defaults and Utf8 values (1.8 gave Jackson 1 TextNode defaults)
+            pentahoData = convertToPentahoType( pentahoType, avroData.toString(), avroInputField );
           } else {
             pentahoData = convertToPentahoType( pentahoType, (String) avroData, avroInputField );
           }
@@ -411,6 +411,6 @@ public class AvroToPdiConverter {
   }
 
   private boolean isNotNull( Object avroData ) {
-    return avroData != null && !( avroData instanceof NullNode );
+    return avroData != null && avroData != JsonProperties.NULL_VALUE;
   }
 }

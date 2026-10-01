@@ -50,12 +50,13 @@
     <pdi-sap-plugin.version>10.1.0.0-SNAPSHOT</pdi-sap-plugin.version>
     <jms-streaming-plugin.version>${project.version}</jms-streaming-plugin.version>
     <pentaho-googledrive-vfs-plugin.version>${project.version}</pentaho-googledrive-vfs-plugin.version>
-    <pentaho-cassandra-plugin.version>10.1.0.0-SNAPSHOT</pentaho-cassandra-plugin.version>
-    <pdi-teradata-tpt-plugin-package.version>${project.version}</pdi-teradata-tpt-plugin-package.version>
+    <!-- Cassandra, TPT, Vertica and MongoDB plugins built locally (qa/build_local_deps.sh) -->
+    <pentaho-cassandra-plugin.version>${local-jdk21.version}</pentaho-cassandra-plugin.version>
+    <pdi-teradata-tpt-plugin-package.version>${local-jdk21.version}</pdi-teradata-tpt-plugin-package.version>
     <pdi-platform-utils-plugin.version>10.1.0.0-SNAPSHOT</pdi-platform-utils-plugin.version>
-    <vertica-bulkloader-plugin.version>10.1.0.0-SNAPSHOT</vertica-bulkloader-plugin.version>
+    <vertica-bulkloader-plugin.version>${local-jdk21.version}</vertica-bulkloader-plugin.version>
     <pdi-pur-plugin.version>10.1.0.0-SNAPSHOT</pdi-pur-plugin.version>
-    <pentaho-mongodb-plugin.version>10.1.0.0-SNAPSHOT</pentaho-mongodb-plugin.version>
+    <pentaho-mongodb-plugin.version>${local-jdk21.version}</pentaho-mongodb-plugin.version>
     <engine-configuration-plugin.version>${project.version}</engine-configuration-plugin.version>
     <metastore-locator-plugin.version>${project.version}</metastore-locator-plugin.version>
     <repository-locator-plugin.version>${project.version}</repository-locator-plugin.version>
@@ -65,10 +66,12 @@
     <connections-plugin.version>${project.version}</connections-plugin.version>
     <meta-inject-plugin.version>${project.version}</meta-inject-plugin.version>
     <mqtt-streaming-plugin.version>${project.version}</mqtt-streaming-plugin.version>
-    <pentaho-s3-vfs-plugin.version>${project.version}</pentaho-s3-vfs-plugin.version>
+    <!-- s3-vfs and Kafka plugins rebuilt locally from big-data-plugin 10.1 (AWS SDK 1.12, commons-lang3) -->
+    <pentaho-s3-vfs-plugin.version>${local-jdk21.version}</pentaho-s3-vfs-plugin.version>
     <pdi-avro-format-plugin.version>${project.version}</pdi-avro-format-plugin.version>
     <mail-plugin.version>${project.version}</mail-plugin.version>
-    <pentaho-metaverse.version>10.1.0.0-SNAPSHOT</pentaho-metaverse.version>
+    <!-- metaverse-plugin (lineage) built locally on commons-lang3 -->
+    <pentaho-metaverse.version>${local-jdk21.version}</pentaho-metaverse.version>
     <pdi-xml-plugin.version>10.1.0.0-SNAPSHOT</pdi-xml-plugin.version>
     <pdi-json-plugin.version>10.1.0.0-SNAPSHOT</pdi-json-plugin.version>
     <pdi-rest-plugin.version>10.1.0.0-SNAPSHOT</pdi-rest-plugin.version>
@@ -723,7 +726,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-streaming-kafka-plugin</artifactId>
-      <version>${big-data-plugin.version}</version>
+      <version>${local-jdk21.version}</version>
       <type>zip</type>
       <exclusions>
         <exclusion>

@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.vfs2.FileObject;
-import org.ini4j.Profile.Section;
-import org.ini4j.Wini;
 import org.pentaho.di.core.fileinput.FileInputList;
 import org.pentaho.di.core.row.RowMetaInterface;
 import org.pentaho.di.trans.step.BaseStepData;
@@ -78,8 +76,8 @@ public class PropertyInputData extends BaseStepData implements StepDataInterface
   public Iterator<Object> it;
 
   // INI files
-  public Section iniSection;
-  public Wini wini;
+  public IniFile.Section iniSection;
+  public IniFile wini;
   public Iterator<String> itSection;
   public String realEncoding;
   public String realSection;

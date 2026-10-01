@@ -35,4 +35,7 @@ if [ "$1" = "-x" ]; then
   shift
 fi
 
+# headless, like kitchen.sh: no -XstartOnFirstThread on macOS (it deadlocks steps that render images)
+export IS_KITCHEN="true"
+
 "$DIR/spoon.sh" -main org.pentaho.di.pan.Pan -initialDir "$INITIALDIR/" "$@"

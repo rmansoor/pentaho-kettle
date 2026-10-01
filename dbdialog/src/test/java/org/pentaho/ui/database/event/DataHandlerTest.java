@@ -81,7 +81,6 @@ public class DataHandlerTest {
   XulTextbox userNameBox;
   XulTextbox passwordBox;
   XulTextbox serverInstanceBox;
-  XulTextbox webappName;
   XulMessageBox messageBox;
   XulRoot generalDatasourceWindow;
 
@@ -131,9 +130,6 @@ public class DataHandlerTest {
     when( document.getElementById( "instance-text" ) ).thenReturn( serverInstanceBox );
     when( serverInstanceBox.getValue() ).thenReturn( "instance" );
     when( serverInstanceBox.getAttributeValue( "shouldDisablePortIfPopulated" ) ).thenReturn( "true" );
-    webappName = mock( XulTextbox.class );
-    when( document.getElementById( "web-application-name-text" ) ).thenReturn( webappName );
-    when( webappName.getValue() ).thenReturn( "webappName" );
 
     messageBox = mock( XulMessageBox.class );
     when( document.createElement( "messagebox" ) ).thenReturn( messageBox );
@@ -244,7 +240,6 @@ public class DataHandlerTest {
     DatabaseMeta dbMeta = mock( DatabaseMeta.class );
     when( dbMeta.getAccessType() ).thenReturn( DatabaseMeta.TYPE_ACCESS_JNDI );
     Properties props = new Properties();
-    props.put( BaseDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + "KettleThin.webappname", "foo" );
     when( dbMeta.getAttributes() ).thenReturn( props );
 
     when( accessBox.getSelectedItem() ).thenReturn( "JNDI" );
@@ -252,8 +247,6 @@ public class DataHandlerTest {
     dataHandler.setData( dbMeta );
     assertEquals( dbMeta, dataHandler.getData() );
     assertNotSame( initialDbMeta, dataHandler.getData() );
-    assertFalse( props.containsKey( BaseDatabaseMeta.ATTRIBUTE_PREFIX_EXTRA_OPTION + "KettleThin.webappname" ) );
-    verify( dbMeta ).setDBName( "foo" );
 
     dataHandler.setData( null );
     assertEquals( dbMeta, dataHandler.getData() );
@@ -264,7 +257,6 @@ public class DataHandlerTest {
     dataHandler.getData();
     dataHandler.pushCache();
     dataHandler.popCache();
-    verify( webappName ).setValue( "pentaho" );
   }
 
   @Test

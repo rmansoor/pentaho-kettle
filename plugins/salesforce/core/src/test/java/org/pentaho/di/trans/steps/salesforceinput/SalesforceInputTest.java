@@ -22,7 +22,7 @@
 
 package org.pentaho.di.trans.steps.salesforceinput;
 
-import com.rometools.rome.io.impl.Base64;
+import java.util.Base64;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -70,11 +70,11 @@ public class SalesforceInputTest {
 
     Object[] outputRowData = new Object[ 1 ];
     byte[] binary = { 0, 1, 0, 1, 1, 1 };
-    salesforceInput.doConversions( outputRowData, 0, new String( Base64.encode( binary ) ) );
+    salesforceInput.doConversions( outputRowData, 0, new String( Base64.getEncoder().encode( binary ) ) );
     Assert.assertArrayEquals( binary, (byte[]) outputRowData[ 0 ] );
 
     binary = new byte[ 0 ];
-    salesforceInput.doConversions( outputRowData, 0, new String( Base64.encode( binary ) ) );
+    salesforceInput.doConversions( outputRowData, 0, new String( Base64.getEncoder().encode( binary ) ) );
     Assert.assertArrayEquals( binary, (byte[]) outputRowData[ 0 ] );
   }
 

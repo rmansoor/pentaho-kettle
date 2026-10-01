@@ -89,13 +89,13 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-api</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -107,7 +107,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-repository</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -231,8 +231,10 @@
       <version>${enunciate-core-annotations.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.google.gwt</groupId>
+      <!-- GWT moved to org.gwtproject; 2.12 no longer bundles protobuf-java 2.5 (com.google.gwt.dev.protobuf) -->
+      <groupId>org.gwtproject</groupId>
       <artifactId>gwt-servlet</artifactId>
+      <version>2.12.2</version>
     </dependency>
     <dependency>
       <groupId>org.yaml</groupId>
@@ -334,7 +336,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-repository</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
       <exclusions>
@@ -347,7 +349,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
       <exclusions>

@@ -17,3 +17,6 @@ routes.yml
 
 rebel.xml
 rebel-remote.xml
+
+# pdi.log written by unit test runs
+logs/

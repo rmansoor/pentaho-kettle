@@ -101,10 +101,11 @@
          <scope>test</scope>
        </dependency>
 
+      <!-- jackcess 4 (was 1.2.6, which needs commons-lang 2); its commons-lang3 and commons-logging come from lib/ -->
       <dependency>
         <groupId>com.healthmarketscience.jackcess</groupId>
         <artifactId>jackcess</artifactId>
-        <version>1.2.6</version>
+        <version>4.0.12</version>
         <scope>compile</scope>
         <exclusions>
           <exclusion>

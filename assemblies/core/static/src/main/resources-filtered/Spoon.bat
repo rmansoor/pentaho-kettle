@@ -73,12 +73,23 @@ goto USEJAVAFROMPATH
 :USEJAVAFROMPENTAHOJAVAHOME
 FOR /F %%a IN ('.\java.exe -version 2^>^&1^|%windir%\system32\find /C "64-Bit"') DO (SET /a IS64BITJAVA=%%a)
 FOR /F %%a IN ('.\java.exe -version 2^>^&1^|%windir%\system32\find /C "version ""1.8."') DO (SET /a ISJAVA8=%%a)
+FOR /F "tokens=3" %%v IN ('.\java.exe -version 2^>^&1^|%windir%\system32\find "version"') DO SET JAVAVERSION=%%~v
 GOTO CHECK32VS64BITJAVA
 :USEJAVAFROMPATH
 FOR /F %%a IN ('java -version 2^>^&1^|%windir%\system32\find /C "64-Bit"') DO (SET /a IS64BITJAVA=%%a)
 FOR /F %%a IN ('java -version 2^>^&1^|%windir%\system32\find /C "version ""1.8."') DO (SET /a ISJAVA8=%%a)
+FOR /F "tokens=3" %%v IN ('java -version 2^>^&1^|%windir%\system32\find "version"') DO SET JAVAVERSION=%%~v
 GOTO CHECK32VS64BITJAVA
 :CHECK32VS64BITJAVA
+REM PDI is built for Java 21: "1.8.0_x" gives 1, "11.0.x" gives 11
+SET /a JAVAMAJOR=0
+FOR /F "delims=.-_" %%m IN ("%JAVAVERSION%") DO SET /a JAVAMAJOR=%%m
+IF %JAVAMAJOR% LSS 21 (
+  echo Pentaho Data Integration requires Java 21 or newer. Found version "%JAVAVERSION%".
+  echo Set PENTAHO_JAVA_HOME to a Java 21 installation and try again.
+  popd
+  exit /b 1
+)
 
 
 IF %IS64BITJAVA% == 1 GOTO :USE64
@@ -125,12 +136,18 @@ REM **************************************************
 REM ** Setup Karaf endorsed libraries directory     **
 REM **************************************************
 set JAVA_ENDORSED_DIRS=
-set JAVA_LOCALE_COMPAT=
-IF NOT %ISJAVA8% == 1 GOTO :SKIPENDORSEDJARS
-
-if not "%_PENTAHO_JAVA_HOME%" == "" set JAVA_ENDORSED_DIRS=%_PENTAHO_JAVA_HOME%\jre\lib\endorsed;%_PENTAHO_JAVA_HOME%\lib\endorsed;
-set JAVA_ENDORSED_DIRS="-Djava.endorsed.dirs=%JAVA_ENDORSED_DIRS%%KETTLE_DIR%\system\karaf\lib\endorsed"
+REM required for date/time formatting backwards compatibility
+set JAVA_LOCALE_COMPAT=-Djava.locale.providers=COMPAT,SPI
+REM Java 17+ strong encapsulation: packages PDI and its libraries use reflectively
+set JAVA_ADD_OPENS=
+FOR %%p IN (java.base/java.lang java.base/java.lang.reflect java.base/java.io java.base/java.net java.base/java.nio java.base/java.math java.base/java.security java.base/java.util java.base/sun.nio.ch java.base/sun.net.www.protocol.jar java.base/sun.net.www.protocol.file java.base/sun.net.www.protocol.ftp java.base/sun.net.www.protocol.http java.base/sun.net.www.protocol.https java.base/sun.reflect.misc java.management/javax.management java.management/javax.management.openmbean java.naming/com.sun.jndi.ldap java.security.jgss/sun.security.krb5) DO CALL :ADDOPEN %%p
 GOTO :COLLECTARGUMENTS
+
+:ADDOPEN
+set JAVA_ADD_OPENS=%JAVA_ADD_OPENS% --add-opens=%1=ALL-UNNAMED
+GOTO :EOF
+
+:COLLECTARGUMENTS
 
 :SKIPENDORSEDJARS
 REM required for Java 11 date/time formatting backwards compatibility
@@ -179,6 +196,6 @@ REM Eventually call java instead of javaw and do not run in a separate window
 if not "%SPOON_CONSOLE%"=="1" set SPOON_START_OPTION=start %STARTTITLE%
 
 @echo on
-%SPOON_START_OPTION% "%_PENTAHO_JAVA%" %OPT% -jar launcher\launcher.jar -lib ..\%LIBSPATH% %_cmdline%
+%SPOON_START_OPTION% "%_PENTAHO_JAVA%" %JAVA_ADD_OPENS% %OPT% -jar launcher\launcher.jar -lib ..\%LIBSPATH% %_cmdline%
 @echo off
 if "%SPOON_PAUSE%"=="1" pause

@@ -90,6 +90,7 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 
 import com.healthmarketscience.jackcess.Column;
 import com.healthmarketscience.jackcess.Database;
+import org.pentaho.di.trans.steps.accessoutput.AccessOutputMeta;
 import com.healthmarketscience.jackcess.Table;
 import org.pentaho.di.ui.util.DialogHelper;
 
@@ -1126,7 +1127,7 @@ public class AccessInputDialog extends BaseStepDialog implements StepDialogInter
       if ( inputList.getFiles().size() > 0 ) {
         // Open the file (only first file)...
 
-        Database d = Database.open( new File( AccessInputMeta.getFilename( inputList.getFile( 0 ) ) ), true );
+        Database d = AccessOutputMeta.openDatabase( new File( AccessInputMeta.getFilename( inputList.getFile( 0 ) ) ), true );
         String realTableName = transMeta.environmentSubstitute( meta.getTableName() );
 
         Table t = null;
@@ -1137,7 +1138,7 @@ public class AccessInputDialog extends BaseStepDialog implements StepDialogInter
         }
 
         // Get the list of columns
-        List<Column> col = t.getColumns();
+        List<? extends Column> col = t.getColumns();
         int nr = col.size();
         for ( int i = 0; i < nr; i++ ) {
           Column c = col.get( i );
@@ -1527,7 +1528,7 @@ public class AccessInputDialog extends BaseStepDialog implements StepDialogInter
           // Open the file (only first file) in readOnly ...
           //
           accessDatabase =
-            Database.open( new File( AccessInputMeta.getFilename( fileInputList.getFile( 0 ) ) ), true );
+            AccessOutputMeta.openDatabase( new File( AccessInputMeta.getFilename( fileInputList.getFile( 0 ) ) ), true );
 
           // Get user tables
           //

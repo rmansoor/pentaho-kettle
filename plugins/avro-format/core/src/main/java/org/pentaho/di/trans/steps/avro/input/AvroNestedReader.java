@@ -35,7 +35,7 @@ import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.util.Utf8;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.codehaus.jackson.node.NullNode;
+import org.apache.avro.JsonProperties;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -660,10 +660,10 @@ public class AvroNestedReader {
         fieldS = defaultSchema.getField( part );
       }
 
-      if ( fieldS == null || fieldS.defaultValue() == null ) {
+      if ( fieldS == null || !fieldS.hasDefaultValue() ) {
         return null;
       }
-      field = fieldS.defaultValue();
+      field = fieldS.defaultVal();
     }
 
     Schema.Type fieldT = fieldS.schema().getType();
@@ -701,7 +701,7 @@ public class AvroNestedReader {
     }
 
     // what have we got?
-    if ( !( field instanceof NullNode) ) {
+    if ( field != JsonProperties.NULL_VALUE ) {
       if ( fieldT == Schema.Type.RECORD ) {
         if ( field instanceof GenericData.Record ) {
           return convertToKettleValue(avroInputField, (GenericData.Record) field, fieldSchema, defaultSchema,
@@ -1672,7 +1672,7 @@ public class AvroNestedReader {
           m_log.logDetailed(
             BaseMessages.getString( PKG, "AvroInput.Message.ParsingSchema", schemaKey ) );
         }
-        Schema.Parser p = new Schema.Parser();
+        Schema.Parser p = new Schema.Parser().setValidateDefaults( false );
         toUse = p.parse( schemaKey );
       }
       m_schemaToUse = toUse;
@@ -1723,7 +1723,7 @@ public class AvroNestedReader {
   protected static Schema loadSchema( String schemaFile ) throws KettleException {
 
     Schema s = null;
-    Schema.Parser p = new Schema.Parser();
+    Schema.Parser p = new Schema.Parser().setValidateDefaults( false );
 
     FileObject fileO = KettleVFS.getFileObject( schemaFile );
     try {

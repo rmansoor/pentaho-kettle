@@ -92,7 +92,7 @@ public class AllocateServerSocketServletTest {
         .getInsideOfTag( "BODY", response ).replaceAll( "<p>", "" ).replaceAll( "<br>", "" ).replaceAll(
           "<H1>.+</H1>", "" ).replaceAll( "--> port", "" );
     assertFalse( ServletTestUtils.hasBadText( dynamicBody ) );
-    PowerMockito.verifyStatic( atLeastOnce() );
+    PowerMockito.verifyStatic( Encode.class, atLeastOnce() );
     Encode.forHtml( anyString() );
   }
 }

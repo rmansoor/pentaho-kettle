@@ -73,7 +73,7 @@ public class PoiWorkbook implements KWorkbook {
         } catch ( Exception ofe ) {
           try {
             opcpkg = OPCPackage.open( excelFile );
-            workbook = org.apache.poi.ss.usermodel.WorkbookFactory.create( opcpkg );
+            workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook( opcpkg );
           } catch ( Exception ex ) {
             workbook = org.apache.poi.ss.usermodel.WorkbookFactory.create( excelFile, password );
           }

@@ -20,21 +20,22 @@
   <properties>
     <!-- Test running configuration -->
     <maven-surefire-plugin.reuseForks>true</maven-surefire-plugin.reuseForks>
-    <maven-surefire-plugin.argLine>-noverify</maven-surefire-plugin.argLine>
+    <maven-surefire-plugin.argLine>-noverify ${java21.test.argLine}</maven-surefire-plugin.argLine>
     <maven-failsafe-plugin.reuseForks>false</maven-failsafe-plugin.reuseForks>
 
     <!-- Pentaho dependencies -->
     <pentaho-reporting.version>10.1.0.0-SNAPSHOT</pentaho-reporting.version>
-    <pentaho-registry.version>10.1.0.0-SNAPSHOT</pentaho-registry.version>
     <pentaho-connections.version>10.1.0.0-SNAPSHOT</pentaho-connections.version>
-    <mondrian.version>10.1.0.0-SNAPSHOT</mondrian.version>
 
     <!-- Third-party dependencies -->
     <antlr-complete.version>3.5.2</antlr-complete.version>
     <commons-validator.version>1.3.1</commons-validator.version>
     <edtftpj.version>2.1.0</edtftpj.version>
-    <jsendnsca.version>2.0.1</jsendnsca.version>
+    <!-- jsendnsca moved to com.github.jsendnsca; 2.2.0 uses commons-lang3 (2.0.1 needed commons-lang 2). Its BouncyCastle
+         dependency is only for the AES/Blowfish modes, which the Nagios job entry does not offer -->
+    <jsendnsca.version>2.2.0</jsendnsca.version>
     <feed4j.version>1.0</feed4j.version>
+    <nekohtml.version>1.9.15</nekohtml.version>
     <ftp4che.version>0.7.1</ftp4che.version>
     <infobright-core.version>3.4</infobright-core.version>
     <javadbf.version>20081125</javadbf.version>
@@ -49,10 +50,13 @@
     <ldapjdk.version>20000524</ldapjdk.version>
     <monetdb-jdbc.version>2.8</monetdb-jdbc.version>
     <odfdom-java.version>0.8.6</odfdom-java.version>
-    <commons-collections4.version>4.4</commons-collections4.version>
+    <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-math3.version>3.6.1</commons-math3.version>
-    <xmlbeans.version>3.1.0</xmlbeans.version>
-    <curvesapi.version>1.06</curvesapi.version>
+    <xmlbeans.version>5.3.0</xmlbeans.version>
+    <curvesapi.version>1.08</curvesapi.version>
+    <sparsebitset.version>1.3</sparsebitset.version>
+    <!-- ROME 2 (com.rometools, jdom2) for RSS Output; ROME 1.0 needed jdom 1.x (CVE-2021-33813) -->
+    <jdom2.version>2.0.6.1</jdom2.version>
     <SassyReader.version>0.5</SassyReader.version>
     <saxon.version>9.1.0.8</saxon.version>
     <saxon-dom.version>9.1.0.8</saxon-dom.version>
@@ -64,20 +68,14 @@
     <olap4j-xmla.version>1.2.0</olap4j-xmla.version>
     <wsdl4j.version>1.6.2</wsdl4j.version>
     <wsdl4j-qname.version>1.6.1</wsdl4j-qname.version>
-    <hibernate-core.version>5.4.24.Final</hibernate-core.version>
-    <hibernate-c3p0.version>5.4.24.Final</hibernate-c3p0.version>
-    <hibernate-commons-annotations.version>3.2.0.Final</hibernate-commons-annotations.version>
-    <hibernate-ehcache.version>5.4.24.Final</hibernate-ehcache.version>
-    <jboss-logging.version>3.4.3.Final</jboss-logging.version>
-    <javax.persistence-api.version>2.2</javax.persistence-api.version>
-    <byte-buddy.version>1.12.16</byte-buddy.version>
     <cglib-nodep.version>2.2</cglib-nodep.version>
     <js.version>1.7R3</js.version>
     <mail.version>1.6.1</mail.version>
-    <mstor.version>0.9.13</mstor.version>
+    <!-- mstor 1.0.3 uses commons-lang3 (0.9.13 needed commons-lang 2) -->
+    <mstor.version>1.0.3</mstor.version>
     <commons-cli.version>1.2</commons-cli.version>
     <log4jdbc.version>1.2</log4jdbc.version>
-    <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+    <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
     <oro.version>2.0.8</oro.version>
     <javax.websocket-api.version>1.1</javax.websocket-api.version>
     <rxjava.version>2.2.3</rxjava.version>
@@ -133,7 +131,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-api</artifactId>
-      <version>${project.version}</version>
+      <version>${platform-spring7.version}</version>
     </dependency>
 
     <!-- Reporting dependencies -->
@@ -208,7 +206,7 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.jsendnsca</groupId>
+      <groupId>com.github.jsendnsca</groupId>
       <artifactId>jsendnsca</artifactId>
       <version>${jsendnsca.version}</version>
       <exclusions>
@@ -222,6 +220,18 @@
       <groupId>feed4j</groupId>
       <artifactId>feed4j</artifactId>
       <version>${feed4j.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- RSS Input: feed4j parses HTML descriptions with NekoHTML -->
+    <dependency>
+      <groupId>net.sourceforge.nekohtml</groupId>
+      <artifactId>nekohtml</artifactId>
+      <version>${nekohtml.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -243,6 +253,7 @@
     <dependency>
       <groupId>com.rometools</groupId>
       <artifactId>rome-modules</artifactId>
+      <version>${rome.version}</version>
     </dependency>
     <dependency>
       <groupId>com.rometools</groupId>
@@ -261,9 +272,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <!-- test only: IniFile (Property Input) replaced it (CVE-2022-41404); IniFileTest compares the two -->
       <groupId>org.ini4j</groupId>
       <artifactId>ini4j</artifactId>
       <version>${ini4j.version}</version>
+      <scope>test</scope>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -479,6 +492,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- POI 5 (Excel, reporting and core plugins) -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>SparseBitSet</artifactId>
+      <version>${sparsebitset.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
@@ -492,6 +511,28 @@
     <dependency>
       <groupId>com.rometools</groupId>
       <artifactId>rome</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.rometools</groupId>
+      <artifactId>rome-utils</artifactId>
+      <version>${rome.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom2</artifactId>
+      <version>${jdom2.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eobjects.sassyreader</groupId>
@@ -649,68 +690,6 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core</artifactId>
-      <version>${hibernate-core.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-c3p0</artifactId>
-      <version>${hibernate-c3p0.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-    <groupId>org.hibernate.javax.persistence</groupId>
-    <artifactId>hibernate-jpa-2.1-api</artifactId>
-    <version>1.0.0.Final</version>
-  </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-ehcache</artifactId>
-      <version>${hibernate-ehcache.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.logging</groupId>
-      <artifactId>jboss-logging</artifactId>
-      <version>${jboss-logging.version}</version>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>*</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>net.bytebuddy</groupId>
-      <artifactId>byte-buddy</artifactId>
-      <version>${byte-buddy.version}</version>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>*</artifactId>
-          <groupId>*</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>cglib</groupId>
       <artifactId>cglib-nodep</artifactId>
       <version>${cglib-nodep.version}</version>
@@ -755,67 +734,60 @@
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-jaas</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
+      <version>${jetty.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.eclipse.jetty.orbit</groupId>
-          <artifactId>*</artifactId>
+          <!-- slf4j-api comes from the kettle lib folder -->
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <!-- javax.servlet-api 4.0.1 is declared below -->
+          <groupId>org.eclipse.jetty.toolchain</groupId>
+          <artifactId>jetty-servlet-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
+      <version>${jetty.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <!-- slf4j-api comes from the kettle lib folder -->
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <!-- javax.servlet-api 4.0.1 is declared below -->
+          <groupId>org.eclipse.jetty.toolchain</groupId>
+          <artifactId>jetty-servlet-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
+      <!-- Carte's servlets are javax.servlet: Jetty 12's EE8 layer (brings ee8-security, ee8-nested, jetty-session) -->
+      <groupId>org.eclipse.jetty.ee8</groupId>
+      <artifactId>jetty-ee8-servlet</artifactId>
+      <version>${jetty.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
+          <!-- slf4j-api comes from the kettle lib folder -->
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <!-- javax.servlet-api 4.0.1 is declared below -->
+          <groupId>org.eclipse.jetty.toolchain</groupId>
+          <artifactId>jetty-servlet-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-xml</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-webapp</artifactId>
+      <version>${jetty.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -861,7 +833,7 @@
     <dependency>
       <groupId>com.cronutils</groupId>
       <artifactId>cron-utils</artifactId>
-      <version>9.1.6</version>
+      <version>9.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -911,11 +883,12 @@
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
+      <version>${powermock2.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
+      <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -959,20 +932,6 @@
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock-jre8-standalone</artifactId>
       <version>${wiremock.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>${jetty.version}</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-http</artifactId>
-      <version>${jetty.version}</version>
-      <classifier>tests</classifier>
       <scope>test</scope>
     </dependency>
   </dependencies>

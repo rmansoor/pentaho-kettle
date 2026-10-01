@@ -38,11 +38,11 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
-import org.apache.poi.xssf.model.SharedStringsTable;
+import org.apache.poi.xssf.model.SharedStrings;
 import org.apache.poi.xssf.model.StylesTable;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTXf;
@@ -87,7 +87,7 @@ public class StaxPoiSheet implements KSheet {
   private KCell[] currentRowCells;
 
   // full shared strings table
-  private SharedStringsTable sst;
+  private SharedStrings sst;
   // custom styles
   private StylesTable styles;
 
@@ -137,7 +137,7 @@ public class StaxPoiSheet implements KSheet {
                     event = sheetReader.next();
                     if ( event == XMLStreamConstants.START_ELEMENT && sheetReader.getLocalName().equals( TAG_V ) ) {
                       int idx = Integer.parseInt( sheetReader.getElementText() );
-                      String content = new XSSFRichTextString( sst.getEntryAt( idx ) ).toString();
+                      String content = sst.getItemAt( idx ).getString();
                       headerRow.add( content );
                       break;
                     }
@@ -287,7 +287,7 @@ public class StaxPoiSheet implements KSheet {
             // read content as string
             if ( cellType != null && cellType.equals( "s" ) ) {
               int idx = Integer.parseInt( sheetReader.getElementText() );
-              content = new XSSFRichTextString( sst.getEntryAt( idx ) ).toString();
+              content = sst.getItemAt( idx ).getString();
             } else {
               content = sheetReader.getElementText();
             }

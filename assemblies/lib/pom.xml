@@ -23,7 +23,6 @@
     <pentaho-json.version>10.1.0.0-SNAPSHOT</pentaho-json.version>
     <pdi-spark-driver.version>${project.version}</pdi-spark-driver.version>
     <commons-database.version>10.1.0.0-SNAPSHOT</commons-database.version>
-    <pentaho-registry.version>10.1.0.0-SNAPSHOT</pentaho-registry.version>
     <pentaho-metaverse.version>10.1.0.0-SNAPSHOT</pentaho-metaverse.version>
     <platform.version>10.1.0.0-SNAPSHOT</platform.version>
     <pentaho-reporting.version>10.1.0.0-SNAPSHOT</pentaho-reporting.version>
@@ -31,17 +30,18 @@
     <pentaho-hadoop-shims.version>10.1.0.0-SNAPSHOT</pentaho-hadoop-shims.version>
 
     <!-- third party -->
-    <derbyclient.version>10.2.1.6</derbyclient.version>
-    <hsqldb.version>2.3.2</hsqldb.version>
+    <derbyclient.version>${derby.version}</derbyclient.version>
+    <!-- CVE-2022-41853; 2.7 keeps the org.hsqldb.jdbcDriver class PDI loads -->
+    <hsqldb.version>2.7.4</hsqldb.version>
     <jaybird.version>2.1.6</jaybird.version>
     <jt400.version>6.1</jt400.version>
     <LucidDbClient-minimal.version>0.9.4</LucidDbClient-minimal.version>
     <sapdbc.version>7.4.4</sapdbc.version>
+    <sqlite-jdbc.version>3.53.4.0</sqlite-jdbc.version>
     <webservices-api.version>2.3.1</webservices-api.version>
     <webservices-rt.version>2.3.1</webservices-rt.version>
     <asm.version>3.2</asm.version>
     <blueprints-core.version>2.6.0</blueprints-core.version>
-    <commons-configuration.version>1.9</commons-configuration.version>
     <flexjson.version>2.1</flexjson.version>
     <jersey-multipart.version>1.19.1</jersey-multipart.version>
     <mimepull.version>1.9.3</mimepull.version>
@@ -50,11 +50,8 @@
     <enunciate-core-annotations.version>1.27</enunciate-core-annotations.version>
     <tyrus-standalone-client.version>1.13.1</tyrus-standalone-client.version>
     <databricks.version>4.0.0</databricks.version>
-    <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-    <jface.version>3.22.0</jface.version>
-    <pentaho-metadata.version>10.1.0.0-SNAPSHOT</pentaho-metadata.version>
-    <jdom.version>1.1.3</jdom.version>
-    <google-http-client.version>1.42.3</google-http-client.version>
+    <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
+    <google-http-client.version>1.43.3</google-http-client.version>
   </properties>
 
   <dependencies>
@@ -67,7 +64,7 @@
     <dependency>
       <groupId>org.apache.xmlgraphics</groupId>
       <artifactId>xmlgraphics-commons</artifactId>
-      <version>${xml-graphics-common.version}</version>
+      <version>${xmlgraphics-commons.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -84,11 +81,6 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.jdom</groupId>
-      <artifactId>jdom</artifactId>
-      <version>${jdom.version}</version>
     </dependency>
     <dependency>
       <groupId>pentaho-kettle</groupId>
@@ -143,7 +135,6 @@
     <dependency>
       <groupId>org.eclipse.platform</groupId>
       <artifactId>org.eclipse.jface</artifactId>
-      <version>${jface.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.platform</groupId>
@@ -155,16 +146,14 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!-- needed to avoid pulling in Java 11 artifacts -->
+    <!-- versions come from the root pom, matched to jface and the SWT jars -->
     <dependency>
       <groupId>org.eclipse.platform</groupId>
       <artifactId>org.eclipse.core.commands</artifactId>
-      <version>3.9.800</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.platform</groupId>
       <artifactId>org.eclipse.equinox.common</artifactId>
-      <version>3.14.0</version>
     </dependency>
 
     <dependency>
@@ -229,7 +218,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-repository</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -240,7 +229,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-extensions</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-extensions.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -251,7 +240,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-metaverse-api</artifactId>
-      <version>${pentaho-metaverse.version}</version>
+      <version>${metaverse-api.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -262,7 +251,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-api</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -273,7 +262,7 @@
     <dependency>
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-core</artifactId>
-      <version>${platform.version}</version>
+      <version>${platform-spring7.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -331,6 +320,28 @@
     <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
+      <version>${derby.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derbyshared</artifactId>
+      <version>${derby.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derbytools</artifactId>
       <version>${derby.version}</version>
       <exclusions>
         <exclusion>
@@ -460,6 +471,12 @@
     </dependency>
 
     <dependency>
+      <!-- Spring Security 7: the voter API the platform's role voters use -->
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-access</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
     </dependency>
@@ -536,17 +553,6 @@
       <groupId>com.tinkerpop.blueprints</groupId>
       <artifactId>blueprints-core</artifactId>
       <version>${blueprints-core.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>${commons-configuration.version}</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>

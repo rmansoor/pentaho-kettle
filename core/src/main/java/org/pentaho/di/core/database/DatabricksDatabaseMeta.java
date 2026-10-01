@@ -7,7 +7,7 @@ import org.pentaho.di.core.row.ValueMetaInterface;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * https://docs.databricks.com/en/integrations/jdbc-odbc-bi.html#jdbc-driver

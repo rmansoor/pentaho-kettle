@@ -76,7 +76,8 @@ public class SnowflakeHVDatabaseMeta extends BaseDatabaseMeta implements Databas
 
   @Override
   public String getDriverClass() {
-    return "com.snowflake.client.jdbc.SnowflakeDriver";
+    // net.snowflake name: the legacy com.snowflake alias is gone from Snowflake JDBC 4.x
+    return "net.snowflake.client.jdbc.SnowflakeDriver";
   }
 
   @Override

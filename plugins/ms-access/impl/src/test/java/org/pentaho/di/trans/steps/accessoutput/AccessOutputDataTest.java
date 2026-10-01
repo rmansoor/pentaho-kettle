@@ -29,21 +29,38 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.pentaho.di.core.KettleEnvironment;
 import org.junit.Test;
 import org.pentaho.di.core.row.RowMeta;
 import org.pentaho.di.core.row.RowMetaInterface;
+import org.pentaho.di.core.row.value.ValueMetaBigNumber;
+import org.pentaho.di.core.row.value.ValueMetaBoolean;
+import org.pentaho.di.core.row.value.ValueMetaDate;
 import org.pentaho.di.core.row.value.ValueMetaInteger;
+import org.pentaho.di.core.row.value.ValueMetaNumber;
 import org.pentaho.di.core.row.value.ValueMetaString;
+
+import com.healthmarketscience.jackcess.Database;
+import com.healthmarketscience.jackcess.Row;
+import com.healthmarketscience.jackcess.Table;
 
 public class AccessOutputDataTest {
 
   AccessOutputData data;
   File mdbFile;
+
+  @BeforeClass
+  public static void setUpBeforeClass() throws Exception {
+    KettleEnvironment.init( false );
+  }
 
   @Before
   public void setUp() throws IOException {
@@ -103,5 +120,50 @@ public class AccessOutputDataTest {
     data.addRowToTable( generateRowData( 1 ).get( 0 ) );
     assertEquals( 1, data.table.getRowCount() );
     data.closeDatabase();
+  }
+
+  // jackcess 4: Access Output writes what jackcess 1.x wrote (an Access 2000 file, java.util.Date for dates), and
+  // the file reads back through the same open path Access Input uses
+  @Test
+  public void testRoundTripTypesAndFormat() throws Exception {
+    RowMetaInterface rowMeta = new RowMeta();
+    ValueMetaInteger id = new ValueMetaInteger( "id" );
+    id.setLength( 9 );
+    rowMeta.addValueMeta( id );
+    rowMeta.addValueMeta( new ValueMetaNumber( "amount" ) );
+    rowMeta.addValueMeta( new ValueMetaDate( "created" ) );
+    ValueMetaString name = new ValueMetaString( "name" );
+    name.setLength( 50 );
+    rowMeta.addValueMeta( name );
+    rowMeta.addValueMeta( new ValueMetaBoolean( "active" ) );
+    ValueMetaBigNumber price = new ValueMetaBigNumber( "price" );
+    price.setPrecision( 10 );
+    rowMeta.addValueMeta( price );
+
+    Date created = new Date( 1_700_000_000_000L - 1_700_000_000_000L % 1000 );
+    data.createDatabase( mdbFile );
+    data.createTable( "roundtrip", rowMeta );
+    // a BigNumber's precision becomes the NUMERIC column's precision with scale 0 (as with jackcess 1.2.6), so the
+    // column only stores whole numbers
+    data.addRowToTable( 7L, 12.5d, created, "caf\u00e9", Boolean.TRUE, new BigDecimal( "325" ) );
+    data.closeDatabase();
+
+    Database db = AccessOutputMeta.openDatabase( mdbFile, true );
+    try {
+      assertEquals( Database.FileFormat.V2000, db.getFileFormat() );
+      Table table = db.getTable( "roundtrip" );
+      assertEquals( 1, table.getRowCount() );
+      Row row = table.getNextRow();
+      assertEquals( 7, ( (Number) row.get( "id" ) ).intValue() );
+      assertEquals( 12.5d, (Double) row.get( "amount" ), 0d );
+      assertTrue( row.get( "created" ) instanceof Date );
+      assertEquals( created, row.get( "created" ) );
+      assertEquals( "caf\u00e9", row.get( "name" ) );
+      assertEquals( Boolean.TRUE, row.get( "active" ) );
+      assertEquals( 0, new BigDecimal( "325" ).compareTo( (BigDecimal) row.get( "price" ) ) );
+      assertEquals( 6, AccessOutputMeta.getLayout( table ).size() );
+    } finally {
+      db.close();
+    }
   }
 }

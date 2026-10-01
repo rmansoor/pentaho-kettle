@@ -22,7 +22,7 @@
 
 package org.pentaho.di.core;
 
-import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.row.ValueMetaInterface;
 
@@ -2240,6 +2240,20 @@ public class ConstTest {
     assertNull( Const.unEscapeXml( null ) );
     assertEquals( escaped, Const.escapeXML( xml ) );
     assertEquals( xml, Const.unEscapeXml( escaped ) );
+  }
+
+  // Const escapes as commons-lang 2 did (expected strings produced with commons-lang 2.6), though it now uses lang3:
+  // characters above 0x7f become numeric references, so saved .ktr/.kjb files don't change.
+  @Test
+  public void testEscapeSameAsCommonsLang2() {
+    final String text = "a<b>&\"'\u00e9\u20ac\u4e2d\u00a0z";
+    assertEquals( "a&lt;b&gt;&amp;&quot;&apos;&#233;&#8364;&#20013;&#160;z", Const.escapeXML( text ) );
+    assertEquals( "a&lt;b&gt;&amp;&quot;&apos;&#233;&#8364;&#20013;&#160;z", Const.escapeXml( text ) );
+    assertEquals( "a&lt;b&gt;&amp;&quot;'&eacute;&euro;&#20013;&nbsp;z", Const.escapeHtml( text ) );
+    assertEquals( "\u00e9\u20ac\u4e2d\u00a0<", Const.unEscapeHtml( "&eacute;&euro;&#20013;&nbsp;&lt;" ) );
+    assertEquals( text, Const.unEscapeXml( Const.escapeXML( text ) ) );
+    // one reference per code point (lang 2 wrote one per UTF-16 unit, which is not valid XML)
+    assertEquals( "&#128512;", Const.escapeXML( "\ud83d\ude00" ) );
   }
 
   @Test

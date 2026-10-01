@@ -31,8 +31,13 @@
     <dependency>
       <groupId>org.pentaho.reporting.engine</groupId>
       <artifactId>classic-core</artifactId>
-      <version>${pentaho-reporting.version}</version>
+      <version>${classic-core.version}</version>
       <exclusions>
+        <exclusion>
+          <!-- POI 5 uses poi-ooxml-lite (comes with poi-ooxml) -->
+          <groupId>org.apache.poi</groupId>
+          <artifactId>poi-ooxml-schemas</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>org.apache.commons</groupId>
           <artifactId>*</artifactId>
@@ -41,7 +46,17 @@
           <groupId>org.bouncycastle</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <!-- commons-database-model 10.1 declares gwt-user but uses none of it; it would ship javax.servlet-api 3.1.0 -->
+          <groupId>com.google.gwt</groupId>
+          <artifactId>gwt-user</artifactId>
+        </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <!-- classic-core's pom cuts poi-ooxml's own dependencies; POI 5 needs its schema classes -->
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi-ooxml-lite</artifactId>
     </dependency>
 
     <!-- Test dependencies -->

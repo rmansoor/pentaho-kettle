@@ -29,11 +29,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.healthmarketscience.jackcess</groupId>
-      <artifactId>jackcess</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.pentaho.reporting.library</groupId>
       <artifactId>libbase</artifactId>
       <version>${pentaho-reporting.version}</version>
@@ -42,8 +37,15 @@
     <dependency>
       <groupId>org.pentaho.reporting.engine</groupId>
       <artifactId>classic-core</artifactId>
-      <version>${pentaho-reporting.version}</version>
+      <version>${classic-core.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <!-- POI 5 uses poi-ooxml-lite (comes with poi-ooxml) -->
+          <groupId>org.apache.poi</groupId>
+          <artifactId>poi-ooxml-schemas</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Test dependencies -->
