@@ -82,7 +82,9 @@ KETTLE="$SRC/pentaho-kettle"
 step "2a. sibling repos (logs in $LOG)"
 run deps "$KETTLE/qa/build_local_deps.sh"
 step "2b. kettle (core, engine, ui, plugins)"
-run kettle bash -c "cd '$KETTLE' && mvn clean install -DskipTests -DskipDefault -Pbase,plugins"
+NO_ASSEMBLIES='!assemblies,!assemblies/static,!assemblies/samples,!assemblies/lib,!assemblies/plugins,!assemblies/client'
+NO_ASSEMBLIES+=',!assemblies/core,!assemblies/core/static,!assemblies/core/lib,!assemblies/core/client'
+run kettle bash -c "cd '$KETTLE' && mvn clean install -DskipTests -pl '$NO_ASSEMBLIES'"
 step "2c. kettle-dependent siblings against this kettle"
 run deps-post "$KETTLE/qa/build_local_deps.sh" --post
 step "2d. kettle assemblies (the pdi-ce zip)"
