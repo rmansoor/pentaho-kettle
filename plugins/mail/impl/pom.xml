@@ -24,6 +24,12 @@
       <artifactId>kettle-engine</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <!-- javax.activation (lib/ ships it): javax.mail 1.6.1 brought it in compile scope, jakarta.mail 1.6.8 does not -->
+      <groupId>com.sun.activation</groupId>
+      <artifactId>jakarta.activation</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- Test dependencies -->
     <dependency>

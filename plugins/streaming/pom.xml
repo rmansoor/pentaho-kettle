@@ -18,7 +18,23 @@
   <properties>
     <pdi.version>10.1.0.0-SNAPSHOT</pdi.version>
     <pentaho-metaverse.version>10.1.0.0-SNAPSHOT</pentaho-metaverse.version>
+    <!-- Netty for the JMS plugin's Artemis client: newer than the 4.1.137 Artemis is built with (CVE fixes) -->
+    <artemis.netty.version>4.1.139.Final</artemis.netty.version>
   </properties>
+
+  <!-- here, not in the JMS module: the plugin zip (assemblies/jms-plugin) resolves the netty jars again, and
+       Maven does not apply a dependency's own dependencyManagement to its consumers -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${artemis.netty.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <modules>
     <module>impls</module>

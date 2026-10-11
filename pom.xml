@@ -108,7 +108,7 @@
 
     <!-- CVE remediation: overrides of versions inherited from pentaho-parent-pom -->
     <log4j.version>2.25.5</log4j.version>
-    <postgresql.version>42.7.13</postgresql.version>
+    <postgresql.version>42.7.14</postgresql.version>
     <httpclient.version>4.5.14</httpclient.version>
     <httpcore.version>4.4.16</httpcore.version>
     <xstream.version>1.4.21</xstream.version>
@@ -151,7 +151,7 @@
     <rhino.version>1.7.15.1</rhino.version>
     <!-- ROME 2 / snappy for every module, lib/ included (the engine pom alone did not reach the assemblies) -->
     <rome.version>2.1.0</rome.version>
-    <snappy-java.version>1.1.10.8</snappy-java.version>
+    <snappy-java.version>1.1.10.12</snappy-java.version>
     <encoder.version>1.2</encoder.version>
     <wstx-asl.version>3.2.4</wstx-asl.version>
     <!-- maintained JSch fork (com.jcraft.jsch packages); SshAlgorithmDefaults keeps legacy algorithms as a fallback -->
@@ -447,11 +447,25 @@
         <groupId>pentaho</groupId>
         <artifactId>pentaho-platform-api</artifactId>
         <version>${platform-spring7.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- kettle-engine ships com.sun.mail:jakarta.mail 1.6.8, the same javax.mail classes (CVE-2025-7962) -->
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>pentaho</groupId>
         <artifactId>pentaho-platform-core</artifactId>
         <version>${platform-spring7.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- kettle-engine ships com.sun.mail:jakarta.mail 1.6.8, the same javax.mail classes (CVE-2025-7962) -->
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>pentaho</groupId>
@@ -482,6 +496,11 @@
         <artifactId>classic-core</artifactId>
         <version>${classic-core.version}</version>
         <exclusions>
+          <exclusion>
+            <!-- kettle-engine ships com.sun.mail:jakarta.mail 1.6.8, the same javax.mail classes (CVE-2025-7962) -->
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml-schemas</artifactId>

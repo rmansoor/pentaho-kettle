@@ -44,8 +44,6 @@
     <pdi.version>10.1.0.0-SNAPSHOT</pdi.version>
     <!-- Artemis moved to the org.apache.artemis groupId in 2.50; Java packages are unchanged -->
     <artemis.version>2.57.0</artemis.version>
-    <!-- the Netty version Artemis ${artemis.version} is built with -->
-    <artemis.netty.version>4.1.137.Final</artemis.netty.version>
   </properties>
 
   <dependencies>

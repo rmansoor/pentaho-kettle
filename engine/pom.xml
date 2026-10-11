@@ -70,7 +70,8 @@
     <wsdl4j-qname.version>1.6.1</wsdl4j-qname.version>
     <cglib-nodep.version>2.2</cglib-nodep.version>
     <js.version>1.7R3</js.version>
-    <mail.version>1.6.1</mail.version>
+    <!-- com.sun.mail:jakarta.mail 1.6.x is the patched javax.mail line (package javax.mail); 1.6.8 fixes CVE-2025-7962 -->
+    <mail.version>1.6.8</mail.version>
     <!-- mstor 1.0.3 uses commons-lang3 (0.9.13 needed commons-lang 2) -->
     <mstor.version>1.0.3</mstor.version>
     <commons-cli.version>1.2</commons-cli.version>
@@ -132,6 +133,13 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-platform-api</artifactId>
       <version>${platform-spring7.version}</version>
+      <exclusions>
+        <exclusion>
+          <!-- jakarta.mail 1.6.8 below carries the same javax.mail classes (CVE-2025-7962) -->
+          <groupId>com.sun.mail</groupId>
+          <artifactId>javax.mail</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Reporting dependencies -->
@@ -702,7 +710,7 @@
     </dependency>
     <dependency>
       <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
+      <artifactId>jakarta.mail</artifactId>
       <version>${mail.version}</version>
     </dependency>
     <dependency>
