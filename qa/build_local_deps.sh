@@ -20,8 +20,8 @@
 # version in its repo, here, in the kettle pom that pins it and in qa/cve-remediation/verify_dist.py.
 set -euo pipefail
 
-CASSANDRA_VERSION=9.4.0.0-jdk21-3     # pentaho-kettle assemblies/plugins/pom.xml pentaho-cassandra-plugin.version
-CLASSIC_CORE_VERSION=9.4.0.0-jdk21-2  # pentaho-kettle pom.xml classic-core.version
+CASSANDRA_VERSION=9.4.0.0-jdk21-4     # pentaho-kettle assemblies/plugins/pom.xml pentaho-cassandra-plugin.version
+CLASSIC_CORE_VERSION=9.4.0.0-jdk21-3  # pentaho-kettle pom.xml classic-core.version
 PLATFORM_VERSION=9.4.0.0-jdk21-2      # pentaho-kettle pom.xml platform-spring7.version (api, core, repository)
 TPT_VERSION=9.4.0.0-jdk21-1           # pentaho-kettle assemblies/plugins/pom.xml pdi-teradata-tpt-plugin-package.version
 VERTICA_VERSION=9.4.0.0-jdk21-1       # pentaho-kettle assemblies/plugins/pom.xml vertica-bulkloader-plugin.version

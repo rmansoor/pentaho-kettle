@@ -74,10 +74,11 @@
     <cglib-nodep.version>2.2</cglib-nodep.version>
     <nekohtml.version>1.9.15</nekohtml.version>
     <js.version>1.7R3</js.version>
-    <mail.version>1.6.1</mail.version>
+    <!-- com.sun.mail:jakarta.mail 1.6.x is the patched javax.mail line (package javax.mail); 1.6.8 fixes CVE-2025-7962 -->
+    <mail.version>1.6.8</mail.version>
     <!-- mstor 1.0.3 uses commons-lang3 (0.9.13 needed commons-lang 2) -->
     <mstor.version>1.0.3</mstor.version>
-    <snappy-java.version>1.1.10.8</snappy-java.version>
+    <snappy-java.version>1.1.10.12</snappy-java.version>
     <commons-cli.version>1.2</commons-cli.version>
     <log4jdbc.version>1.2</log4jdbc.version>
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
@@ -713,7 +714,7 @@
     </dependency>
     <dependency>
       <groupId>com.sun.mail</groupId>
-      <artifactId>javax.mail</artifactId>
+      <artifactId>jakarta.mail</artifactId>
       <version>${mail.version}</version>
     </dependency>
     <dependency>

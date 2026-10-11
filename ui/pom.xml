@@ -55,6 +55,13 @@
       <groupId>pentaho</groupId>
       <artifactId>pentaho-vfs-browser</artifactId>
       <version>${pentaho-vfs-browser.version}</version>
+      <exclusions>
+        <exclusion>
+          <!-- kettle-engine ships com.sun.mail:jakarta.mail 1.6.8, the same javax.mail classes (CVE-2025-7962) -->
+          <groupId>com.sun.mail</groupId>
+          <artifactId>javax.mail</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.pentaho</groupId>
