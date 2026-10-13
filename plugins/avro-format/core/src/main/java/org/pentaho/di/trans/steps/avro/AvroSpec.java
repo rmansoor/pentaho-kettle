@@ -100,6 +100,9 @@ public class AvroSpec {
       return name;
     }
 
+    public String getAnotherName() {
+      return name;
+    }
   }
 
   public static final String TYPE_RECORD = "record";
