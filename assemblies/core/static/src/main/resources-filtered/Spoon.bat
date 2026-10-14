@@ -81,12 +81,12 @@ FOR /F %%a IN ('java -version 2^>^&1^|%windir%\system32\find /C "version ""1.8."
 FOR /F "tokens=3" %%v IN ('java -version 2^>^&1^|%windir%\system32\find "version"') DO SET JAVAVERSION=%%~v
 GOTO CHECK32VS64BITJAVA
 :CHECK32VS64BITJAVA
-REM PDI is built for Java 21: "1.8.0_x" gives 1, "11.0.x" gives 11
+REM PDI is built for Java 17: "1.8.0_x" gives 1, "11.0.x" gives 11
 SET /a JAVAMAJOR=0
 FOR /F "delims=.-_" %%m IN ("%JAVAVERSION%") DO SET /a JAVAMAJOR=%%m
-IF %JAVAMAJOR% LSS 21 (
-  echo Pentaho Data Integration requires Java 21 or newer. Found version "%JAVAVERSION%".
-  echo Set PENTAHO_JAVA_HOME to a Java 21 installation and try again.
+IF %JAVAMAJOR% LSS 17 (
+  echo Pentaho Data Integration requires Java 17 or newer. Found version "%JAVAVERSION%".
+  echo Set PENTAHO_JAVA_HOME to a Java 17 or 21 installation and try again.
   popd
   exit /b 1
 )
