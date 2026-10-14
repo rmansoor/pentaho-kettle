@@ -63,17 +63,17 @@ CURRENTDIR="."
 setPentahoEnv
 
 # **************************************************
-# ** Java version check: PDI is built for Java 21 **
+# ** Java version check: PDI is built for Java 17 **
 # **************************************************
 JAVA_VERSION_LINE=`"$_PENTAHO_JAVA" -version 2>&1 | grep -i "version" | head -1`
 JAVA_MAJOR=`echo "$JAVA_VERSION_LINE" | sed -E 's/.*version "([0-9]+)(\.([0-9]+))?.*/\1 \3/' | awk '{ if ($1 == 1) print $2; else print $1 }'`
 case "$JAVA_MAJOR" in
 	''|*[!0-9]*) JAVA_MAJOR=0 ;;
 esac
-if [ "$JAVA_MAJOR" -lt 21 ]; then
-	echo "Pentaho Data Integration requires Java 21 or newer."
+if [ "$JAVA_MAJOR" -lt 17 ]; then
+	echo "Pentaho Data Integration requires Java 17 or newer."
 	echo "Found: $JAVA_VERSION_LINE ($_PENTAHO_JAVA)"
-	echo "Set PENTAHO_JAVA_HOME to a Java 21 installation and try again."
+	echo "Set PENTAHO_JAVA_HOME to a Java 17 or 21 installation and try again."
 	exit 1
 fi
 

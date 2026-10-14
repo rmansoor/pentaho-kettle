@@ -55,8 +55,8 @@
     <java21.test.argLine>${jdk.add-opens.argLine} ${powermock.add-opens.argLine} -Djava.security.manager=allow</java21.test.argLine>
     <maven-surefire-plugin.argLine>-Duser.timezone=UTC -Dfile.encoding=UTF-8 -Duser.language=en -Duser.country=US -Djava.locale.providers=COMPAT,SPI ${java21.test.argLine}</maven-surefire-plugin.argLine>
 
-    <!-- Java 21 baseline: overrides pentaho-parent-pom (release 8, compiler plugin 3.7.0) -->
-    <maven.compiler.release>21</maven.compiler.release>
+    <!-- Java 17 baseline (runs on 17 and 21): overrides pentaho-parent-pom (release 8, compiler plugin 3.7.0) -->
+    <maven.compiler.release>17</maven.compiler.release>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <!-- bnd in bundle-plugin 2.5.3 can't read Java 21 class files -->
     <maven-bundle-plugin.version>6.0.0</maven-bundle-plugin.version>
@@ -91,7 +91,7 @@
     <!-- POI 5: poi-ooxml-lite replaces poi-ooxml-schemas; classic-core must be the local 9.4 build
          (~/Developer/pentaho-reporting-9.4, XSSFColor fix) -->
     <poi.version>5.5.1</poi.version>
-    <!-- Trivy findings: Derby CVE-2022-46337 (10.17 is built for Java 21; drivers now in derbytools),
+    <!-- Trivy findings: Derby CVE-2022-46337 (10.17 needs Java 19+: on Java 17 Derby connections fail, on 21 they work; drivers now in derbytools),
          dom4j CVE-2020-10683, xerces CVE-2022-23437 / CVE-2020-14338 -->
     <derby.version>10.17.1.0</derby.version>
     <dom4j.version>2.1.5</dom4j.version>
@@ -597,15 +597,15 @@
         <version>3.5.0</version>
         <executions>
           <execution>
-            <id>require-java-21</id>
+            <id>require-java-17</id>
             <goals>
               <goal>enforce</goal>
             </goals>
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>[21,)</version>
-                  <message>pentaho-kettle builds for Java 21. Run Maven with a JDK 21 (e.g. set JAVA_HOME, or `jenv local 21` in this directory).</message>
+                  <version>[17,)</version>
+                  <message>pentaho-kettle builds for Java 17. Run Maven with a JDK 17 or newer (e.g. set JAVA_HOME, or `jenv local 17` in this directory).</message>
                 </requireJavaVersion>
               </rules>
             </configuration>
