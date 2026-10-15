@@ -113,7 +113,7 @@ public class ActivatorTest {
       activator.complete( key );
       fail( "expected a LicenseException" );
     } catch ( LicenseException e ) {
-      assertTrue( e.getMessage(), e.getMessage().startsWith( "That is the license key." ) );
+      assertTrue( e.getMessage(), e.getMessage().startsWith( "That is a license key (HELIX1-), not an activation code." ) );
     }
   }
 
@@ -141,6 +141,18 @@ public class ActivatorTest {
     assertFalse( dropped.exists() );
     assertTrue( new File( kettleDir, "acme.helixact.installed" ).exists() );
     assertTrue( LicenseStore.read().isPresent() );
+  }
+
+  @Test
+  public void aReleaseCodeWhereTheKeyGoesIsNamed() throws Exception {
+    String release = new ReleaseCode( UUID.randomUUID(), UUID.randomUUID(), 0 ).encode();
+    try {
+      new Activator().start( release );
+      fail( "expected a LicenseException" );
+    } catch ( LicenseException e ) {
+      assertEquals( "That is a release code (HELIXREL-), not a license key. License keys start with HELIX1-.",
+        e.getMessage() );
+    }
   }
 
   @Test
