@@ -36,6 +36,27 @@ public final class Texts {
   }
 
   /**
+   * @throws LicenseException naming the code's kind when {@code code} is one of the other license codes than the
+   *     one expected (e.g. a release code pasted where the license key goes)
+   */
+  public static void requireKind( String code, String prefix, String what ) throws LicenseException {
+    String c = code.trim();
+    String[][] kinds = {
+      { ActivationRequest.PREFIX, "an activation request" }, { Activation.PREFIX, "an activation code" },
+      { ReleaseCode.PREFIX, "a release code" }, { LicenseKey.PREFIX, "a license key" } };
+    for ( String[] kind : kinds ) {
+      if ( c.startsWith( kind[ 0 ] ) && !kind[ 0 ].equals( prefix ) ) {
+        throw new LicenseException( "That is " + kind[ 1 ] + " (" + kind[ 0 ] + "), not " + article( what ) + " " + what
+          + ". " + Character.toUpperCase( what.charAt( 0 ) ) + what.substring( 1 ) + "s start with " + prefix + "." );
+      }
+    }
+  }
+
+  private static String article( String noun ) {
+    return "aeiou".indexOf( noun.charAt( 0 ) ) >= 0 ? "an" : "a";
+  }
+
+  /**
    * @return {@code input} itself when it is a code, else the content of the file it names
    * @throws LicenseException when it names a file that doesn't exist, saying so plainly
    */
@@ -45,6 +66,7 @@ public final class Texts {
     }
     String text = input.trim();
     if ( text.startsWith( "HELIX" ) ) {
+      requireKind( text, prefix, what );
       return text;
     }
     String path = text.startsWith( "~" + java.io.File.separator ) || text.startsWith( "~/" )
@@ -57,7 +79,9 @@ public final class Texts {
     }
     if ( Files.isRegularFile( file ) ) {
       try {
-        return new String( Files.readAllBytes( file ), StandardCharsets.UTF_8 ).trim();
+        String content = new String( Files.readAllBytes( file ), StandardCharsets.UTF_8 ).trim();
+        requireKind( content, prefix, what );
+        return content;
       } catch ( IOException e ) {
         throw new LicenseException( "Could not read " + file.toAbsolutePath(), e );
       }
