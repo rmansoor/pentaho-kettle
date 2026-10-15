@@ -53,7 +53,10 @@
     <!-- PowerMock deep-clones into these JDK packages -->
     <powermock.add-opens.argLine>--add-opens=java.base/java.util.regex=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.ref=ALL-UNNAMED --add-opens=java.base/jdk.internal.loader=ALL-UNNAMED --add-opens=java.xml/jdk.xml.internal=ALL-UNNAMED --add-opens=java.sql/java.sql=ALL-UNNAMED --add-opens=java.base/java.util.stream=ALL-UNNAMED --add-opens=java.base/java.util.function=ALL-UNNAMED --add-opens=java.logging/java.util.logging=ALL-UNNAMED --add-opens=java.desktop/sun.awt=ALL-UNNAMED</powermock.add-opens.argLine>
     <java21.test.argLine>${jdk.add-opens.argLine} ${powermock.add-opens.argLine} -Djava.security.manager=allow</java21.test.argLine>
-    <maven-surefire-plugin.argLine>-Duser.timezone=UTC -Dfile.encoding=UTF-8 -Duser.language=en -Duser.country=US -Djava.locale.providers=COMPAT,SPI ${java21.test.argLine}</maven-surefire-plugin.argLine>
+    <!-- tests that start the Kettle environment need a license: an unbound activation signed with the development
+         key (docs/licensing/README.md). Only valid while kettle-license embeds that key. -->
+    <pdi.test.license.argLine>-Dhelix.license.file=${maven.multiModuleProjectDirectory}/license/src/test/resources/org/pentaho/di/license/dev-unbound.helixact</pdi.test.license.argLine>
+    <maven-surefire-plugin.argLine>-Duser.timezone=UTC -Dfile.encoding=UTF-8 -Duser.language=en -Duser.country=US -Djava.locale.providers=COMPAT,SPI ${java21.test.argLine} ${pdi.test.license.argLine}</maven-surefire-plugin.argLine>
 
     <!-- Java 17 baseline (runs on 17 and 21): overrides pentaho-parent-pom (release 8, compiler plugin 3.7.0) -->
     <maven.compiler.release>17</maven.compiler.release>
@@ -654,6 +657,8 @@
       <modules>
         <module>engine-ext</module>
         <module>core</module>
+        <module>license</module>
+        <module>license-issuer</module>
         <module>engine</module>
         <module>dbdialog</module>
         <module>ui</module>
