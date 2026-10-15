@@ -102,7 +102,9 @@ import org.pentaho.di.core.EngineMetaInterface;
 import org.pentaho.di.core.JndiUtil;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.license.LicenseEnforcement;
 import org.pentaho.di.license.LicenseException;
+import org.pentaho.di.license.LicenseValidationResult;
 import org.pentaho.di.core.LastUsedFile;
 import org.pentaho.di.core.NotePadMeta;
 import org.pentaho.di.core.ObjectUsageCount;
@@ -644,7 +646,10 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
     }
 
     ExecutorService executor = Executors.newCachedThreadPool();
-    Future<KettleException> pluginRegistryFuture = executor.submit( new Callable<KettleException>() {
+    // Not licensed: the Kettle environment would refuse to start. Hold it back until the activation window below
+    // has activated this machine.
+    LicenseValidationResult license = licenseCheck();
+    Callable<KettleException> initKettle = new Callable<KettleException>() {
 
       @Override
       public KettleException call() throws Exception {
@@ -659,7 +664,9 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
 
         return null;
       }
-    } );
+    };
+    Future<KettleException> pluginRegistryFuture =
+      license == null || license.isValid() ? executor.submit( initKettle ) : null;
     try {
       OsHelper.setAppName();
       // Bootstrap Kettle
@@ -683,6 +690,13 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
       // Note: this needs to be done before the look and feel is set
       OsHelper.initOsHandlers( display );
 
+      if ( pluginRegistryFuture == null ) {
+        if ( !new LicenseActivationDialog( display, activationReason( license ) ).open() ) {
+          System.exit( 1 );
+        }
+        pluginRegistryFuture = executor.submit( initKettle );
+      }
+
       UIManager.setLookAndFeel( new MetalLookAndFeel() );
 
       // The core plugin types don't know about UI classes. Add them in now
@@ -695,13 +709,13 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
 
       KettleException registryException = pluginRegistryFuture.get();
       if ( registryException != null ) {
-        LicenseException license = licenseProblem( registryException );
-        if ( license != null ) {
+        LicenseException licenseFailure = licenseProblem( registryException );
+        if ( licenseFailure != null ) {
           // not licensed: say so in a dialog, a desktop user doesn't see the console
           splash.dispose();
           MessageBox box = new MessageBox( new Shell( display ), SWT.ICON_ERROR | SWT.OK );
           box.setText( "Pentaho Data Integration is not licensed" );
-          box.setMessage( license.getMessage() );
+          box.setMessage( licenseFailure.getMessage() );
           box.open();
           System.exit( 1 );
         }
@@ -745,6 +759,27 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
 
     // Kill all remaining things in this VM!
     System.exit( 0 );
+  }
+
+  /** This machine's license, checked before the Kettle environment starts (which would refuse it). */
+  private static LicenseValidationResult licenseCheck() {
+    try {
+      return LicenseEnforcement.check();
+    } catch ( LicenseException e ) {
+      // can't even read the license: let the Kettle environment report it
+      return null;
+    }
+  }
+
+  /** What the activation window says first: nothing for a first activation, else what is wrong. */
+  private static String activationReason( LicenseValidationResult license ) {
+    switch ( license.getStatus() ) {
+      case NOT_INSTALLED:
+      case NOT_ACTIVATED:
+        return null;
+      default:
+        return license.getMessage() + ".";
+    }
   }
 
   /** The license failure behind {@code e}, if that is why the Kettle environment didn't start. */
