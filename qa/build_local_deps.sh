@@ -2,7 +2,7 @@
 # Builds the packages pentaho-kettle 10.1 takes from sibling checkouts instead of Artifactory, and installs
 # them into the local Maven repository. Run it before building kettle (qa/cve-remediation/run_all.sh --build).
 #
-#   qa/build_local_deps.sh [--tests] [--post]
+#   qa/build_local_deps.sh [--tests] [--pre | --post]
 #
 #   --post   rebuild only the packages that compile against kettle (Cassandra, metaverse, TPT, Vertica,
 #            metadata, MongoDB, big-data-plugin), after kettle itself is installed. qa/build_10.1.sh runs
@@ -46,21 +46,26 @@ REGISTRY_DIR="${REGISTRY_DIR:-$HOME/Developer/pentaho-registry-10.1}"
 MONDRIAN_DIR="${MONDRIAN_DIR:-$HOME/Developer/mondrian-10.1}"
 BIGDATA_DIR="${BIGDATA_DIR:-$HOME/Developer/big-data-plugin-10.1}"
 MONGODB_DIR="${MONGODB_DIR:-$HOME/Developer/pentaho-mongodb-plugin-10.1}"
-TESTS="-DskipTests"; POST=0
+TESTS="-DskipTests"; POST=0; PRE=0
 for a in "$@"; do
   case "$a" in
     --tests) TESTS="" ;;
     --post) POST=1 ;;
+    --pre) PRE=1 ;;
     *) echo "unknown option $a"; exit 2 ;;
   esac
 done
 pre() { [[ "$POST" == 0 ]]; }   # packages kettle itself compiles against: only built in the full run
+kd() { [[ "$PRE" == 0 ]]; }     # packages that compile against kettle: skipped with --pre
 
-is21() { [[ -n "${1:-}" ]] && "$1/bin/java" -version 2>&1 | grep -q 'version "21'; }
-if ! is21 "${JAVA_HOME:-}"; then
-  JAVA_HOME="$(/usr/libexec/java_home -v 21 2>/dev/null || true)"
+# PDI runs on Java 17 and 21 and is compiled for 17; building on JDK 17 (the default) also makes sure nothing
+# links against newer APIs (pentaho-platform's repository module compiles with -source/-target, not --release)
+PDI_JDK="${PDI_JDK:-17}"
+isjdk() { [[ -n "${1:-}" ]] && "$1/bin/java" -version 2>&1 | grep -q "version \"$PDI_JDK"; }
+if ! isjdk "${JAVA_HOME:-}"; then
+  JAVA_HOME="$(/usr/libexec/java_home -v "$PDI_JDK" 2>/dev/null || true)"
 fi
-is21 "$JAVA_HOME" || { echo "needs JDK 21: set JAVA_HOME to a Java 21 JDK"; exit 1; }
+isjdk "$JAVA_HOME" || { echo "needs JDK $PDI_JDK: set JAVA_HOME to a Java $PDI_JDK JDK"; exit 1; }
 export JAVA_HOME
 
 check() {  # check <dir> <pom> <expected version>
@@ -71,7 +76,7 @@ check() {  # check <dir> <pom> <expected version>
 
 # Cassandra plugin: cassandra-all 3.11.19, driver 3.11.5, netty 4.1; guava/snakeyaml/jackson from kettle lib/
 check "$CASSANDRA_DIR" pom.xml "$CASSANDRA_VERSION"
-(cd "$CASSANDRA_DIR" && mvn -q clean install $TESTS)
+kd && (cd "$CASSANDRA_DIR" && mvn -q clean install $TESTS)
 
 if pre; then
 # Reporting engine core (classic-core) against POI 5.5.1. Its parents carry the POI 5 versions, so they are
@@ -89,7 +94,7 @@ fi
 # Pentaho platform api, core and repository on Spring 7 / Spring Security 7 (the platform jars PDI runs).
 # Mockito's ByteBuddy needs the experimental flag to read Java 21 class files in their tests.
 check "$PLATFORM_DIR" core/pom.xml "$PLATFORM_VERSION"
-(cd "$PLATFORM_DIR" && mvn -q -N install && mvn -q clean install -pl api,core,repository,extensions $TESTS \
+(cd "$PLATFORM_DIR" && mvn -q -N install && mvn -q clean install -pl "api,core$(kd && echo ,repository,extensions)" $(kd && echo "$TESTS" || echo -Dmaven.test.skip=true) \
   "-Dmaven-surefire-plugin.argLine=--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED -Dnet.bytebuddy.experimental=true")
 
 fi
@@ -97,7 +102,7 @@ fi
 # pentaho-metaverse api and the metaverse-plugin zip (core): lineage opens its TinkerGraph without
 # commons-configuration (CVE-2025-46392); both on commons-lang3.
 check "$METAVERSE_DIR" api/pom.xml "$METAVERSE_VERSION"
-(cd "$METAVERSE_DIR" && mvn -q -N install && mvn -q clean install -pl api,core,assemblies,assemblies/plugin $TESTS)
+kd && (cd "$METAVERSE_DIR" && mvn -q -N install && mvn -q clean install -pl api,core,assemblies,assemblies/plugin $TESTS)
 
 if pre; then
 # commons-xul core, swt and swing on commons-lang3 (the html and gwt modules are not used by PDI).
@@ -108,9 +113,9 @@ fi
 
 # Teradata TPT and Vertica bulk loader plugins on commons-lang3 (they build against kettle 10.1.0.0-SNAPSHOT).
 check "$TPT_DIR" core/pom.xml "$TPT_VERSION"
-(cd "$TPT_DIR" && mvn -q clean install $TESTS)
+kd && (cd "$TPT_DIR" && mvn -q clean install $TESTS)
 check "$VERTICA_DIR" core/pom.xml "$VERTICA_VERSION"
-(cd "$VERTICA_DIR" && mvn -q clean install $TESTS)
+kd && (cd "$VERTICA_DIR" && mvn -q clean install $TESTS)
 
 # pentaho-registry, pentaho-metadata, the MongoDB plugin and mondrian on commons-lang3.
 if pre; then
@@ -118,9 +123,9 @@ check "$REGISTRY_DIR" pom.xml "$LANG3_BATCH_VERSION"
 (cd "$REGISTRY_DIR" && mvn -q clean install $TESTS)
 fi
 check "$METADATA_DIR" pom.xml "$LANG3_BATCH_VERSION"
-(cd "$METADATA_DIR" && mvn -q clean install $TESTS)
+kd && (cd "$METADATA_DIR" && mvn -q clean install $TESTS)
 check "$MONGODB_DIR" pentaho-mongodb-plugin/pom.xml "$LANG3_BATCH_VERSION"
-(cd "$MONGODB_DIR" && mvn -q clean install $TESTS)
+kd && (cd "$MONGODB_DIR" && mvn -q clean install $TESTS)
 # mondrian's tests need a FoodMart database, so they never run here. Its build runs Ant in Maven's JVM, which
 # installs a SecurityManager: mondrian's .mvn/jvm.config allows that on Java 21.
 if pre; then
@@ -130,9 +135,10 @@ fi
 
 # big-data-plugin: only the S3 VFS (aws-java-sdk 1.12.797) and Kafka plugins ship in 10.1's pdi-ce.
 check "$BIGDATA_DIR" s3-vfs/pom.xml "$BIGDATA_VERSION"
-(cd "$BIGDATA_DIR" && mvn -q -N install && mvn -q -N install -f kettle-plugins/pom.xml && mvn -q -N install -f assemblies/pom.xml \
+kd && (cd "$BIGDATA_DIR" && mvn -q -N install && mvn -q -N install -f kettle-plugins/pom.xml && mvn -q -N install -f assemblies/pom.xml \
   && mvn -q clean install -pl s3-vfs,kettle-plugins/kafka,assemblies/s3-vfs,assemblies/kafka-plugin $TESTS)
 
+kd || { echo "--pre: now build kettle, then run this with --post"; exit 0; }
 M2="${MAVEN_REPO:-$HOME/.m2/repository}"
 for f in "org/pentaho/pentaho-cassandra-plugin-package/$CASSANDRA_VERSION/pentaho-cassandra-plugin-package-$CASSANDRA_VERSION.zip" \
          "org/pentaho/reporting/engine/classic-core/$CLASSIC_CORE_VERSION/classic-core-$CLASSIC_CORE_VERSION.jar" \

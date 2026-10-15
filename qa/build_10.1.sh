@@ -18,7 +18,7 @@
 #   REGISTRY_URL, MONGODB_URL: pentaho-registry and pentaho-mongodb-plugin have no fork on GitHub yet; they are
 #           cloned from the local checkouts ~/Developer/<repo>-10.1 unless these are set
 #
-# Needs JDK 21, Maven 3.9, git, and access to Pentaho's Artifactory through ~/.m2/settings.xml.
+# Needs JDK 17 (PDI_JDK=21 builds on JDK 21 instead), Maven 3.9, git, and access to Pentaho's Artifactory through ~/.m2/settings.xml.
 set -euo pipefail
 
 BRANCH=10.1-jdk21-cve
@@ -36,7 +36,8 @@ for a in "$@"; do
   esac
 done
 
-export JAVA_HOME="${JAVA_HOME_21:-$(/usr/libexec/java_home -v 21)}"
+export PDI_JDK="${PDI_JDK:-17}"   # compiled for Java 17 either way; runs on Java 17 and 21
+export JAVA_HOME="$(/usr/libexec/java_home -v "$PDI_JDK")"
 ulimit -n 65536 2>/dev/null || true   # the kettle build opens more files than macOS allows by default
 if [[ "$FRESH" == 1 ]]; then
   export MAVEN_REPO="$SRC/.m2"
@@ -80,8 +81,20 @@ KETTLE="$SRC/pentaho-kettle"
 
 # ------------------------------------------------------------------------------------------------ 2. build
 step "2a. sibling repos (logs in $LOG)"
-run deps "$KETTLE/qa/build_local_deps.sh"
+# Reusing ~/.m2: --pre builds only what kettle needs that doesn't itself need kettle (the plugins built against
+# kettle follow in 2c), so a kettle left there by an earlier build, possibly for Java 21, is never compiled against.
+# An empty repository has no such kettle, but kettle needs the plugins' API jars (metaverse-api): build them all.
+# kettle-core needs none of the siblings, but pentaho-platform-core compiles against it: install it first.
+run kettle-core bash -c "cd '$KETTLE' && mvn clean install -DskipTests -pl core -am"
+run deps "$KETTLE/qa/build_local_deps.sh" $([[ "$FRESH" == 1 ]] || echo --pre)
 step "2b. kettle (core, engine, ui, plugins)"
+if [[ "$FRESH" == 0 ]]; then
+  # pentaho-platform's repository and extensions modules (and core's tests) compile against kettle's engine and
+  # ui, and kettle's PUR, repositories and connections plugins (and PUR's tests) against them: engine and ui
+  # first, then all of the platform again (--pre built only api and core, without tests), then the rest
+  run kettle-ui bash -c "cd '$KETTLE' && mvn clean install -DskipTests -pl ui -am"
+  run platform bash -c "cd '$PLATFORM_DIR' && mvn clean install -DskipTests -pl api,core,repository,extensions"
+fi
 NO_ASSEMBLIES='!assemblies,!assemblies/static,!assemblies/samples,!assemblies/lib,!assemblies/plugins,!assemblies/client'
 NO_ASSEMBLIES+=',!assemblies/core,!assemblies/core/static,!assemblies/core/lib,!assemblies/core/client'
 run kettle bash -c "cd '$KETTLE' && mvn clean install -DskipTests -pl '$NO_ASSEMBLIES'"
@@ -107,7 +120,7 @@ fi
 
 cat <<EOF
 
-PDI 10.1 is in $OUT/data-integration (needs Java 21):
+PDI 10.1 is in $OUT/data-integration (needs Java 17 or 21; Derby connections need 21):
   cd $OUT/data-integration && JAVA_HOME=$JAVA_HOME ./spoon.sh
 Scan it:
   grype dir:$OUT/data-integration
