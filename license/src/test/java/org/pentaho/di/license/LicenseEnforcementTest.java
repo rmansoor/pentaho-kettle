@@ -92,7 +92,7 @@ public class LicenseEnforcementTest {
       LicenseEnforcement.requireLicensed();
       fail( "expected a LicenseException" );
     } catch ( LicenseException e ) {
-      assertTrue( e.getMessage(), e.getMessage().contains( "license deactivate" ) );
+      assertTrue( e.getMessage(), e.getMessage().contains( "license.sh deactivate" ) );
     }
   }
 
@@ -161,7 +161,7 @@ public class LicenseEnforcementTest {
       LicenseEnforcement.requireLicensed();
       fail( "expected a LicenseException" );
     } catch ( LicenseException e ) {
-      assertTrue( e.getMessage(), e.getMessage().contains( "license request" ) );
+      assertTrue( e.getMessage(), e.getMessage().contains( "license.sh activate" ) );
     }
   }
 

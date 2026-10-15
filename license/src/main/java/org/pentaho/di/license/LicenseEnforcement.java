@@ -64,10 +64,16 @@ public final class LicenseEnforcement {
 
   static LicenseValidationResult check( LicenseVerifier verifier, long now ) throws LicenseException {
     Optional<String> installed = readInstalled();
-    if ( !installed.isPresent() ) {
-      return LicenseValidationResult.notInstalled( LicenseStore.getLicenseFilePath().toString() );
+    LicenseValidationResult result = installed.isPresent() ? verifier.verify( installed.get() )
+      : LicenseValidationResult.notInstalled( LicenseStore.getLicenseFilePath().toString() );
+    if ( !result.isValid() ) {
+      // an activation file dropped into the PDI or Kettle folder (servers without a desktop)
+      Optional<LicenseValidationResult> dropped = new Activator( verifier ).installDropped();
+      if ( dropped.isPresent() && readInstalled().map( verifier::verify ).filter( LicenseValidationResult::isValid )
+        .isPresent() ) {
+        result = dropped.get();
+      }
     }
-    LicenseValidationResult result = verifier.verify( installed.get() );
     if ( result.isValid() && !result.getPayload().isPerpetual() ) {
       long seen = LicenseStore.lastSeen();
       if ( now + CLOCK_TOLERANCE_MILLIS < seen ) {
@@ -91,11 +97,11 @@ public final class LicenseEnforcement {
     switch ( result.getStatus() ) {
       case NOT_INSTALLED:
       case NOT_ACTIVATED:
-        return "Activate PDI with 'license request <license key>', send the request code it prints to Hitachi "
-          + "Vantara, then install the activation code you receive with 'license install <activation code>'.";
+        return "Activate PDI: start Spoon and follow the activation window, or run './license.sh activate'"
+          + " (License.bat activate on Windows).";
       case WRONG_MACHINE:
-        return "Each activation is for one machine. To move the license, run 'license deactivate' on the activated "
-          + "machine and send the release code to Hitachi Vantara; then activate this machine with 'license request'.";
+        return "Each activation is for one machine. To move the license, run './license.sh deactivate' on the"
+          + " activated machine and send the release code to Hitachi Vantara; then activate this machine.";
       default:
         return "Run 'license status' for details.";
     }

@@ -20,22 +20,30 @@ command also accepts a file holding the code.
 
 ## Activating a machine
 
-On the customer's machine (offline):
+The customer receives a license key (`HELIX1-...`) and never sees anything else of the machinery.
+
+**On a desktop:** start Spoon. When the machine isn't licensed, Spoon opens *Activate Pentaho Data Integration*:
+1. Paste the license key (or open the file it came in), **Next**.
+2. The window shows the activation request: **Copy** or **Save to file...**, and send it to Hitachi Vantara from
+   any computer. Paste the activation code that comes back (or open its file), **Activate**: Spoon starts.
+
+The window can be closed while waiting for the answer (**Finish later**): the request is kept, and the next start
+opens on step 2.
+
+**On a server:** `./license.sh activate` (`License.bat activate`) asks the same two questions in the terminal, and
+can likewise be stopped after the first and run again later. Or drop the activation file (`*.helixact`) into the
+PDI folder (or `~/.kettle`): PDI installs it at its next start and renames it `*.helixact.installed`.
+
+For scripts, the two steps are also separate commands: `license request <key> [--out file]`, then
+`license install <code | file>`.
+
+At Hitachi Vantara, answering a request is one command:
 ```
-./license.sh request HELIX1-...                  # or License.bat on Windows; --out request.txt to save it
+license-issuer activate --private-key <key.der> --ledger <ledger.tsv> HELIXREQ-...      # --out activation.helixact
 ```
-The customer sends the printed `HELIXREQ-...` code to Hitachi Vantara from any connected device. Hitachi Vantara
-runs:
-```
-license-issuer activate --private-key <key.der> --ledger <ledger.tsv> HELIXREQ-...      # --out activation.txt
-```
-and sends back the `HELIXACT-...` code, which the customer installs:
-```
-./license.sh install HELIXACT-...
-./license.sh status
-```
-Without a valid activation, Pan, Kitchen and Carte exit with the reason and these steps; Spoon shows them in a
-dialog. There is no grace period.
+
+**Testing** (development key only): `license-issuer/dev-license.sh key` prints a license key, and
+`license-issuer/dev-license.sh answer <request code | activation-request.txt>` prints the activation code.
 
 ## Moving a license to another machine
 
