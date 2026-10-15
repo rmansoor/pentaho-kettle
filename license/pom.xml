@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>pentaho-kettle</groupId>
+  <artifactId>kettle-license</artifactId>
+  <version>9.4.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>PDI License</name>
+  <description>
+    Offline license activation: a signed entitlement key, a machine fingerprint, and a signed activation
+    bound to that fingerprint, all verified without network access. No dependencies, so the license
+    command line (license.sh / License.bat) runs with this jar alone. See docs/licensing/README.md.
+  </description>
+
+  <parent>
+    <groupId>org.pentaho.di</groupId>
+    <artifactId>pdi</artifactId>
+    <version>9.4.0.0-SNAPSHOT</version>
+  </parent>
+
+  <properties>
+    <maven-surefire-plugin.reuseForks>true</maven-surefire-plugin.reuseForks>
+    <!-- these tests install and remove licenses themselves -->
+    <pdi.test.license.argLine></pdi.test.license.argLine>
+  </properties>
+
+</project>

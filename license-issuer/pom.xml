@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>pentaho-kettle</groupId>
+  <artifactId>kettle-license-issuer</artifactId>
+  <version>9.4.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>PDI License Issuer</name>
+  <description>
+    Internal, offline tool that issues license keys and activations and keeps the activation ledger.
+    Never part of a PDI distribution: it is run with the private signing key, by whoever holds it.
+    See docs/licensing/README.md.
+  </description>
+
+  <parent>
+    <groupId>org.pentaho.di</groupId>
+    <artifactId>pdi</artifactId>
+    <version>9.4.0.0-SNAPSHOT</version>
+  </parent>
+
+  <properties>
+    <pdi.test.license.argLine></pdi.test.license.argLine>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-license</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- java -jar kettle-license-issuer.jar ... with kettle-license-<version>.jar next to it -->
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.pentaho.di.license.issuer.LicenseIssuer</mainClass>
+              <addClasspath>true</addClasspath>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

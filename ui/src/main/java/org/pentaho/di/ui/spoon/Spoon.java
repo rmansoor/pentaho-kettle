@@ -103,6 +103,7 @@ import org.pentaho.di.core.EngineMetaInterface;
 import org.pentaho.di.core.JndiUtil;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.core.LastUsedFile;
 import org.pentaho.di.core.NotePadMeta;
 import org.pentaho.di.core.ObjectUsageCount;
@@ -695,6 +696,16 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
 
       KettleException registryException = pluginRegistryFuture.get();
       if ( registryException != null ) {
+        LicenseException license = licenseProblem( registryException );
+        if ( license != null ) {
+          // not licensed: say so in a dialog, a desktop user doesn't see the console
+          splash.dispose();
+          MessageBox box = new MessageBox( new Shell( display ), SWT.ICON_ERROR | SWT.OK );
+          box.setText( "Pentaho Data Integration is not licensed" );
+          box.setMessage( license.getMessage() );
+          box.open();
+          System.exit( 1 );
+        }
         throw registryException;
       }
 
@@ -735,6 +746,16 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
 
     // Kill all remaining things in this VM!
     System.exit( 0 );
+  }
+
+  /** The license failure behind {@code e}, if that is why the Kettle environment didn't start. */
+  private static LicenseException licenseProblem( Throwable e ) {
+    for ( Throwable t = e; t != null; t = t.getCause() == t ? null : t.getCause() ) {
+      if ( t instanceof LicenseException ) {
+        return (LicenseException) t;
+      }
+    }
+    return null;
   }
 
   private static void initLogging( CommandLineOption[] options ) throws KettleException {
