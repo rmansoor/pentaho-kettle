@@ -22,6 +22,8 @@
 
 package org.pentaho.di.license.issuer;
 
+import org.pentaho.di.license.LicenseException;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -32,11 +34,15 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * The issuer's record of every license key and activation: a tab-separated text file, appended to and never
@@ -50,21 +56,21 @@ import java.util.Set;
  * <p>
  * A license can have one activation at a time: activations of a license id minus those released.
  */
-final class Ledger {
+public final class Ledger {
 
-  static final String HEADER = "time\tevent\tlicense_id\tactivation_id\tcustomer\tedition\tbinding\tnote";
+  public static final String HEADER = "time\tevent\tlicense_id\tactivation_id\tcustomer\tedition\tbinding\tnote";
 
-  static final class Entry {
-    final String time;
-    final String event;
-    final String licenseId;
-    final String activationId;
-    final String customer;
-    final String edition;
-    final String binding;
-    final String note;
+  public static final class Entry {
+    public final String time;
+    public final String event;
+    public final String licenseId;
+    public final String activationId;
+    public final String customer;
+    public final String edition;
+    public final String binding;
+    public final String note;
 
-    Entry( String time, String event, String licenseId, String activationId, String customer, String edition,
+    public Entry( String time, String event, String licenseId, String activationId, String customer, String edition,
            String binding, String note ) {
       this.time = time;
       this.event = event;
@@ -82,22 +88,28 @@ final class Ledger {
     }
   }
 
+  private static final ConcurrentMap<Path, ReentrantLock> LOCKS = new ConcurrentHashMap<>();
+
   private final Path path;
 
-  Ledger( Path path ) {
+  public Ledger( Path path ) {
     this.path = path;
   }
 
-  Path path() {
+  public Path path() {
     return path;
   }
 
-  List<Entry> entries() throws IOException {
-    List<Entry> out = new ArrayList<>();
+  public List<Entry> entries() throws IOException {
     if ( !Files.exists( path ) ) {
-      return out;
+      return new ArrayList<>();
     }
-    for ( String line : Files.readAllLines( path, StandardCharsets.UTF_8 ) ) {
+    return parse( new String( Files.readAllBytes( path ), StandardCharsets.UTF_8 ) );
+  }
+
+  private List<Entry> parse( String text ) throws IOException {
+    List<Entry> out = new ArrayList<>();
+    for ( String line : text.split( "\r?\n" ) ) {
       if ( line.isEmpty() || line.startsWith( "time\t" ) || line.startsWith( "#" ) ) {
         continue;
       }
@@ -111,10 +123,15 @@ final class Ledger {
   }
 
   /** The activations of {@code licenseId} not released, oldest first. */
-  List<Entry> active( String licenseId ) throws IOException {
+  public List<Entry> active( String licenseId ) throws IOException {
+    return active( entries(), licenseId );
+  }
+
+  /** The activations of {@code licenseId} in {@code entries} not released, oldest first. */
+  public static List<Entry> active( List<Entry> entries, String licenseId ) {
     Map<String, Entry> active = new LinkedHashMap<>();
     Set<String> released = new HashSet<>();
-    for ( Entry e : entries() ) {
+    for ( Entry e : entries ) {
       if ( !e.licenseId.equals( licenseId ) ) {
         continue;
       }
@@ -128,8 +145,13 @@ final class Ledger {
     return new ArrayList<>( active.values() );
   }
 
-  Entry find( String activationId ) throws IOException {
-    for ( Entry e : entries() ) {
+  public Entry find( String activationId ) throws IOException {
+    return find( entries(), activationId );
+  }
+
+  /** The {@code activated} entry of {@code activationId} in {@code entries}, or null. */
+  public static Entry find( List<Entry> entries, String activationId ) {
+    for ( Entry e : entries ) {
       if ( e.event.equals( "activated" ) && e.activationId.equals( activationId ) ) {
         return e;
       }
@@ -137,29 +159,69 @@ final class Ledger {
     return null;
   }
 
+  /** What {@link #update} does with the ledger's entries, under its lock. */
+  public interface Change<T> {
+    /**
+     * @param entries the ledger as it is now; add what to append to {@code append}
+     * @return the result of {@link #update}
+     */
+    T apply( List<Entry> entries, List<Entry> append ) throws IOException, LicenseException;
+  }
+
   /** Appends entries under an exclusive file lock, so two issuers sharing a ledger don't interleave. */
-  void append( Entry... entries ) throws IOException {
-    if ( path.getParent() != null ) {
-      Files.createDirectories( path.getParent() );
-    }
-    try ( FileChannel ch = FileChannel.open( path, StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-      StandardOpenOption.APPEND ); FileLock lock = ch.lock() ) {
-      StringBuilder text = new StringBuilder();
-      if ( ch.size() == 0 ) {
-        text.append( HEADER ).append( '\n' );
-      }
-      for ( Entry e : entries ) {
-        text.append( e.line() ).append( '\n' );
-      }
-      ByteBuffer buffer = ByteBuffer.wrap( text.toString().getBytes( StandardCharsets.UTF_8 ) );
-      while ( buffer.hasRemaining() ) {
-        ch.write( buffer );
-      }
-      ch.force( true );
+  public void append( Entry... entries ) throws IOException {
+    try {
+      update( ( current, append ) -> {
+        Collections.addAll( append, entries );
+        return null;
+      } );
+    } catch ( LicenseException e ) {
+      throw new IllegalStateException( e );
     }
   }
 
-  static String now() {
+  /**
+   * Reads the ledger and appends what {@code change} decides, all under one exclusive file lock: a decision made on
+   * the ledger's content (a license has no other activation) still holds when its entries are written, even with
+   * several issuers (a web portal and the command line) sharing the file.
+   */
+  public <T> T update( Change<T> change ) throws IOException, LicenseException {
+    if ( path.getParent() != null ) {
+      Files.createDirectories( path.getParent() );
+    }
+    // a file lock is held by the whole JVM: threads of one process (a web portal's requests) queue here first
+    ReentrantLock inProcess = LOCKS.computeIfAbsent( path.toAbsolutePath().normalize(), p -> new ReentrantLock() );
+    inProcess.lock();
+    try ( FileChannel ch = FileChannel.open( path, StandardOpenOption.CREATE, StandardOpenOption.READ,
+      StandardOpenOption.WRITE ); FileLock lock = ch.lock() ) {
+      ByteBuffer existing = ByteBuffer.allocate( (int) ch.size() );
+      while ( existing.hasRemaining() && ch.read( existing ) >= 0 ) {
+        // read it all
+      }
+      List<Entry> append = new ArrayList<>();
+      T result = change.apply( parse( new String( existing.array(), StandardCharsets.UTF_8 ) ), append );
+      if ( !append.isEmpty() ) {
+        StringBuilder text = new StringBuilder();
+        if ( ch.size() == 0 ) {
+          text.append( HEADER ).append( '\n' );
+        }
+        for ( Entry e : append ) {
+          text.append( e.line() ).append( '\n' );
+        }
+        ByteBuffer buffer = ByteBuffer.wrap( text.toString().getBytes( StandardCharsets.UTF_8 ) );
+        ch.position( ch.size() );
+        while ( buffer.hasRemaining() ) {
+          ch.write( buffer );
+        }
+        ch.force( true );
+      }
+      return result;
+    } finally {
+      inProcess.unlock();
+    }
+  }
+
+  public static String now() {
     return Instant.now().toString();
   }
 
