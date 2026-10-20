@@ -41,6 +41,8 @@ public final class LicensePayload {
   /** Bump when the wire format changes. A verifier must reject a payload version it doesn't know. */
   public static final byte FORMAT_VERSION = 1;
 
+  private static final long DAY_MILLIS = 24L * 60 * 60 * 1000;
+
   private final UUID licenseId;
   private final String customerId;
   private final String edition;
@@ -78,6 +80,24 @@ public final class LicensePayload {
 
   public boolean isPerpetual() {
     return expiresAt <= 0;
+  }
+
+  /**
+   * Whole days until the license expires, counting a part of a day as a day (1 on its last day), 0 or less once it
+   * has expired, {@link Long#MAX_VALUE} for a perpetual license.
+   */
+  public long daysLeft( long now ) {
+    if ( isPerpetual() ) {
+      return Long.MAX_VALUE;
+    }
+    long left = expiresAt - now;
+    return left <= 0 ? left / DAY_MILLIS : ( left + DAY_MILLIS - 1 ) / DAY_MILLIS;
+  }
+
+  /** The expiry as a date ({@code 2027-10-19}, UTC), or {@code perpetual}. */
+  public String expiryDate() {
+    return isPerpetual() ? "perpetual"
+      : java.time.Instant.ofEpochMilli( expiresAt ).atZone( java.time.ZoneOffset.UTC ).toLocalDate().toString();
   }
 
   /**

@@ -695,6 +695,15 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
           System.exit( 1 );
         }
         pluginRegistryFuture = executor.submit( initKettle );
+      } else {
+        LicenseEnforcement.expiryWarning( license ).ifPresent( warning -> {
+          Shell parent = new Shell( display );
+          MessageBox box = new MessageBox( parent, SWT.ICON_WARNING | SWT.OK );
+          box.setText( "Pentaho Data Integration license" );
+          box.setMessage( warning );
+          box.open();
+          parent.dispose();
+        } );
       }
 
       UIManager.setLookAndFeel( new MetalLookAndFeel() );
@@ -777,6 +786,9 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
       case NOT_INSTALLED:
       case NOT_ACTIVATED:
         return null;
+      case EXPIRED:
+        return "This license expired on " + license.getPayload().expiryDate() + ". Once it is renewed, paste the"
+          + " activation code that comes with the renewal below.";
       default:
         return license.getMessage() + ".";
     }

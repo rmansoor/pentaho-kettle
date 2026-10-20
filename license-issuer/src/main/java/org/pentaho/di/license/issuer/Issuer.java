@@ -27,6 +27,7 @@ import org.pentaho.di.license.ActivationRequest;
 import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.license.LicenseKey;
 import org.pentaho.di.license.LicensePayload;
+import org.pentaho.di.license.LicenseTerm;
 import org.pentaho.di.license.LicenseValidationResult;
 import org.pentaho.di.license.LicenseVerifier;
 import org.pentaho.di.license.MachineFingerprint;
@@ -53,6 +54,10 @@ import java.util.UUID;
  * <p>
  * A license has one activation at a time. A new request for an activated license is refused, unless it comes
  * from the same machine (reinstalled, or the activation file lost): then the old activation is replaced.
+ * <p>
+ * A license runs for a {@link LicenseTerm} (years, or perpetual). {@link #renew(LicenseKey, LicenseTerm)} extends
+ * it: the same license id, the new term added to the current expiry, and a new activation code for each machine
+ * it is activated on, so customers renew without sending a new activation request.
  */
 public final class Issuer {
 
@@ -78,6 +83,33 @@ public final class Issuer {
     Released( Ledger.Entry activation, boolean released ) {
       this.activation = activation;
       this.released = released;
+    }
+  }
+
+  /** A renewed license: its new key, and the activation codes replacing the ones its machines have. */
+  public static final class Renewed {
+    public final LicenseKey key;
+    public final String code;
+    /** the expiry before the renewal (epoch millis) */
+    public final long previousExpiry;
+    public final List<Reissued> activations;
+
+    Renewed( LicenseKey key, long previousExpiry, List<Reissued> activations ) {
+      this.key = key;
+      this.code = key.encode();
+      this.previousExpiry = previousExpiry;
+      this.activations = activations;
+    }
+  }
+
+  /** An active activation signed again for the renewed license: same activation id, same machine. */
+  public static final class Reissued {
+    public final Ledger.Entry activation;
+    public final String code;
+
+    Reissued( Ledger.Entry activation, String code ) {
+      this.activation = activation;
+      this.code = code;
     }
   }
 
@@ -114,21 +146,78 @@ public final class Issuer {
     }
   }
 
+  /** A license for {@code term}: some years from now, or perpetual. */
+  public LicenseKey issue( String customer, String edition, LicenseTerm term ) throws LicenseException, IOException {
+    long issuedAt = System.currentTimeMillis();
+    return issue( customer, edition, issuedAt, term.expiresAt( issuedAt ), term.toString() );
+  }
+
   /**
+   * A license valid for a number of days or hours (trials, tests).
+   *
    * @param validFor how long the license is valid, or null for a perpetual license
    */
   public LicenseKey issue( String customer, String edition, Duration validFor ) throws LicenseException, IOException {
+    long issuedAt = System.currentTimeMillis();
+    return validFor == null ? issue( customer, edition, LicenseTerm.PERPETUAL )
+      : issue( customer, edition, issuedAt, Instant.ofEpochMilli( issuedAt ).plus( validFor ).toEpochMilli(),
+        validFor.toDays() + " days" );
+  }
+
+  private LicenseKey issue( String customer, String edition, long issuedAt, long expiresAt, String term )
+    throws LicenseException, IOException {
     if ( customer == null || customer.trim().isEmpty() ) {
       throw new IllegalArgumentException( "a license needs a customer" );
     }
-    long issuedAt = System.currentTimeMillis();
-    long expiresAt = validFor == null ? 0 : Instant.ofEpochMilli( issuedAt ).plus( validFor ).toEpochMilli();
     LicensePayload payload = new LicensePayload( UUID.randomUUID(), customer.trim(),
       edition == null || edition.trim().isEmpty() ? "ce" : edition.trim(), issuedAt, expiresAt );
     LicenseKey key = LicenseKey.sign( payload, signingKey() );
     ledger.append( entry( "issued", payload, "", "", expiresAt == 0 ? "perpetual"
-      : "expires " + Instant.ofEpochMilli( expiresAt ) ) );
+      : term + ", expires " + Instant.ofEpochMilli( expiresAt ) ) );
     return key;
+  }
+
+  /**
+   * Renews a license: the same license id, customer and edition, running {@code term} longer, counted from its
+   * current expiry (or from now, when it has already expired). Renewing for {@link LicenseTerm#PERPETUAL} makes it
+   * perpetual. Each active activation is signed again for the renewed license (same activation id and machine):
+   * installing that code is all a customer does.
+   *
+   * @param current the license key as issued (or as last renewed)
+   */
+  public Renewed renew( LicenseKey current, LicenseTerm term ) throws LicenseException, IOException {
+    PrivateKey key = signingKey();
+    LicenseValidationResult checked = verifier.verifyEntitlement( current );
+    if ( !checked.isValid() && checked.getStatus() != LicenseValidationResult.Status.EXPIRED ) {
+      throw new LicenseException( "Refused: " + checked.getMessage() );
+    }
+    LicensePayload old = current.getPayload();
+    if ( old.isPerpetual() ) {
+      throw new LicenseException( "Refused: license " + old.getLicenseId() + " is perpetual, there is nothing to renew" );
+    }
+    long now = System.currentTimeMillis();
+    LicensePayload renewed = new LicensePayload( old.getLicenseId(), old.getCustomerId(), old.getEdition(), now,
+      term.expiresAt( Math.max( old.getExpiresAt(), now ) ) );
+    LicenseKey renewedKey = LicenseKey.sign( renewed, key );
+    String licenseId = old.getLicenseId().toString();
+    return ledger.update( ( entries, append ) -> {
+      List<Reissued> reissued = new ArrayList<>();
+      for ( Ledger.Entry active : Ledger.active( entries, licenseId ) ) {
+        MachineFingerprint machine = active.binding.equals( "unbound" ) ? null
+          : MachineFingerprint.decode( active.binding );
+        Activation activation = Activation.sign( renewed, UUID.fromString( active.activationId ),
+          Instant.parse( active.time ).toEpochMilli(), machine, key );
+        reissued.add( new Reissued( active, activation.encode() ) );
+      }
+      StringBuilder note = new StringBuilder( term.isPerpetual() ? "renewed: perpetual"
+        : "renewed for " + term + ": expires " + Instant.ofEpochMilli( renewed.getExpiresAt() ) );
+      note.append( " (was " ).append( Instant.ofEpochMilli( old.getExpiresAt() ) ).append( ')' );
+      for ( Reissued r : reissued ) {
+        note.append( "; new code for activation " ).append( r.activation.activationId );
+      }
+      append.add( entry( "renewed", renewed, "", "", note.toString() ) );
+      return new Renewed( renewedKey, old.getExpiresAt(), reissued );
+    } );
   }
 
   /** Answers an activation request (HELIXREQ-...): an activation bound to the requesting machine. */

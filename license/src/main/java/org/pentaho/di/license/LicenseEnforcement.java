@@ -42,19 +42,44 @@ public final class LicenseEnforcement {
   static final long CLOCK_TOLERANCE_MILLIS = 24L * 60 * 60 * 1000;
   /** Record the check time at most this often, so starting PDI doesn't write a file every time. */
   static final long SEEN_INTERVAL_MILLIS = 60L * 60 * 1000;
+  /** Warn this many days before a license expires. */
+  public static final int EXPIRY_WARNING_DAYS = 30;
 
   private LicenseEnforcement() {
   }
 
   /**
+   * @return the valid license, for {@link #expiryWarning(LicenseValidationResult)}
    * @throws LicenseException if this machine isn't licensed. The message is meant to be shown to the user as-is
    *     (it names the command to fix the problem).
    */
-  public static void requireLicensed() throws LicenseException {
+  public static LicenseValidationResult requireLicensed() throws LicenseException {
     LicenseValidationResult result = check();
     if ( !result.isValid() ) {
       throw new LicenseException( result.getMessage() + System.lineSeparator() + advice( result ) );
     }
+    return result;
+  }
+
+  /**
+   * A warning to show when a valid license expires within {@value #EXPIRY_WARNING_DAYS} days: what to tell the user,
+   * or empty.
+   */
+  public static Optional<String> expiryWarning( LicenseValidationResult result ) {
+    return expiryWarning( result, System.currentTimeMillis() );
+  }
+
+  static Optional<String> expiryWarning( LicenseValidationResult result, long now ) {
+    if ( result == null || !result.isValid() || result.getPayload().isPerpetual() ) {
+      return Optional.empty();
+    }
+    long days = result.getPayload().daysLeft( now );
+    if ( days > EXPIRY_WARNING_DAYS ) {
+      return Optional.empty();
+    }
+    return Optional.of( "This PDI license expires on " + result.getPayload().expiryDate() + " (" + ( days <= 1
+      ? "today" : "in " + days + " days" ) + "). Ask Hitachi Vantara to renew it: a renewal adds the new term to the"
+      + " current one, and comes with an activation code to install on this machine." );
   }
 
   /** Same check as {@link #requireLicensed()}, without throwing — for the CLI's 'status' command. */
@@ -66,12 +91,14 @@ public final class LicenseEnforcement {
     Optional<String> installed = readInstalled();
     LicenseValidationResult result = installed.isPresent() ? verifier.verify( installed.get() )
       : LicenseValidationResult.notInstalled( LicenseStore.getLicenseFilePath().toString() );
-    if ( !result.isValid() ) {
-      // an activation file dropped into the PDI or Kettle folder (servers without a desktop)
-      Optional<LicenseValidationResult> dropped = new Activator( verifier ).installDropped();
-      if ( dropped.isPresent() && readInstalled().map( verifier::verify ).filter( LicenseValidationResult::isValid )
-        .isPresent() ) {
-        result = dropped.get();
+    // an activation file dropped into the PDI or Kettle folder (servers without a desktop): an activation for an
+    // unlicensed machine, or the renewal of the installed license
+    Optional<LicenseValidationResult> dropped = new Activator( verifier ).installDropped( result );
+    if ( dropped.isPresent() ) {
+      // what is in effect now (a license given inline still comes first)
+      Optional<LicenseValidationResult> inEffect = readInstalled().map( verifier::verify );
+      if ( inEffect.isPresent() && inEffect.get().isValid() ) {
+        result = inEffect.get();
       }
     }
     if ( result.isValid() && !result.getPayload().isPerpetual() ) {
@@ -99,6 +126,10 @@ public final class LicenseEnforcement {
       case NOT_ACTIVATED:
         return "Activate PDI: start Spoon and follow the activation window, or run './license.sh activate'"
           + " (License.bat activate on Windows).";
+      case EXPIRED:
+        return "Ask Hitachi Vantara to renew the license, then install the activation code that comes with the"
+          + " renewal: paste it in Spoon's activation window, run './license.sh install <code or file>', or drop the"
+          + " .helixact file into the PDI folder.";
       case WRONG_MACHINE:
         return "Each activation is for one machine. To move the license, run './license.sh deactivate' on the"
           + " activated machine and send the release code to Hitachi Vantara; then activate this machine.";

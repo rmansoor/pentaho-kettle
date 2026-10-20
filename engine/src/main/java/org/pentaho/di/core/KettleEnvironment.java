@@ -29,6 +29,7 @@ import org.pentaho.di.core.compress.CompressionPluginType;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.exception.KettlePluginException;
 import org.pentaho.di.core.lifecycle.KettleLifecycleSupport;
+import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogTablePluginType;
 import org.pentaho.di.core.logging.LoggingRegistry;
 import org.pentaho.di.core.plugins.CartePluginType;
@@ -139,7 +140,8 @@ public class KettleEnvironment {
         // entry point (Spoon, Carte, Pan, Kitchen) is covered by this one chokepoint. See
         // org.pentaho.di.license.LicenseEnforcement and docs/licensing/README.md.
         //
-        LicenseEnforcement.requireLicensed();
+        LicenseEnforcement.expiryWarning( LicenseEnforcement.requireLicensed() )
+          .ifPresent( warning -> LogChannel.GENERAL.logMinimal( warning ) );
 
         // Configure Simple JNDI when we run in stand-alone mode (spoon, pan, kitchen, carte, ... NOT on the platform
         //

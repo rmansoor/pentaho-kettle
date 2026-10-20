@@ -82,6 +82,18 @@ public final class Activator {
     return code;
   }
 
+  /**
+   * Whether the person entered an activation code (or a file holding one) where the license key goes: what a
+   * renewal of an expired license comes with. Then skip to {@link #complete(String)}.
+   */
+  public static boolean isActivationCode( String input ) {
+    try {
+      return Texts.codeOrFile( input, Activation.PREFIX, "activation code" ).trim().startsWith( Activation.PREFIX );
+    } catch ( LicenseException e ) {
+      return false;
+    }
+  }
+
   /** The request waiting for its answer, if step 1 was done and step 2 not yet. */
   public static Optional<String> pending() {
     try {
@@ -131,11 +143,19 @@ public final class Activator {
    * @return the result of the installed activation, if one was installed
    */
   public Optional<LicenseValidationResult> installDropped() {
+    return installDropped( null );
+  }
+
+  /**
+   * Same, given what is installed now: while that is valid, only a renewal of it is installed (the same license,
+   * expiring later); files that aren't one are left alone.
+   */
+  public Optional<LicenseValidationResult> installDropped( LicenseValidationResult installed ) {
     for ( Path file : droppedFiles() ) {
       try {
         String code = new String( Files.readAllBytes( file ), StandardCharsets.UTF_8 ).replaceAll( "\\s+", "" );
         LicenseValidationResult result = verifier.verify( code );
-        if ( result.isValid() ) {
+        if ( result.isValid() && ( installed == null || !installed.isValid() || renews( result, installed ) ) ) {
           LicenseStore.write( code );
           cancel();
           Files.move( file, file.resolveSibling( file.getFileName() + INSTALLED_SUFFIX ),
@@ -147,6 +167,14 @@ public final class Activator {
       }
     }
     return Optional.empty();
+  }
+
+  /** Whether {@code next} is a renewal of {@code current}: the same license, running longer. */
+  static boolean renews( LicenseValidationResult next, LicenseValidationResult current ) {
+    LicensePayload n = next.getPayload();
+    LicensePayload c = current.getPayload();
+    return n.getLicenseId().equals( c.getLicenseId() ) && !c.isPerpetual()
+      && ( n.isPerpetual() || n.getExpiresAt() > c.getExpiresAt() );
   }
 
   static List<Path> droppedFiles() {
