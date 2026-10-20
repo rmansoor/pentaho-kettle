@@ -48,12 +48,20 @@ public final class LicenseValidationResult {
   private final LicensePayload payload;
   private final Activation activation;
   private final String message;
+  /** VALID only: the license has expired and PDI runs until this time (epoch millis), or 0 */
+  private final long graceEndsAt;
 
   private LicenseValidationResult( Status status, LicensePayload payload, Activation activation, String message ) {
+    this( status, payload, activation, message, 0 );
+  }
+
+  private LicenseValidationResult( Status status, LicensePayload payload, Activation activation, String message,
+                                   long graceEndsAt ) {
     this.status = status;
     this.payload = payload;
     this.activation = activation;
     this.message = message;
+    this.graceEndsAt = graceEndsAt;
   }
 
   static LicenseValidationResult valid( LicensePayload payload ) {
@@ -63,6 +71,12 @@ public final class LicenseValidationResult {
   static LicenseValidationResult valid( Activation activation ) {
     return new LicenseValidationResult( Status.VALID, activation.getLicense(), activation,
       activation.isBound() ? "License is valid and activated for this machine" : "License is valid (unbound activation)" );
+  }
+
+  static LicenseValidationResult validInGrace( Activation activation, long graceEndsAt ) {
+    return new LicenseValidationResult( Status.VALID, activation.getLicense(), activation, "License expired on "
+      + activation.getLicense().expiryDate() + ": PDI keeps running in the grace period until "
+      + java.time.Instant.ofEpochMilli( graceEndsAt ).atZone( java.time.ZoneOffset.UTC ).toLocalDate(), graceEndsAt );
   }
 
   static LicenseValidationResult notInstalled( String where ) {
@@ -85,7 +99,7 @@ public final class LicenseValidationResult {
   }
 
   static LicenseValidationResult expired( LicensePayload payload ) {
-    return new LicenseValidationResult( Status.EXPIRED, payload, null, "License expired" );
+    return new LicenseValidationResult( Status.EXPIRED, payload, null, "License expired on " + payload.expiryDate() );
   }
 
   static LicenseValidationResult clockRollback( LicensePayload payload ) {
@@ -113,6 +127,16 @@ public final class LicenseValidationResult {
   /** The installed activation, when there is a genuine one (VALID or WRONG_MACHINE). */
   public Activation getActivation() {
     return activation;
+  }
+
+  /** Valid, but only because of the grace period after the license expired. */
+  public boolean isInGracePeriod() {
+    return graceEndsAt > 0;
+  }
+
+  /** When the grace period ends (epoch millis), or 0 when not in one. */
+  public long getGraceEndsAt() {
+    return graceEndsAt;
   }
 
   public String getMessage() {

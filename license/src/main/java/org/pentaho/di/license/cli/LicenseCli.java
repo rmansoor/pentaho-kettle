@@ -260,7 +260,9 @@ public class LicenseCli {
     LicensePayload payload = result.getPayload();
     long days = payload.daysLeft( System.currentTimeMillis() );
     String expiry = payload.isPerpetual() ? "never (perpetual)" : payload.expiryDate()
-      + ( days > 0 ? " (in " + days + ( days == 1 ? " day)" : " days)" ) : " (expired)" );
+      + ( days > 0 ? " (in " + days + ( days == 1 ? " day)" : " days)" ) : result.isInGracePeriod()
+        ? " (EXPIRED; grace period until " + Instant.ofEpochMilli( result.getGraceEndsAt() ).atZone(
+        java.time.ZoneOffset.UTC ).toLocalDate() + ")" : " (expired)" );
     Activation activation = result.getActivation();
     String binding = activation == null ? "" : activation.isBound()
       ? ", activated " + Instant.ofEpochMilli( activation.getActivatedAt() ) + " for this machine"

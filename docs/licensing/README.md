@@ -57,7 +57,12 @@ license-issuer issue --private-key <key.der> --ledger <ledger.tsv> --customer "A
 `--term` is required (`1y`, `2y`, ..., or `perpetual`), so no license is perpetual by accident.
 
 **Before expiry**, PDI warns for the last 30 days: `license status` prints a warning, Spoon shows it at startup,
-and Pan, Kitchen and Carte log it. Once expired, PDI refuses to start, like any other license problem.
+and Pan, Kitchen and Carte log it.
+
+**After expiry**, an installed activation keeps PDI running for a **14-day grace period**, so scheduled work doesn't
+stop while a renewal is on its way: every start warns that the license has expired and when the grace period ends
+(Pan, Kitchen and Carte log it as an error). Then PDI refuses to start, like any other license problem. The grace
+period is for activations only: an expired license key can't be activated on a new machine (only renewed).
 
 **Renewing** keeps the license id, customer and edition, and adds the new term to the current expiry (renewing
 early loses nothing; an expired license is renewed from today). Renewing for `perpetual` makes it perpetual.

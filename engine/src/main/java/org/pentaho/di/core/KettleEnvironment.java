@@ -47,6 +47,7 @@ import org.pentaho.di.core.plugins.StepDialogFragmentType;
 import org.pentaho.di.core.plugins.StepPluginType;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.license.LicenseEnforcement;
+import org.pentaho.di.license.LicenseValidationResult;
 import org.pentaho.di.repository.IUser;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.trans.step.RowDistributionPluginType;
@@ -140,8 +141,14 @@ public class KettleEnvironment {
         // entry point (Spoon, Carte, Pan, Kitchen) is covered by this one chokepoint. See
         // org.pentaho.di.license.LicenseEnforcement and docs/licensing/README.md.
         //
-        LicenseEnforcement.expiryWarning( LicenseEnforcement.requireLicensed() )
-          .ifPresent( warning -> LogChannel.GENERAL.logMinimal( warning ) );
+        LicenseValidationResult license = LicenseEnforcement.requireLicensed();
+        LicenseEnforcement.expiryWarning( license ).ifPresent( warning -> {
+          if ( license.isInGracePeriod() ) {
+            LogChannel.GENERAL.logError( warning );
+          } else {
+            LogChannel.GENERAL.logMinimal( warning );
+          }
+        } );
 
         // Configure Simple JNDI when we run in stand-alone mode (spoon, pan, kitchen, carte, ... NOT on the platform
         //
