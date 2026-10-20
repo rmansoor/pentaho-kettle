@@ -105,9 +105,9 @@ public class LicenseEnforcementTest {
   }
 
   @Test( expected = LicenseException.class )
-  public void requireLicensedThrowsWithAnExpiredActivation() throws Exception {
-    long yesterday = System.currentTimeMillis() - 24L * 60 * 60 * 1000;
-    LicensePayload expired = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, yesterday );
+  public void requireLicensedThrowsOnceTheGracePeriodIsOver() throws Exception {
+    long fifteenDaysAgo = System.currentTimeMillis() - 15L * 24 * 60 * 60 * 1000;
+    LicensePayload expired = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, fifteenDaysAgo );
     LicenseStore.write( Activation.sign( expired, UUID.randomUUID(), 0, null, TestKeys.devPrivateKey() ).encode() );
     LicenseEnforcement.requireLicensed();
   }
@@ -185,10 +185,25 @@ public class LicenseEnforcementTest {
     assertFalse( LicenseEnforcement.expiryWarning( null, now ).isPresent() );
   }
 
+  /** Expired three days ago: PDI still starts, for 11 more days, warning loudly. */
+  @Test
+  public void anExpiredActivationKeepsWorkingInTheGracePeriod() throws Exception {
+    long now = System.currentTimeMillis();
+    LicensePayload expired = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, now - 3 * DAY );
+    LicenseStore.write( Activation.sign( expired, UUID.randomUUID(), 0, null, TestKeys.devPrivateKey() ).encode() );
+    LicenseValidationResult result = LicenseEnforcement.requireLicensed();
+    assertTrue( result.isInGracePeriod() );
+    assertEquals( now - 3 * DAY + 14 * DAY, result.getGraceEndsAt() );
+    String warning = LicenseEnforcement.expiryWarning( result, now ).get();
+    assertTrue( warning, warning.contains( "EXPIRED" ) && warning.contains( "11 days left" ) );
+    // an unexpired license isn't in a grace period
+    assertFalse( validFor( now + DAY ).isInGracePeriod() );
+  }
+
   @Test
   public void anExpiredLicenseSaysHowToRenew() throws Exception {
     LicensePayload expired = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, System.currentTimeMillis()
-      - DAY );
+      - 15 * DAY );
     LicenseStore.write( Activation.sign( expired, UUID.randomUUID(), 0, null, TestKeys.devPrivateKey() ).encode() );
     try {
       LicenseEnforcement.requireLicensed();

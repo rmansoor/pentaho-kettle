@@ -105,6 +105,7 @@ import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.license.LicenseEnforcement;
 import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.license.LicenseValidationResult;
+import org.pentaho.di.license.LicenseVerifier;
 import org.pentaho.di.core.LastUsedFile;
 import org.pentaho.di.core.NotePadMeta;
 import org.pentaho.di.core.ObjectUsageCount;
@@ -787,8 +788,9 @@ public class Spoon extends ApplicationWindow implements AddUndoPositionInterface
       case NOT_ACTIVATED:
         return null;
       case EXPIRED:
-        return "This license expired on " + license.getPayload().expiryDate() + ". Once it is renewed, paste the"
-          + " activation code that comes with the renewal below.";
+        return "This license expired on " + license.getPayload().expiryDate() + ", and its "
+          + LicenseVerifier.GRACE_PERIOD_DAYS + "-day grace period is over. Once it is renewed, paste the activation"
+          + " code that comes with the renewal below.";
       default:
         return license.getMessage() + ".";
     }

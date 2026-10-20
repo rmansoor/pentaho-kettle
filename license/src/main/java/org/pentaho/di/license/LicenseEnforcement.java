@@ -44,6 +44,7 @@ public final class LicenseEnforcement {
   static final long SEEN_INTERVAL_MILLIS = 60L * 60 * 1000;
   /** Warn this many days before a license expires. */
   public static final int EXPIRY_WARNING_DAYS = 30;
+  private static final long DAY_MILLIS = 24L * 60 * 60 * 1000;
 
   private LicenseEnforcement() {
   }
@@ -73,13 +74,22 @@ public final class LicenseEnforcement {
     if ( result == null || !result.isValid() || result.getPayload().isPerpetual() ) {
       return Optional.empty();
     }
+    if ( result.isInGracePeriod() ) {
+      long left = ( result.getGraceEndsAt() - now + DAY_MILLIS - 1 ) / DAY_MILLIS;
+      return Optional.of( "This PDI license EXPIRED on " + result.getPayload().expiryDate() + ". PDI keeps working"
+        + " for a grace period until " + java.time.Instant.ofEpochMilli( result.getGraceEndsAt() )
+        .atZone( java.time.ZoneOffset.UTC ).toLocalDate() + " (" + ( left <= 1 ? "ends today" : left + " days left" )
+        + "); after that it won't start. Ask Hitachi Vantara to renew it, and install the activation code that comes"
+        + " with the renewal." );
+    }
     long days = result.getPayload().daysLeft( now );
     if ( days > EXPIRY_WARNING_DAYS ) {
       return Optional.empty();
     }
     return Optional.of( "This PDI license expires on " + result.getPayload().expiryDate() + " (" + ( days <= 1
       ? "today" : "in " + days + " days" ) + "). Ask Hitachi Vantara to renew it: a renewal adds the new term to the"
-      + " current one, and comes with an activation code to install on this machine." );
+      + " current one, and comes with an activation code to install on this machine. (After expiry, PDI keeps"
+      + " working for a " + LicenseVerifier.GRACE_PERIOD_DAYS + "-day grace period.)" );
   }
 
   /** Same check as {@link #requireLicensed()}, without throwing — for the CLI's 'status' command. */
@@ -127,7 +137,8 @@ public final class LicenseEnforcement {
         return "Activate PDI: start Spoon and follow the activation window, or run './license.sh activate'"
           + " (License.bat activate on Windows).";
       case EXPIRED:
-        return "Ask Hitachi Vantara to renew the license, then install the activation code that comes with the"
+        return "Its " + LicenseVerifier.GRACE_PERIOD_DAYS + "-day grace period is over as well. Ask Hitachi"
+          + " Vantara to renew the license, then install the activation code that comes with the"
           + " renewal: paste it in Spoon's activation window, run './license.sh install <code or file>', or drop the"
           + " .helixact file into the PDI folder.";
       case WRONG_MACHINE:

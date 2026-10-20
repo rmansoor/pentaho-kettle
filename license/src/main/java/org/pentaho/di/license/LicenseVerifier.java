@@ -47,6 +47,13 @@ public final class LicenseVerifier {
   private static final String PUBLIC_KEY_RESOURCE = "/org/pentaho/di/license/helix-license-public-key.der";
   private static final String KEY_ALGORITHM = "EC";
 
+  /**
+   * How long an activation keeps PDI running after its license expires, with a warning: time to install a renewal
+   * without stopping scheduled work. Only for activations: an expired license key can't be activated.
+   */
+  public static final int GRACE_PERIOD_DAYS = 14;
+  static final long GRACE_PERIOD_MILLIS = GRACE_PERIOD_DAYS * 24L * 60 * 60 * 1000;
+
   private static volatile PublicKey embeddedPublicKey;
 
   private final PublicKey publicKey;
@@ -97,8 +104,12 @@ public final class LicenseVerifier {
       return LicenseValidationResult.malformed( e.getMessage() );
     }
     LicensePayload license = activation.getLicense();
+    boolean inGrace = false;
     if ( isExpired( license ) ) {
-      return LicenseValidationResult.expired( license );
+      if ( clock.getAsLong() >= graceEnds( license ) ) {
+        return LicenseValidationResult.expired( license );
+      }
+      inGrace = true;
     }
     if ( activation.isBound() ) {
       String why = activation.getFingerprint().mismatch( thisMachine.apply( license.getLicenseId() ) );
@@ -106,7 +117,8 @@ public final class LicenseVerifier {
         return LicenseValidationResult.wrongMachine( activation, why );
       }
     }
-    return LicenseValidationResult.valid( activation );
+    return inGrace ? LicenseValidationResult.validInGrace( activation, graceEnds( license ) )
+      : LicenseValidationResult.valid( activation );
   }
 
   /** Verifies an entitlement key: genuine and unexpired. Says nothing about activation. */
@@ -128,6 +140,11 @@ public final class LicenseVerifier {
     }
     LicensePayload payload = key.getPayload();
     return isExpired( payload ) ? LicenseValidationResult.expired( payload ) : LicenseValidationResult.valid( payload );
+  }
+
+  /** When the grace period of an expiring license ends (epoch millis). */
+  public static long graceEnds( LicensePayload payload ) {
+    return payload.getExpiresAt() + GRACE_PERIOD_MILLIS;
   }
 
   private boolean isExpired( LicensePayload payload ) {
