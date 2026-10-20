@@ -70,7 +70,7 @@ public class LicenseIssuerTest {
   }
 
   private String issue() throws Exception {
-    return run( "issue", "--private-key", DEV_KEY, "--ledger", ledger, "--customer", "Acme Corp" );
+    return run( "issue", "--private-key", DEV_KEY, "--ledger", ledger, "--customer", "Acme Corp", "--term", "1y" );
   }
 
   /** A request from a made-up machine: the request carries the fingerprint, the issuer never sees the machine. */
@@ -80,6 +80,37 @@ public class LicenseIssuerTest {
 
   private static MachineFingerprint machine( String key, String id ) throws Exception {
     return org.pentaho.di.license.ActivationRequestFactory.machine( LicenseKey.decode( key ), id );
+  }
+
+  @Test
+  public void issuingNeedsATerm() throws Exception {
+    try {
+      new LicenseIssuer( new PrintStream( new ByteArrayOutputStream(), true, "UTF-8" ), new String[] { "issue",
+        "--private-key", DEV_KEY, "--ledger", ledger, "--customer", "Acme Corp" } ).run();
+      fail( "expected a usage error" );
+    } catch ( IllegalArgumentException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( "--term" ) );
+    }
+    String perpetual = run( "issue", "--private-key", DEV_KEY, "--ledger", ledger, "--customer", "Acme Corp", "--term",
+      "perpetual" );
+    assertTrue( LicenseKey.decode( perpetual ).getPayload().isPerpetual() );
+  }
+
+  @Test
+  public void renewPrintsTheNewKeyAndAnActivationCodePerMachine() throws Exception {
+    String key = issue();
+    String code = run( "activate", "--private-key", DEV_KEY, "--ledger", ledger, request( key, machine( key, "a" ) ) );
+    File dir = new File( temp.getRoot(), "renewal" );
+    String out = run( "renew", "--private-key", DEV_KEY, "--ledger", ledger, "--term", "2y", key, "--out",
+      dir.getPath() );
+    assertTrue( out, out.startsWith( "Renewed license " + LicenseKey.decode( key ).getPayload().getLicenseId() ) );
+    LicenseKey renewed = LicenseKey.decode( new String( Files.readAllBytes( new File( dir, "license-key.txt" )
+      .toPath() ), StandardCharsets.UTF_8 ).trim() );
+    String activationId = Activation.decode( code ).getActivationId().toString();
+    Activation reissued = Activation.decode( new String( Files.readAllBytes( new File( dir, activationId
+      + ".helixact" ).toPath() ), StandardCharsets.UTF_8 ).trim() );
+    assertEquals( renewed.getPayload(), reissued.getLicense() );
+    assertEquals( machine( key, "a" ), reissued.getFingerprint() );
   }
 
   @Test

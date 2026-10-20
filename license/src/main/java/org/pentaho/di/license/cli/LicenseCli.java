@@ -127,10 +127,14 @@ public class LicenseCli {
       out.println( request );
       out.println();
     } else {
-      String key = ask( "Paste your license key (or the path of the file holding it), then press Enter:" );
+      String key = ask( "Paste your license key (or the path of the file holding it), then press Enter."
+        + "\nRenewed an expired license? Paste the activation code that came with the renewal instead:" );
       if ( key.isEmpty() ) {
         err.println( "No license key entered." );
         return 1;
+      }
+      if ( Activator.isActivationCode( key ) ) {
+        return finish( activator.complete( key ) );
       }
       request = activator.start( key );
       Path saved = Paths.get( "activation-request.txt" ).toAbsolutePath();
@@ -150,7 +154,10 @@ public class LicenseCli {
       out.println( "Your request is kept. Run './license.sh activate' again when you have the activation code." );
       return 0;
     }
-    LicenseValidationResult result = activator.complete( code );
+    return finish( activator.complete( code ) );
+  }
+
+  private int finish( LicenseValidationResult result ) {
     if ( !result.isValid() ) {
       err.println( "Not activated: " + result.getMessage() );
       return 1;
@@ -210,6 +217,7 @@ public class LicenseCli {
       return 1;
     }
     LicenseStore.write( text.replaceAll( "\\s+", "" ) );
+    Activator.cancel();
     out.println( "License installed: " + describe( result ) );
     return 0;
   }
@@ -217,6 +225,7 @@ public class LicenseCli {
   private int status() throws LicenseException {
     LicenseValidationResult result = LicenseEnforcement.check();
     out.println( ( result.isValid() ? "Licensed: " + describe( result ) : "Not licensed: " + result.getMessage() ) );
+    LicenseEnforcement.expiryWarning( result ).ifPresent( warning -> out.println( "Warning: " + warning ) );
     out.println( "License file: " + LicenseStore.getLicenseFilePath() );
     if ( !result.isValid() && result.getStatus() != LicenseValidationResult.Status.MALFORMED ) {
       out.println( LicenseEnforcement.advice( result ) );
@@ -249,7 +258,9 @@ public class LicenseCli {
 
   private static String describe( LicenseValidationResult result ) {
     LicensePayload payload = result.getPayload();
-    String expiry = payload.isPerpetual() ? "perpetual" : Instant.ofEpochMilli( payload.getExpiresAt() ).toString();
+    long days = payload.daysLeft( System.currentTimeMillis() );
+    String expiry = payload.isPerpetual() ? "never (perpetual)" : payload.expiryDate()
+      + ( days > 0 ? " (in " + days + ( days == 1 ? " day)" : " days)" ) : " (expired)" );
     Activation activation = result.getActivation();
     String binding = activation == null ? "" : activation.isBound()
       ? ", activated " + Instant.ofEpochMilli( activation.getActivatedAt() ) + " for this machine"

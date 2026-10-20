@@ -9,7 +9,7 @@ activations, so one license key can't be activated on a second machine until the
 
 | Code | Prefix | Made by | What it is |
 |---|---|---|---|
-| License key | `HELIX1-` | Hitachi Vantara (`license-issuer issue`) | What the customer buys: license id, customer, edition, expiry, signed. Doesn't run PDI by itself. |
+| License key | `HELIX1-` | Hitachi Vantara (`license-issuer issue`) | What the customer buys: license id, customer, edition, term (expiry), signed. Doesn't run PDI by itself. |
 | Activation request | `HELIXREQ-` | The customer's machine (`license request`) | The license key plus this machine's fingerprint. Unsigned, with a checksum. |
 | Activation | `HELIXACT-` | Hitachi Vantara (`license-issuer activate`) | The license, bound to the requesting machine's fingerprint, signed. What PDI checks at startup. |
 
@@ -42,8 +42,33 @@ At Hitachi Vantara, answering a request is one command:
 license-issuer activate --private-key <key.der> --ledger <ledger.tsv> HELIXREQ-...      # --out activation.helixact
 ```
 
-**Testing** (development key only): `license-issuer/dev-license.sh key` prints a license key, and
+**Testing** (development key only): `license-issuer/dev-license.sh key [customer] [term]` prints a license key,
+`license-issuer/dev-license.sh renew <key> [term]` renews one, and
 `license-issuer/dev-license.sh answer <request code | activation-request.txt>` prints the activation code.
+
+## Terms and renewal
+
+A license runs for a **term**: 1 to 10 years, or **perpetual**. A year is a calendar year (UTC): a one-year
+license issued on 19 October 2026 expires on 19 October 2027. The key carries the expiry date itself, so keys
+issued before terms existed, and trials of a number of days (`--expires-in-days N`), verify the same way.
+```
+license-issuer issue --private-key <key.der> --ledger <ledger.tsv> --customer "Acme Corp" --edition ee --term 1y
+```
+`--term` is required (`1y`, `2y`, ..., or `perpetual`), so no license is perpetual by accident.
+
+**Before expiry**, PDI warns for the last 30 days: `license status` prints a warning, Spoon shows it at startup,
+and Pan, Kitchen and Carte log it. Once expired, PDI refuses to start, like any other license problem.
+
+**Renewing** keeps the license id, customer and edition, and adds the new term to the current expiry (renewing
+early loses nothing; an expired license is renewed from today). Renewing for `perpetual` makes it perpetual.
+```
+license-issuer renew --private-key <key.der> --ledger <ledger.tsv> --term 1y <HELIX1-... | file> [--out <dir>]
+```
+It prints the renewed license key (for activating machines from now on) and, for every machine the license is
+activated on, a new activation code: the same activation, signed again with the new expiry. The customer installs
+it without sending a new request: `./license.sh install <code | file>`, or drop the `.helixact` file into the PDI
+folder (installed at the next start, even while the old activation is still valid), or, once expired, paste it in
+Spoon's activation window. The ledger records the renewal as a `renewed` line.
 
 ## Moving a license to another machine
 
@@ -103,7 +128,9 @@ the license file). If the clock is later set back by more than a day, PDI refuse
 (`qa/cve-remediation/verify_dist.py` check D7 enforces this), and it needs the private signing key.
 ```
 java -jar kettle-license-issuer-<version>.jar <command> ...      # kettle-license-<version>.jar next to it
-  issue    --private-key K --ledger L --customer C [--edition ce] [--expires-in-days N]
+  issue    --private-key K --ledger L --customer C [--edition ce] --term <1y | 2y | ... | perpetual>
+  issue    --private-key K --ledger L --customer C [--edition ce] --expires-in-days N          (a trial)
+  renew    --private-key K --ledger L --term <1y | ... | perpetual> <HELIX1-... | file> [--out DIR]
   activate --private-key K --ledger L <HELIXREQ-... | file>
   activate --private-key K --ledger L --unbound <HELIX1-... | file>
   release  --ledger L <HELIXREL-... | file>
@@ -111,7 +138,7 @@ java -jar kettle-license-issuer-<version>.jar <command> ...      # kettle-licens
   list     --ledger L [license id]
 ```
 The ledger is a tab-separated text file, only ever appended to (under a file lock):
-`time, event (issued | activated | released), license id, activation id, customer, edition, binding, note`.
+`time, event (issued | activated | released | renewed), license id, activation id, customer, edition, binding, note`.
 A license can be activated again only when all its activations are released, or by the same machine (the old
 activation is then recorded as replaced). Back it up like any other business record.
 

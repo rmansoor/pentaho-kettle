@@ -25,6 +25,7 @@ package org.pentaho.di.license.issuer;
 import org.pentaho.di.license.ActivationRequest;
 import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.license.LicenseKey;
+import org.pentaho.di.license.LicenseTerm;
 import org.pentaho.di.license.LicenseVerifier;
 import org.pentaho.di.license.ReleaseCode;
 
@@ -35,6 +36,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,13 +47,18 @@ import java.util.Map;
  * Internal, offline tool that issues licenses and keeps the ledger (never shipped to customers: it needs the
  * private signing key).
  * <pre>
- *   license-issuer issue    --private-key K --ledger L --customer C [--edition ce] [--expires-in-days N]
+ *   license-issuer issue    --private-key K --ledger L --customer C [--edition ce] --term &lt;1y | 2y | ... | perpetual&gt;
+ *   license-issuer renew    --private-key K --ledger L --term &lt;1y | ... | perpetual&gt; &lt;HELIX1-... | file&gt; [--out DIR]
  *   license-issuer activate --private-key K --ledger L &lt;HELIXREQ-... | file&gt;
  *   license-issuer activate --private-key K --ledger L --unbound &lt;HELIX1-... | file&gt;
  *   license-issuer release  --ledger L &lt;HELIXREL-... | file&gt;
  *   license-issuer release  --ledger L --activation-id ID --reason "..."
  *   license-issuer list     --ledger L [license id]
  * </pre>
+ * {@code issue --expires-in-days N} instead of {@code --term} issues a trial of N days. A renewal keeps the license id
+ * and adds the term to the current expiry; it prints the new license key and a new activation code for each machine
+ * the license is activated on.
+ * <p>
  * A license has one activation at a time. A new request for an activated license is refused, unless it comes
  * from the same machine (reinstalled, or the activation file lost): then the old activation is replaced.
  */
@@ -90,6 +98,8 @@ public final class LicenseIssuer {
     switch ( command ) {
       case "issue":
         return issue();
+      case "renew":
+        return renew();
       case "activate":
         return activate();
       case "release":
@@ -97,16 +107,70 @@ public final class LicenseIssuer {
       case "list":
         return list();
       default:
-        throw new IllegalArgumentException( "usage: license-issuer <issue | activate | release | list> ...  "
+        throw new IllegalArgumentException( "usage: license-issuer <issue | renew | activate | release | list> ...  "
           + "(see docs/licensing/README.md)" );
     }
   }
 
   private int issue() throws LicenseException, IOException {
-    Duration validFor = options.containsKey( "expires-in-days" )
-      ? Duration.ofDays( Integer.parseInt( options.get( "expires-in-days" ) ) ) : null;
-    emit( issuer( true ).issue( require( "customer" ), options.getOrDefault( "edition", "ce" ), validFor ).encode() );
+    String customer = require( "customer" );
+    String edition = options.getOrDefault( "edition", "ce" );
+    if ( options.containsKey( "expires-in-days" ) && !options.containsKey( "term" ) ) {
+      Duration trial = Duration.ofDays( Integer.parseInt( options.get( "expires-in-days" ) ) );
+      emit( issuer( true ).issue( customer, edition, trial ).encode() );
+    } else {
+      emit( issuer( true ).issue( customer, edition, term() ).encode() );
+    }
     return 0;
+  }
+
+  private int renew() throws LicenseException, IOException {
+    LicenseTerm term = term();
+    Issuer.Renewed renewed = issuer( true ).renew( LicenseKey.decode( text( single( "license key" ) ) ), term );
+    LicenseKey key = renewed.key;
+    out.println( "Renewed license " + key.getPayload().getLicenseId() + " (" + key.getPayload().getCustomerId()
+      + "): expires " + key.getPayload().expiryDate() + ", was " + Instant.ofEpochMilli( renewed.previousExpiry )
+      .atZone( ZoneOffset.UTC ).toLocalDate() + "." );
+    Path dir = options.containsKey( "out" ) ? Paths.get( options.get( "out" ) ) : null;
+    if ( dir != null ) {
+      Files.createDirectories( dir );
+    }
+    out.println();
+    out.println( "License key (replaces the old one, for activating machines from now on):" );
+    write( dir, "license-key.txt", renewed.code );
+    for ( Issuer.Reissued r : renewed.activations ) {
+      out.println();
+      out.println( "Activation code for activation " + r.activation.activationId + " (" + r.activation.note + "),"
+        + " to install on that machine:" );
+      write( dir, r.activation.activationId + ".helixact", r.code );
+    }
+    if ( renewed.activations.isEmpty() ) {
+      out.println();
+      out.println( "The license isn't activated anywhere: no activation codes to send." );
+    }
+    return 0;
+  }
+
+  /** --term (or --perpetual): required, so no license is perpetual by accident. */
+  private LicenseTerm term() {
+    if ( options.containsKey( "perpetual" ) ) {
+      return LicenseTerm.PERPETUAL;
+    }
+    if ( !options.containsKey( "term" ) ) {
+      throw new IllegalArgumentException( "say how long the license runs: --term 1y (2y, 3y, ...) or --term perpetual" );
+    }
+    return LicenseTerm.parse( options.get( "term" ) );
+  }
+
+  /** Prints {@code code}, and writes it to {@code dir/name} when there is a directory. */
+  private void write( Path dir, String name, String code ) throws IOException {
+    if ( dir == null ) {
+      out.println( code );
+      return;
+    }
+    Path file = dir.resolve( name );
+    Files.write( file, ( code + System.lineSeparator() ).getBytes( StandardCharsets.UTF_8 ) );
+    out.println( "  written to " + file );
   }
 
   private int activate() throws LicenseException, IOException {

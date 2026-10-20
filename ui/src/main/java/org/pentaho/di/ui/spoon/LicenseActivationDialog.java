@@ -98,8 +98,8 @@ public class LicenseActivationDialog {
     if ( message != null ) {
       note( c, message, true );
     }
-    note( c, "Paste the license key you received from Hitachi Vantara with your purchase. It starts with HELIX1-.",
-      false );
+    note( c, "Paste the license key you received from Hitachi Vantara with your purchase. It starts with HELIX1-."
+      + " Renewed an expired license? Paste the activation code that came with the renewal (HELIXACT-) here.", false );
     Text key = textBox( c, 4, false );
     Label error = errorLabel( c );
     Composite buttons = buttonRow( c, 3 );
@@ -107,6 +107,16 @@ public class LicenseActivationDialog {
     button( buttons, "Quit", shell::close );
     Button next = button( buttons, "Next", () -> {
       try {
+        if ( Activator.isActivationCode( key.getText() ) ) {
+          LicenseValidationResult result = new Activator().complete( key.getText() );
+          if ( result.isValid() ) {
+            activated = true;
+            shell.close();
+          } else {
+            showError( error, result.getMessage() );
+          }
+          return;
+        }
         showStepTwo( new Activator().start( key.getText() ), null );
       } catch ( LicenseException e ) {
         showError( error, e.getMessage() );

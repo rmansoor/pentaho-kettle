@@ -26,10 +26,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.pentaho.di.license.Activation;
 import org.pentaho.di.license.ActivationRequest;
 import org.pentaho.di.license.ActivationRequestFactory;
 import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.license.LicenseKey;
+import org.pentaho.di.license.LicensePayload;
+import org.pentaho.di.license.LicenseTerm;
+import org.pentaho.di.license.LicenseValidationResult;
 import org.pentaho.di.license.LicenseVerifier;
 import org.pentaho.di.license.ReleaseCode;
 
@@ -80,7 +84,7 @@ public class IssuerTest {
 
   @Test
   public void releaseCodeThenActivateAnotherMachine() throws Exception {
-    LicenseKey key = issuer.issue( "Acme Corp", "ce", null );
+    LicenseKey key = issuer.issue( "Acme Corp", "ce", LicenseTerm.PERPETUAL );
     Issuer.Activated first = issuer.activate( request( key, "a" ) );
     Issuer.Released released = issuer.release( new ReleaseCode( key.getPayload().getLicenseId(),
       first.activation.getActivationId(), 1L ) );
@@ -92,8 +96,8 @@ public class IssuerTest {
 
   @Test
   public void aReleaseCodeOfAnotherLicenseIsRefused() throws Exception {
-    LicenseKey key = issuer.issue( "Acme Corp", "ce", null );
-    LicenseKey other = issuer.issue( "Other Corp", "ce", null );
+    LicenseKey key = issuer.issue( "Acme Corp", "ce", LicenseTerm.PERPETUAL );
+    LicenseKey other = issuer.issue( "Other Corp", "ce", LicenseTerm.PERPETUAL );
     Issuer.Activated first = issuer.activate( request( key, "a" ) );
     try {
       issuer.release( new ReleaseCode( other.getPayload().getLicenseId(), first.activation.getActivationId(), 1L ) );
@@ -105,7 +109,7 @@ public class IssuerTest {
 
   @Test
   public void aReleaseWithoutCodeNeedsAReason() throws Exception {
-    LicenseKey key = issuer.issue( "Acme Corp", "ce", null );
+    LicenseKey key = issuer.issue( "Acme Corp", "ce", LicenseTerm.PERPETUAL );
     Issuer.Activated first = issuer.activate( request( key, "a" ) );
     try {
       issuer.releaseById( first.activation.getActivationId().toString(), " " );
@@ -116,10 +120,80 @@ public class IssuerTest {
     assertTrue( issuer.releaseById( first.activation.getActivationId().toString(), "disk failed" ).released );
   }
 
+  @Test
+  public void issuesForATermOfYears() throws Exception {
+    LicensePayload p = issuer.issue( "Acme Corp", "ee", LicenseTerm.years( 2 ) ).getPayload();
+    assertEquals( LicenseTerm.years( 2 ).expiresAt( p.getIssuedAt() ), p.getExpiresAt() );
+    assertTrue( issuer.ledger().entries().get( 0 ).note.startsWith( "2 years, expires " ) );
+    assertTrue( issuer.issue( "Acme Corp", "ee", LicenseTerm.PERPETUAL ).getPayload().isPerpetual() );
+  }
+
+  /** The new term starts at the old expiry, the license id stays, and activated machines get a new code. */
+  @Test
+  public void aRenewalAddsTheTermAndReissuesActivations() throws Exception {
+    LicenseKey key = issuer.issue( "Acme Corp", "ee", LicenseTerm.years( 1 ) );
+    LicensePayload old = key.getPayload();
+    Issuer.Activated first = issuer.activate( request( key, "a" ) );
+
+    Issuer.Renewed renewed = issuer.renew( key, LicenseTerm.years( 2 ) );
+    LicensePayload now = renewed.key.getPayload();
+    assertEquals( old.getLicenseId(), now.getLicenseId() );
+    assertEquals( "Acme Corp", now.getCustomerId() );
+    assertEquals( "ee", now.getEdition() );
+    assertEquals( LicenseTerm.years( 2 ).expiresAt( old.getExpiresAt() ), now.getExpiresAt() );
+    assertEquals( old.getExpiresAt(), renewed.previousExpiry );
+
+    assertEquals( 1, renewed.activations.size() );
+    Activation again = Activation.decode( renewed.activations.get( 0 ).code );
+    assertEquals( first.activation.getActivationId(), again.getActivationId() );
+    assertEquals( first.activation.getFingerprint(), again.getFingerprint() );
+    assertEquals( now, again.getLicense() );
+    // genuine and unexpired (for a made-up machine, so not this one)
+    assertEquals( LicenseValidationResult.Status.WRONG_MACHINE, new LicenseVerifier().verify( again ).getStatus() );
+
+    String licenseId = old.getLicenseId().toString();
+    assertEquals( 1, issuer.ledger().active( licenseId ).size() );
+    List<Ledger.Entry> entries = issuer.ledger().entries();
+    assertEquals( "renewed", entries.get( entries.size() - 1 ).event );
+    // the renewed key is still one license: another machine is refused
+    try {
+      issuer.activate( request( renewed.key, "b" ) );
+      fail( "expected a refusal" );
+    } catch ( LicenseException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( "already activated" ) );
+    }
+    // and the same machine with the renewed key replaces its activation
+    assertEquals( 1, issuer.activate( request( renewed.key, "a" ) ).replaced.size() );
+  }
+
+  @Test
+  public void anExpiredLicenseIsRenewedFromToday() throws Exception {
+    LicenseKey expired = issuer.issue( "Acme Corp", "ce", Duration.ofDays( -3 ) );
+    long before = System.currentTimeMillis();
+    Issuer.Renewed renewed = issuer.renew( expired, LicenseTerm.years( 1 ) );
+    long expiresAt = renewed.key.getPayload().getExpiresAt();
+    assertTrue( expiresAt >= LicenseTerm.years( 1 ).expiresAt( before ) );
+    assertTrue( expiresAt <= LicenseTerm.years( 1 ).expiresAt( System.currentTimeMillis() ) );
+    assertTrue( renewed.activations.isEmpty() );
+  }
+
+  @Test
+  public void renewingToPerpetualAndRenewingAPerpetualLicense() throws Exception {
+    LicenseKey key = issuer.issue( "Acme Corp", "ce", LicenseTerm.years( 1 ) );
+    LicenseKey perpetual = issuer.renew( key, LicenseTerm.PERPETUAL ).key;
+    assertTrue( perpetual.getPayload().isPerpetual() );
+    try {
+      issuer.renew( perpetual, LicenseTerm.years( 1 ) );
+      fail( "expected a refusal" );
+    } catch ( LicenseException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( "perpetual" ) );
+    }
+  }
+
   /** Two issuers on one ledger (the portal and the command line) never activate one license twice. */
   @Test
   public void concurrentActivationsOfOneLicenseGiveOneActivation() throws Exception {
-    LicenseKey key = issuer.issue( "Acme Corp", "ce", null );
+    LicenseKey key = issuer.issue( "Acme Corp", "ce", LicenseTerm.PERPETUAL );
     List<Callable<Boolean>> tasks = new ArrayList<>();
     for ( int i = 0; i < 8; i++ ) {
       ActivationRequest request = request( key, "m" + i );

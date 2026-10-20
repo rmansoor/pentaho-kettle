@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -163,6 +164,67 @@ public class LicenseEnforcementTest {
     } catch ( LicenseException e ) {
       assertTrue( e.getMessage(), e.getMessage().contains( "license.sh activate" ) );
     }
+  }
+
+  private static final long DAY = 24L * 60 * 60 * 1000;
+
+  private static LicenseValidationResult validFor( long expiresAt ) throws Exception {
+    LicensePayload payload = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, expiresAt );
+    return new LicenseVerifier().verify( Activation.sign( payload, UUID.randomUUID(), 0, null,
+      TestKeys.devPrivateKey() ) );
+  }
+
+  @Test
+  public void warnsInTheLastMonthBeforeExpiry() throws Exception {
+    long now = System.currentTimeMillis();
+    String warning = LicenseEnforcement.expiryWarning( validFor( now + 10 * DAY ), now ).get();
+    assertTrue( warning, warning.contains( "in 10 days" ) && warning.contains( "renew" ) );
+    assertTrue( LicenseEnforcement.expiryWarning( validFor( now + DAY / 2 ), now ).get().contains( "today" ) );
+    assertFalse( LicenseEnforcement.expiryWarning( validFor( now + 40 * DAY ), now ).isPresent() );
+    assertFalse( LicenseEnforcement.expiryWarning( validFor( 0 ), now ).isPresent() );
+    assertFalse( LicenseEnforcement.expiryWarning( null, now ).isPresent() );
+  }
+
+  @Test
+  public void anExpiredLicenseSaysHowToRenew() throws Exception {
+    LicensePayload expired = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, System.currentTimeMillis()
+      - DAY );
+    LicenseStore.write( Activation.sign( expired, UUID.randomUUID(), 0, null, TestKeys.devPrivateKey() ).encode() );
+    try {
+      LicenseEnforcement.requireLicensed();
+      fail( "expected a LicenseException" );
+    } catch ( LicenseException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( "renew" ) && e.getMessage().contains( ".helixact" ) );
+    }
+  }
+
+  /** A renewal's activation file dropped next to a valid license replaces it; other files are left alone. */
+  @Test
+  public void aDroppedRenewalReplacesTheValidLicense() throws Exception {
+    long now = System.currentTimeMillis();
+    UUID licenseId = UUID.randomUUID();
+    UUID activationId = UUID.randomUUID();
+    LicensePayload current = new LicensePayload( licenseId, "Acme Corp", "ce", 0, now + 10 * DAY );
+    LicenseStore.write( Activation.sign( current, activationId, 0, null, TestKeys.devPrivateKey() ).encode() );
+
+    java.nio.file.Path kettle = java.nio.file.Paths.get( LicenseStore.kettleDirectory() );
+    LicensePayload other = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, now + 400 * DAY );
+    java.nio.file.Path otherFile = kettle.resolve( "other.helixact" );
+    java.nio.file.Files.write( otherFile, Activation.sign( other, UUID.randomUUID(), 0, null,
+      TestKeys.devPrivateKey() ).encode().getBytes( "UTF-8" ) );
+    assertEquals( now + 10 * DAY, LicenseEnforcement.check().getPayload().getExpiresAt() );
+    assertTrue( java.nio.file.Files.exists( otherFile ) );
+    java.nio.file.Files.delete( otherFile );
+
+    LicensePayload renewed = new LicensePayload( licenseId, "Acme Corp", "ce", now, now + 375 * DAY );
+    java.nio.file.Path renewal = kettle.resolve( "renewal.helixact" );
+    java.nio.file.Files.write( renewal, Activation.sign( renewed, activationId, 0, null,
+      TestKeys.devPrivateKey() ).encode().getBytes( "UTF-8" ) );
+    LicenseValidationResult result = LicenseEnforcement.check();
+    assertTrue( result.isValid() );
+    assertEquals( now + 375 * DAY, result.getPayload().getExpiresAt() );
+    assertFalse( java.nio.file.Files.exists( renewal ) );
+    assertEquals( now + 375 * DAY, LicenseEnforcement.check().getPayload().getExpiresAt() );
   }
 
   /** An unbound activation: valid on any machine. */
