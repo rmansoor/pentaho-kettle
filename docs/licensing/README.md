@@ -37,6 +37,9 @@ PDI folder (or `~/.kettle`): PDI installs it at its next start and renames it `*
 For scripts, the two steps are also separate commands: `license request <key> [--out file]`, then
 `license install <code | file>`.
 
+Customers can also answer it themselves on the [license portal](#the-license-portal): paste the request (or upload
+its file), get the activation code back at once.
+
 At Hitachi Vantara, answering a request is one command:
 ```
 license-issuer activate --private-key <key.der> --ledger <ledger.tsv> HELIXREQ-...      # --out activation.helixact
@@ -81,7 +84,8 @@ Spoon's activation window. The ledger records the renewal as a `renewed` line.
 ./license.sh deactivate               # on the old machine: removes the activation, prints HELIXREL-...
 license-issuer release --ledger <ledger.tsv> HELIXREL-...                      # Hitachi Vantara
 ```
-Then activate the new machine as above. If the old machine is gone (hardware failure), Hitachi Vantara releases
+Then activate the new machine as above. On the [license portal](#the-license-portal) the customer pastes the release
+code on the license's page instead. If the old machine is gone (hardware failure), Hitachi Vantara releases
 the activation itself: `license-issuer release --ledger <ledger.tsv> --activation-id <id> --reason "..."`.
 
 A release can't be verified offline: a copy of the old machine could keep its activation. The release code is a
@@ -146,6 +150,72 @@ The ledger is a tab-separated text file, only ever appended to (under a file loc
 `time, event (issued | activated | released | renewed), license id, activation id, customer, edition, binding, note`.
 A license can be activated again only when all its activations are released, or by the same machine (the old
 activation is then recorded as replaced). Back it up like any other business record.
+
+## The license portal
+
+The customer-facing site for all of the above, in its own repository (`rmansoor/pdi-license-portal`, a Spring Boot
+application in Docker with Postgres). It uses `license-issuer`'s `Issuer` and `Ledger`, so the portal and the command
+line can share one ledger file. People sign in through any OpenID Connect provider (Keycloak, Microsoft Entra ID,
+Okta, Auth0, ...); administrators are a group or app role there.
+
+**Customers** request a license (edition, term, what it's for), activate machines (paste the `HELIXREQ-` request,
+get the `HELIXACT-` code or a `.helixact` file), release them with the `HELIXREL-` code, and request renewals. They
+see their organization's licenses only. Colleagues join an organization through a verified email domain the
+administrators add, or when their own request is approved.
+
+**Administrators** approve or reject requests (issuing the key to a new or existing organization), renew, release
+an activation without its code (machine gone, with a reason), issue unbound activations for containers, and see
+every license, the activity log and the ledger.
+
+**Email** (any SMTP server):
+
+| Who | About what |
+|---|---|
+| Administrators | each new request and renewal request; which were approved automatically, or why not; each activation and release (can be turned off); once a day, which customers were reminded about expiry |
+| The requester | the decision, with the reason for a rejection |
+| The organization's members | licenses issued to it, renewals (with the new activation codes to install), and expiry reminders 60, 30 and 7 days before and when the grace period starts |
+
+**REST API** (`/api/v1`): everything above as JSON, for scripts and automation. A user creates a token on the
+portal's **API tokens** page (shown once, stored hashed, revocable, expiring after 30 days, 90 days, a year or never)
+and sends it as `Authorization: Bearer pdil_...`. A customer's token acts as that customer; an administrator can
+give a token administrator rights for `/api/v1/admin/**`.
+
+| Call | |
+|---|---|
+| `GET /api/v1/licenses`, `/licenses/{id}` | the organization's licenses; one with its key and activations |
+| `POST /api/v1/requests`, `/licenses/{id}/renewal` | a license or renewal request; the answer says whether it was approved at once |
+| `POST /api/v1/activations` | `{"request": "HELIXREQ-...", "machine"}`: the activation code |
+| `POST /api/v1/licenses/{id}/release` | `{"releaseCode": "HELIXREL-..."}` |
+| `GET /api/v1/admin/requests` | pending requests, each with what auto-approval made of it |
+| `POST /api/v1/admin/requests/{id}/approve`, `/reject` | decide a request |
+| `GET /api/v1/admin/licenses?expiringWithinDays=30` | licenses expiring soon (and those in their grace period) |
+| `POST /api/v1/admin/licenses/{id}/renew`, `/release` | renew; release without a code |
+| `GET /api/v1/admin/events?since=<time>` | the activity log since a time, oldest first, for polling |
+
+A script that activates the machine it runs on:
+```
+./license.sh request "$LICENSE_KEY" --out activation-request.txt
+jq -n --rawfile r activation-request.txt --arg m "$(hostname)" '{request: $r, machine: $m}' \
+  | curl -sf -H "Authorization: Bearer $PDI_TOKEN" -H 'Content-Type: application/json' -d @- \
+      https://licensing.example.com/api/v1/activations \
+  | jq -r .code > activation.helixact
+./license.sh install activation.helixact
+```
+
+**Auto-approval** (off by default): a request is approved the moment it's sent when every rule holds, and otherwise
+waits for an administrator, whose email and request page list the rules that held it back. The rules:
+- the requester's email address is verified by the identity provider;
+- the edition is one of a list (default `ce`), and the term one of a list (default `1y`; renewals too);
+- the requester belongs to an organization that would then hold at most N unexpired licenses (default 3). New
+  customers only with a separate switch, and then only at a company email domain no organization has;
+- at most N requests from them in 24 hours (default 3), and none rejected in the last 30 days;
+- the purpose is more than a few words;
+- renewals of the requester's own organization's licenses qualify too (can be turned off).
+
+The approver is recorded as *Auto-approval* in the activity log and on the request.
+
+The portal's `README.md` lists every API call and setting; `deploy/README.md` puts it on one VM (Oracle Cloud,
+AWS or Azure) with HTTPS, Keycloak or Entra External ID, email and nightly backups.
 
 ## ⚠️ Before any customer-facing build
 
