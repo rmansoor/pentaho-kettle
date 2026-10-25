@@ -300,34 +300,77 @@ up seats.
 | `DELETE /v1/leases/{instance}` | released (clean exit) |
 | `GET /v1/usage` | leases now; peaks per day; refusals |
 
-### Failure behaviour
+### When the server can't be reached: 24 hours
 
-- **A process that can't renew keeps running.** It runs until its lease ends plus an **outage allowance** (signed
-  in the server activation, for example 72 hours), logging errors. A server restart or a network blip never stops
-  running work.
-- **Starting without a lease while the server is unreachable** is refused under a hard limit. Under a soft limit
-  it's allowed, with errors, for up to the outage allowance. *Decision needed.*
+The server activation carries a signed **outage allowance**, 24 hours by default (set per customer when it is
+issued). Within it, PDI keeps working; after it, new processes stop starting. Running jobs are never stopped
+mid-run.
+
+- **Running processes** keep running when renewing fails, logging an error at each failed renewal. When the
+  allowance has passed since their last renewal:
+  - Pan and Kitchen finish the job they are running;
+  - Carte keeps running what it has, refuses new transformations and jobs, and accepts them again once the server
+    answers.
+- **New processes use the outage pass.** While the server is healthy, it keeps a signed **outage pass** in the
+  shared slot folder (tier 2's `HELIX_LICENSE_SLOTS`) and refreshes it every minute. The pass says: license X, at
+  most N processes, valid until 24 hours after the server last answered. A process that can't reach the server:
+  1. verifies the pass with the same chain as a lease (embedded key → server activation → server key);
+  2. takes a slot in the folder, exactly as in tier 2;
+  3. starts, logging an error that it runs on the outage pass and until when.
+  - So during an outage the limit is still counted, at tier-2 strength. Blocking the server on purpose gains
+    nothing: the folder still counts, and after 24 hours nothing new starts.
+  - After the pass has expired, a new process is refused. The message names the server, when it last answered, and
+    the folder.
+- **Without a shared folder** there is nothing to count against during an outage. A hard limit then refuses new
+  processes at once, and a soft limit lets them start uncounted, with errors, for the 24 hours. Mounting a slot
+  folder is therefore recommended for every server-counted deployment.
 - **The server keeps its lease table on disk.** After a restart it honours the leases that haven't expired, so it
   never hands out N more.
+- **Clocks:** the pass and leases carry the server's time. PDI allows 2 minutes of skew, and its clock-rollback check
+  (`.helix-license.seen`) applies to passes too.
 
-### Where the server runs, and its limit
+### Copies of the server
 
-On a VM, the server activation is bound to the VM, as any activation is. In Kubernetes (a StatefulSet with a
-persistent volume), the identity is the key pair on the volume. Copying the volume would copy the server and
-double the seats. Two ways to deal with that:
-- **Signed usage reports:** the server signs monthly peak usage, and the customer sends the reports at renewal, so
-  a second server shows up as a gap or a duplicate.
-- **Optional periodic re-activation:** server activations that expire every 90 days and are renewed through the
-  portal. This is offline-capable but not offline-free. *Decision needed.*
+Nothing that stays fully offline can stop a copy outright: whatever a server stores, a customer can duplicate. The
+design makes a copy short-lived and detectable, in three layers.
+
+1. **The server is bound to where it runs.**
+   - On a VM, the activation carries the machine fingerprint, as any bound activation.
+   - In Kubernetes, it also carries the cluster's identity: the UID of the `kube-system` namespace, which is stable
+     for the life of a cluster, read through the API with a read-only role.
+   - A volume copied to another VM or cluster refuses to start without a new activation. A second copy in the same
+     cluster isn't caught by this layer.
+2. **One server per folder.** The server holds an exclusive lock on `server.lock` in the shared slot folder for as
+   long as it runs, like tier 2's sampler. A second server for the same license and folder refuses to start, naming
+   the host that holds the lock. Using another folder is a deliberate act, as in tier 2.
+3. **Server activations expire, and renewing them continues a chain.** This is the layer that catches a copy for
+   certain.
+   - A server activation is valid for a **period**: 90 days by default, from 30 to 365 per customer.
+   - **Renewing works like activation:** the server writes a renewal request, the customer sends it (portal,
+     API or file) and installs the code that comes back. Air-gapped customers move one file per period.
+     Connected customers automate it with a scheduled call to the portal API.
+   - **Each request carries the head of a hash chain** of what the server did since its last renewal: monthly lease
+     peaks and refusals, its restarts, and the previous head.
+   - **The issuer accepts only a continuation of the chain it last recorded.** A copied server forks the chain.
+     The first fork to renew wins, and the other can never renew: it stops issuing leases when its period ends,
+     after the 14-day grace period. The ledger records the fork, for an audit conversation with the customer.
+   - **The chain is also the usage report:** the peaks per month reach Hitachi Vantara with each renewal, signed by
+     the server key.
+
+**What is left:** a copy that runs for up to one period plus grace without ever renewing. It is caught at the next
+renewal, and a shorter period shortens the window. Only an online check-in or hardware-held keys (TPM, cloud KMS)
+would close it; both are out of scope, and the first breaks the offline requirement.
 
 ### Stories
 
 **EN-1. Activate a license server.**
-- [ ] `license-server init` generates the key pair (private key file mode 600) and prints a `HELIXSRVREQ-`
-  request carrying the fingerprint and public key.
-- [ ] `license-issuer activate` (and the portal) answer it with a server activation: `counting = server`, N, the
-  outage allowance and the server key, signed.
-- [ ] A server activation installed on another machine is refused (fingerprint), as any bound activation.
+- [ ] `license-server init` generates the key pair (private key file mode 600) and prints a `HELIXSRVREQ-` request.
+  The request carries the fingerprint, the cluster identity when in Kubernetes, the public key, and the chain's
+  first head.
+- [ ] `license-issuer activate` (and the portal) answer it with a server activation, signed. It carries
+  `counting = server`, N, the outage allowance (default 24 hours), the period (default 90 days), the server key and
+  the bindings.
+- [ ] A server activation on another machine or cluster is refused, saying which binding differs.
 
 **EN-2. Hand out at most N leases.**
 - [ ] The server issues a lease only while fewer than N are unexpired. Otherwise it answers 409 with
@@ -346,26 +389,46 @@ double the seats. Two ways to deal with that:
 - [ ] A lease made for another process, a replayed one, or one from a server not activated for this license is
   refused (tests for each).
 
-**EN-4. Outages don't stop running work.**
-- [ ] With the server down, running processes keep running until lease expiry plus the outage allowance, logging
-  an error at each failed renewal.
-- [ ] New starts during an outage follow the decision above.
+**EN-4. 24 hours without the server.**
+- [ ] Running processes keep running when renewing fails, logging an error each time. Past the allowance, Carte
+  refuses new work until the server answers again; Pan and Kitchen finish their job.
+- [ ] The server writes a signed outage pass into the slot folder every minute, valid until the allowance after its
+  last answer.
+- [ ] A new process that can't reach the server verifies the pass, takes a folder slot as in tier 2, and starts
+  with an error naming the deadline. With an expired, forged or other license's pass, it is refused.
+- [ ] Without a folder: refused at once under a hard limit; uncounted with errors for the allowance under a soft
+  one.
+- [ ] Test: stop the server, start N processes on the pass (N+1 is refused), move the clock past 24 hours, and a
+  new start is refused.
 
-**EN-5. Packaged to run.**
-- [ ] A Docker image and a Helm chart (a StatefulSet with a persistent volume) for the server. A systemd unit for
-  VMs. A health endpoint and Prometheus metrics: leases in use, refusals, renew failures.
+**EN-5. Copies of the server are refused or caught.**
+- [ ] The server holds `server.lock` in the slot folder. A second server for the license and folder refuses to
+  start, naming the holder.
+- [ ] The server activation is bound to the cluster identity in Kubernetes; a copy in another cluster refuses to
+  start.
+- [ ] Server activations expire after their period, with 14 days of grace. `license-server renew` writes the
+  renewal request with the chain head and monthly peaks, and `license-server install` takes the new code.
+- [ ] The issuer accepts a renewal only if it continues the last recorded chain. A fork is refused, recorded in
+  the ledger (`forked`), and shown to administrators on the portal.
+- [ ] Test: copy a server's volume, renew one copy, then try to renew the other: refused as a fork. The refused
+  copy stops issuing leases at its period's end plus grace.
 
-**EN-6. Usage reports for renewal.**
-- [ ] `GET /v1/usage` and `license-server report --month 2026-10` give peak concurrency per day and refusals,
-  signed by the server key.
-- [ ] `license-issuer verify-report` checks a report against the server activation.
+**EN-6. Packaged to run.**
+- [ ] A Docker image and a Helm chart (a StatefulSet with a persistent volume, and a read-only role to read the
+  `kube-system` namespace) for the server. A systemd unit for VMs.
+- [ ] A health endpoint and Prometheus metrics: leases in use, refusals, renew failures, outage pass expiry,
+  activation expiry.
 
-**EN-7. The portal issues server activations.**
-- [ ] Administrators answer a `HELIXSRVREQ-` like an activation request. Customers see their server activations
-  on the license page.
+**EN-7. The portal issues and renews server activations.**
+- [ ] Administrators answer a `HELIXSRVREQ-` like an activation request, choosing the allowance and the period.
+- [ ] Renewal requests are answered automatically when they continue the chain. Forks wait for an administrator.
+- [ ] `POST /api/v1/server-activations/renewals` lets a connected server renew itself on a schedule.
+- [ ] Customers see their servers, the next renewal date and the monthly peaks on the license page. Reminders go
+  out 14 and 3 days before a server activation expires.
 
 **EN-8. Security review before release.**
-- [ ] TLS and client-token configuration are reviewed; leases can't be replayed across processes or servers.
+- [ ] TLS and client-token configuration are reviewed; leases and outage passes can't be replayed across
+  processes, licenses or servers.
 - [ ] Clock-skew tolerance between server and clients is set (2 minutes) and documented.
 
 ---
@@ -377,5 +440,5 @@ double the seats. Two ways to deal with that:
 | 1 | Hard or soft limit by default | hard (`refuse`); soft per customer with `--over-limit warn` |
 | 2 | Default wait for a slot or lease | 0 seconds; customers with schedulers set `HELIX_LICENSE_WAIT` |
 | 3 | Does Spoon count? | yes: it's a PDI process like any other |
-| 4 | Tier 3: starting during a server outage | refuse under a hard limit, allow with errors under a soft limit |
-| 5 | Tier 3: copies of the server volume | signed usage reports; periodic re-activation only for customers who accept it |
+| 4 | Tier 3: starting during a server outage | decided 2026-10-25: 24 hours, new processes counted in the slot folder on a signed outage pass; after that, new processes refused and running ones finish |
+| 5 | Tier 3: copies of the server volume | decided 2026-10-25: bound to VM or cluster, one server per folder, and server activations that expire (90 days by default) and renew as a hash chain, so a copy forks and is refused |
