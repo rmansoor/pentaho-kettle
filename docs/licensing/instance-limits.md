@@ -5,8 +5,8 @@ processes**: "up to 300 at once", in containers, in the cloud or on ordinary mac
 stay offline: no PDI process ever contacts Hitachi Vantara.
 
 Status, 2026-10-25:
-- **Tiers 1 and 2** are implemented in `kettle-license` and `kettle-license-issuer` on 9.4-jdk21-cve and 10.1-jdk21-cve, apart from the
-  portal story TR-5.
+- **Tiers 1 and 2** are implemented in `kettle-license` and `kettle-license-issuer` on 9.4-jdk21-cve and 10.1-jdk21-cve. The license portal
+  (TR-5) is done too, in `pdi-license-portal` a28edc5.
 - **Verified:** 125 unit tests, including real separate JVMs sharing a folder. Also end to end with Kitchen from PDI
   9.4.0.0-349 and the new jars, against a 2-process license:
   - two Kitchens ran and a third was refused (exit 7);
@@ -112,16 +112,17 @@ customer buys more or fewer processes, without waiting for the renewal date.
 - [x] The ledger records the change (`renewed` with the old and the new limit in the note).
 - [x] `Issuer.renew(key, term, limit)` and `Issuer.change(key, limit)` for programs.
 
-**TR-5. The portal issues and shows limits.** *Not started (portal repository).*
+**TR-5. The portal issues and shows limits.** *Implemented (pdi-license-portal a28edc5, 5 new tests).*
 As an administrator on the license portal, I want to set the limit when I approve a request or renew, and
 customers want to see it.
-- [ ] The request form asks how many PDI processes will run at once (optional; empty means no limit).
-- [ ] Approve, direct issue and renewal let the administrator set the limit, the counting method and hard or
-  soft.
-- [ ] License pages, emails and `GET /api/v1/licenses/{id}` show the limit.
-- [ ] Auto-approval never issues a limit above a configured maximum (`PORTAL_AUTO_APPROVE_MAX_INSTANCES`);
+- [x] The request form asks how many PDI processes will run at once (optional; empty means no limit).
+- [x] Approve, direct issue and renewal let the administrator set the limit, the counting method and hard or
+  soft. The license's page also changes it mid-term, keeping the expiry.
+- [x] License pages, emails and `GET /api/v1/licenses/{id}` show the limit.
+  `POST /api/v1/admin/licenses/{id}/instances` changes it.
+- [x] Auto-approval never issues a limit above a configured maximum (`PORTAL_AUTO_APPROVE_MAX_INSTANCES`);
   above it, the request waits for an administrator, who sees why.
-- [ ] Flyway migration V5 adds the columns; existing licenses show "no limit".
+- [x] Flyway migration V5 adds the columns; existing licenses show "no limit".
 
 ---
 

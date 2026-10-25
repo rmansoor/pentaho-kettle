@@ -230,7 +230,7 @@ see their organization's licenses only. Colleagues join an organization through 
 administrators add, or when their own request is approved.
 
 **Administrators** approve or reject requests (issuing the key to a new or existing organization), renew, release
-an activation without its code (machine gone, with a reason), issue unbound activations for containers, and see
+an activation without its code (machine gone, with a reason), issue unbound activations for containers, set or change a license's number of PDI processes at once (instance limit), and see
 every license, the activity log and the ledger.
 
 **Email** (any SMTP server):
