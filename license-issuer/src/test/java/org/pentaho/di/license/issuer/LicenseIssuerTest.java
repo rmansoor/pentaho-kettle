@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.pentaho.di.license.Activation;
 import org.pentaho.di.license.LicenseException;
+import org.pentaho.di.license.InstanceLimit;
 import org.pentaho.di.license.LicenseKey;
 import org.pentaho.di.license.MachineFingerprint;
 import org.pentaho.di.license.ReleaseCode;
@@ -182,6 +183,47 @@ public class LicenseIssuerTest {
       fail( "expected a refusal" );
     } catch ( LicenseException e ) {
       // refused
+    }
+  }
+
+  @Test
+  public void issuesAndChangesAnInstanceLimit() throws Exception {
+    String key = run( "issue", "--private-key", DEV_KEY, "--ledger", ledger, "--customer", "Acme Corp", "--term", "1y",
+      "--instances", "300", "--over-limit", "warn" );
+    InstanceLimit limit = LicenseKey.decode( key ).getPayload().getInstanceLimit();
+    assertEquals( InstanceLimit.of( 300, InstanceLimit.Counting.FOLDER, true ), limit );
+
+    String declared = run( "issue", "--private-key", DEV_KEY, "--ledger", ledger, "--customer", "Acme Corp", "--term",
+      "1y", "--instances", "20", "--counting", "declared" );
+    assertEquals( InstanceLimit.of( 20, InstanceLimit.Counting.DECLARED, false ),
+      LicenseKey.decode( declared ).getPayload().getInstanceLimit() );
+
+    // --instances alone keeps the counting and the soft limit
+    String out = run( "change", "--private-key", DEV_KEY, "--ledger", ledger, "--instances", "500", key );
+    assertTrue( out, out.startsWith( "Changed license " ) );
+    assertTrue( out, out.contains( "up to 500 at once, counted in a shared folder (over the limit: allowed, with a"
+      + " warning), was up to 300" ) );
+    assertTrue( out, out.contains( "The license isn't activated anywhere" ) );
+
+    String none = run( "change", "--private-key", DEV_KEY, "--ledger", ledger, "--instances", "none", key );
+    assertTrue( none, none.contains( ": no limit, was up to 300" ) );
+  }
+
+  @Test
+  public void refusesNonsenseLimits() throws Exception {
+    String[][] wrong = {
+      { "--instances", "0" }, { "--instances", "many" }, { "--instances", "3", "--counting", "server" },
+      { "--instances", "3", "--over-limit", "maybe" }, { "--counting", "folder" } };
+    for ( String[] options : wrong ) {
+      List<String> args = new java.util.ArrayList<>( java.util.Arrays.asList( "issue", "--private-key", DEV_KEY,
+        "--ledger", ledger, "--customer", "Acme Corp", "--term", "1y" ) );
+      args.addAll( java.util.Arrays.asList( options ) );
+      try {
+        run( args.toArray( new String[ 0 ] ) );
+        fail( "expected a refusal of " + args );
+      } catch ( IllegalArgumentException e ) {
+        // expected
+      }
     }
   }
 }

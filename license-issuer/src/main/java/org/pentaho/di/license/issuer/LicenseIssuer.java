@@ -23,6 +23,7 @@
 package org.pentaho.di.license.issuer;
 
 import org.pentaho.di.license.ActivationRequest;
+import org.pentaho.di.license.InstanceLimit;
 import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.license.LicenseKey;
 import org.pentaho.di.license.LicenseTerm;
@@ -49,6 +50,7 @@ import java.util.Map;
  * <pre>
  *   license-issuer issue    --private-key K --ledger L --customer C [--edition ce] --term &lt;1y | 2y | ... | perpetual&gt;
  *   license-issuer renew    --private-key K --ledger L --term &lt;1y | ... | perpetual&gt; &lt;HELIX1-... | file&gt; [--out DIR]
+ *   license-issuer change   --private-key K --ledger L --instances &lt;N | none&gt; &lt;HELIX1-... | file&gt; [--out DIR]
  *   license-issuer activate --private-key K --ledger L &lt;HELIXREQ-... | file&gt;
  *   license-issuer activate --private-key K --ledger L --unbound &lt;HELIX1-... | file&gt;
  *   license-issuer release  --ledger L &lt;HELIXREL-... | file&gt;
@@ -58,6 +60,11 @@ import java.util.Map;
  * {@code issue --expires-in-days N} instead of {@code --term} issues a trial of N days. A renewal keeps the license id
  * and adds the term to the current expiry; it prints the new license key and a new activation code for each machine
  * the license is activated on.
+ * <p>
+ * {@code --instances N} (issue, renew, change) limits the license to N PDI processes at once, with
+ * {@code --counting declared | folder} (default folder: counted in a folder they share) and
+ * {@code --over-limit refuse | warn} (default refuse); see {@code docs/licensing/instance-limits.md}. A renewal keeps
+ * the limit unless one of these is given; {@code change} changes it and keeps the expiry.
  * <p>
  * A license has one activation at a time. A new request for an activated license is refused, unless it comes
  * from the same machine (reinstalled, or the activation file lost): then the old activation is replaced.
@@ -100,6 +107,8 @@ public final class LicenseIssuer {
         return issue();
       case "renew":
         return renew();
+      case "change":
+        return change();
       case "activate":
         return activate();
       case "release":
@@ -107,7 +116,8 @@ public final class LicenseIssuer {
       case "list":
         return list();
       default:
-        throw new IllegalArgumentException( "usage: license-issuer <issue | renew | activate | release | list> ...  "
+        throw new IllegalArgumentException( "usage: license-issuer <issue | renew | change | activate | release | list>"
+          + " ...  "
           + "(see docs/licensing/README.md)" );
     }
   }
@@ -117,20 +127,79 @@ public final class LicenseIssuer {
     String edition = options.getOrDefault( "edition", "ce" );
     if ( options.containsKey( "expires-in-days" ) && !options.containsKey( "term" ) ) {
       Duration trial = Duration.ofDays( Integer.parseInt( options.get( "expires-in-days" ) ) );
-      emit( issuer( true ).issue( customer, edition, trial ).encode() );
+      emit( issuer( true ).issue( customer, edition, trial, limit( InstanceLimit.NONE ) ).encode() );
     } else {
-      emit( issuer( true ).issue( customer, edition, term() ).encode() );
+      emit( issuer( true ).issue( customer, edition, term(), limit( InstanceLimit.NONE ) ).encode() );
     }
     return 0;
   }
 
   private int renew() throws LicenseException, IOException {
     LicenseTerm term = term();
-    Issuer.Renewed renewed = issuer( true ).renew( LicenseKey.decode( text( single( "license key" ) ) ), term );
+    LicenseKey current = LicenseKey.decode( text( single( "license key" ) ) );
+    Issuer.Renewed renewed = issuer( true ).renew( current, term, changesLimit()
+      ? limit( current.getPayload().getInstanceLimit() ) : null );
     LicenseKey key = renewed.key;
     out.println( "Renewed license " + key.getPayload().getLicenseId() + " (" + key.getPayload().getCustomerId()
       + "): expires " + key.getPayload().expiryDate() + ", was " + Instant.ofEpochMilli( renewed.previousExpiry )
       .atZone( ZoneOffset.UTC ).toLocalDate() + "." );
+    return printReissued( renewed );
+  }
+
+  private int change() throws LicenseException, IOException {
+    if ( !changesLimit() ) {
+      throw new IllegalArgumentException( "say what to change: --instances <N | none>, --counting, --over-limit" );
+    }
+    LicenseKey current = LicenseKey.decode( text( single( "license key" ) ) );
+    Issuer.Renewed changed = issuer( true ).change( current, limit( current.getPayload().getInstanceLimit() ) );
+    out.println( "Changed license " + changed.key.getPayload().getLicenseId() + " (" + changed.key.getPayload()
+      .getCustomerId() + "): " + changed.key.getPayload().getInstanceLimit().describe() + ", was "
+      + current.getPayload().getInstanceLimit().describe() + "." );
+    return printReissued( changed );
+  }
+
+  private boolean changesLimit() {
+    return options.containsKey( "instances" ) || options.containsKey( "counting" )
+      || options.containsKey( "over-limit" );
+  }
+
+  /**
+   * The limit {@code --instances}, {@code --counting} and {@code --over-limit} ask for, each defaulting to
+   * {@code base}'s (to folder and refuse when {@code base} has none); {@code --instances none} removes it.
+   */
+  private InstanceLimit limit( InstanceLimit base ) {
+    String instances = options.get( "instances" );
+    if ( instances != null && instances.trim().equalsIgnoreCase( "none" ) ) {
+      return InstanceLimit.NONE;
+    }
+    if ( instances == null && !base.isLimited() ) {
+      if ( options.containsKey( "counting" ) || options.containsKey( "over-limit" ) ) {
+        throw new IllegalArgumentException( "--counting and --over-limit need --instances N" );
+      }
+      return InstanceLimit.NONE;
+    }
+    int max;
+    try {
+      max = instances == null ? base.getMax() : Integer.parseInt( instances.trim() );
+    } catch ( NumberFormatException e ) {
+      throw new IllegalArgumentException( "--instances is a number of PDI processes, or none, not '" + instances + "'" );
+    }
+    InstanceLimit.Counting counting = options.containsKey( "counting" )
+      ? InstanceLimit.Counting.parse( options.get( "counting" ) )
+      : base.isLimited() ? base.getCounting() : InstanceLimit.Counting.FOLDER;
+    boolean soft = base.isLimited() && base.isSoft();
+    if ( options.containsKey( "over-limit" ) ) {
+      String overLimit = options.get( "over-limit" ).trim();
+      if ( !overLimit.equals( "refuse" ) && !overLimit.equals( "warn" ) ) {
+        throw new IllegalArgumentException( "--over-limit is refuse or warn, not '" + overLimit + "'" );
+      }
+      soft = overLimit.equals( "warn" );
+    }
+    return InstanceLimit.of( max, counting, soft );
+  }
+
+  /** The new license key and an activation code for each machine the license is activated on. */
+  private int printReissued( Issuer.Renewed renewed ) throws IOException {
     Path dir = options.containsKey( "out" ) ? Paths.get( options.get( "out" ) ) : null;
     if ( dir != null ) {
       Files.createDirectories( dir );

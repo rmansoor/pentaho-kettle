@@ -32,14 +32,18 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * The data a license key carries. Kept deliberately minimal for the "does this customer have a
- * purchased license" phase &mdash; no seat count, no machine binding, no entitlements list yet. Those
- * can be added as new fields behind a bumped {@link #FORMAT_VERSION} without breaking older keys.
+ * The data a license key carries: who it is for, the edition, the term, and optionally an {@link InstanceLimit}
+ * (how many PDI processes may run at once). Machine binding is the {@link Activation}'s business.
+ * <p>
+ * A payload without a limit is written as format version 1, byte for byte as before limits existed, so every key
+ * and activation issued then keeps its signature; one with a limit is version 2.
  */
 public final class LicensePayload {
 
-  /** Bump when the wire format changes. A verifier must reject a payload version it doesn't know. */
-  public static final byte FORMAT_VERSION = 1;
+  /** The newest format version. A verifier must reject a payload version it doesn't know. */
+  public static final byte FORMAT_VERSION = 2;
+  /** A payload without an instance limit. */
+  static final byte FORMAT_VERSION_NO_LIMIT = 1;
 
   private static final long DAY_MILLIS = 24L * 60 * 60 * 1000;
 
@@ -49,13 +53,21 @@ public final class LicensePayload {
   private final long issuedAt;
   /** Epoch millis, or 0 for a perpetual (non-expiring) license. */
   private final long expiresAt;
+  private final InstanceLimit instanceLimit;
 
+  /** A license without an instance limit. */
   public LicensePayload( UUID licenseId, String customerId, String edition, long issuedAt, long expiresAt ) {
+    this( licenseId, customerId, edition, issuedAt, expiresAt, InstanceLimit.NONE );
+  }
+
+  public LicensePayload( UUID licenseId, String customerId, String edition, long issuedAt, long expiresAt,
+                         InstanceLimit instanceLimit ) {
     this.licenseId = Objects.requireNonNull( licenseId, "licenseId" );
     this.customerId = Objects.requireNonNull( customerId, "customerId" );
     this.edition = Objects.requireNonNull( edition, "edition" );
     this.issuedAt = issuedAt;
     this.expiresAt = expiresAt;
+    this.instanceLimit = Objects.requireNonNull( instanceLimit, "instanceLimit" );
   }
 
   public UUID getLicenseId() {
@@ -76,6 +88,11 @@ public final class LicensePayload {
 
   public long getExpiresAt() {
     return expiresAt;
+  }
+
+  /** How many PDI processes may run at once; {@link InstanceLimit#NONE} for licenses without a limit. */
+  public InstanceLimit getInstanceLimit() {
+    return instanceLimit;
   }
 
   public boolean isPerpetual() {
@@ -102,7 +119,8 @@ public final class LicensePayload {
 
   /**
    * Serializes to the signed byte form: 1-byte format version, 16-byte license id, length-prefixed
-   * customerId and edition (UTF-8), 8-byte issuedAt, 8-byte expiresAt.
+   * customerId and edition (UTF-8), 8-byte issuedAt, 8-byte expiresAt; version 2 adds the instance limit:
+   * 4-byte maximum, 1-byte counting, 1-byte flags (bit 0: soft limit).
    */
   byte[] toBytes() {
     byte[] customerIdBytes = customerId.getBytes( StandardCharsets.UTF_8 );
@@ -116,7 +134,7 @@ public final class LicensePayload {
 
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     try ( DataOutputStream out = new DataOutputStream( buffer ) ) {
-      out.writeByte( FORMAT_VERSION );
+      out.writeByte( instanceLimit.isLimited() ? FORMAT_VERSION : FORMAT_VERSION_NO_LIMIT );
       out.writeLong( licenseId.getMostSignificantBits() );
       out.writeLong( licenseId.getLeastSignificantBits() );
       out.writeShort( customerIdBytes.length );
@@ -125,6 +143,11 @@ public final class LicensePayload {
       out.write( editionBytes );
       out.writeLong( issuedAt );
       out.writeLong( expiresAt );
+      if ( instanceLimit.isLimited() ) {
+        out.writeInt( instanceLimit.getMax() );
+        out.writeByte( instanceLimit.getCounting().code );
+        out.writeByte( instanceLimit.isSoft() ? InstanceLimit.SOFT_FLAG : 0 );
+      }
     } catch ( IOException e ) {
       // writing to an in-memory buffer never actually fails
       throw new UncheckedIOException( e );
@@ -135,7 +158,7 @@ public final class LicensePayload {
   static LicensePayload fromBytes( byte[] bytes ) throws LicenseException {
     try ( DataInputStream in = new DataInputStream( new java.io.ByteArrayInputStream( bytes ) ) ) {
       int version = in.readUnsignedByte();
-      if ( version != FORMAT_VERSION ) {
+      if ( version != FORMAT_VERSION_NO_LIMIT && version != FORMAT_VERSION ) {
         throw new LicenseException( "Unsupported license payload version: " + version );
       }
       long msb = in.readLong();
@@ -155,7 +178,21 @@ public final class LicensePayload {
       long issuedAt = in.readLong();
       long expiresAt = in.readLong();
 
-      return new LicensePayload( licenseId, customerId, edition, issuedAt, expiresAt );
+      InstanceLimit limit = InstanceLimit.NONE;
+      if ( version == FORMAT_VERSION ) {
+        int max = in.readInt();
+        InstanceLimit.Counting counting = InstanceLimit.Counting.ofCode( in.readUnsignedByte() );
+        int flags = in.readUnsignedByte();
+        if ( max < 1 ) {
+          // a limit of 0 would be written as version 1: this payload wasn't made by the issuer
+          throw new LicenseException( "Malformed license payload: instance limit " + max );
+        }
+        limit = InstanceLimit.of( max, counting, ( flags & InstanceLimit.SOFT_FLAG ) != 0 );
+      }
+      if ( in.available() > 0 ) {
+        throw new LicenseException( "Malformed license payload: unexpected trailing data" );
+      }
+      return new LicensePayload( licenseId, customerId, edition, issuedAt, expiresAt, limit );
     } catch ( IOException e ) {
       throw new LicenseException( "Malformed license payload", e );
     }
@@ -164,7 +201,8 @@ public final class LicensePayload {
   @Override
   public String toString() {
     return "LicensePayload{licenseId=" + licenseId + ", customerId=" + customerId + ", edition=" + edition
-      + ", issuedAt=" + issuedAt + ", expiresAt=" + ( isPerpetual() ? "perpetual" : expiresAt ) + "}";
+      + ", issuedAt=" + issuedAt + ", expiresAt=" + ( isPerpetual() ? "perpetual" : expiresAt )
+      + ( instanceLimit.isLimited() ? ", instances=" + instanceLimit : "" ) + "}";
   }
 
   @Override
@@ -178,11 +216,11 @@ public final class LicensePayload {
     LicensePayload that = (LicensePayload) o;
     return issuedAt == that.issuedAt && expiresAt == that.expiresAt
       && licenseId.equals( that.licenseId ) && customerId.equals( that.customerId )
-      && edition.equals( that.edition );
+      && edition.equals( that.edition ) && instanceLimit.equals( that.instanceLimit );
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash( licenseId, customerId, edition, issuedAt, expiresAt );
+    return Objects.hash( licenseId, customerId, edition, issuedAt, expiresAt, instanceLimit );
   }
 }

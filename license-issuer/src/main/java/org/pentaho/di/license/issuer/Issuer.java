@@ -23,6 +23,7 @@
 package org.pentaho.di.license.issuer;
 
 import org.pentaho.di.license.Activation;
+import org.pentaho.di.license.InstanceLimit;
 import org.pentaho.di.license.ActivationRequest;
 import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.license.LicenseKey;
@@ -58,6 +59,9 @@ import java.util.UUID;
  * A license runs for a {@link LicenseTerm} (years, or perpetual). {@link #renew(LicenseKey, LicenseTerm)} extends
  * it: the same license id, the new term added to the current expiry, and a new activation code for each machine
  * it is activated on, so customers renew without sending a new activation request.
+ * <p>
+ * A license may carry an {@link InstanceLimit}: how many PDI processes may run at once, and how they are counted.
+ * Renewing keeps it unless a new one is given; {@link #change(LicenseKey, InstanceLimit)} changes it without renewing.
  */
 public final class Issuer {
 
@@ -148,8 +152,14 @@ public final class Issuer {
 
   /** A license for {@code term}: some years from now, or perpetual. */
   public LicenseKey issue( String customer, String edition, LicenseTerm term ) throws LicenseException, IOException {
+    return issue( customer, edition, term, InstanceLimit.NONE );
+  }
+
+  /** A license for {@code term} allowing {@code limit} PDI processes at once ({@link InstanceLimit#NONE}: any). */
+  public LicenseKey issue( String customer, String edition, LicenseTerm term, InstanceLimit limit )
+    throws LicenseException, IOException {
     long issuedAt = System.currentTimeMillis();
-    return issue( customer, edition, issuedAt, term.expiresAt( issuedAt ), term.toString() );
+    return issue( customer, edition, issuedAt, term.expiresAt( issuedAt ), term.toString(), limit );
   }
 
   /**
@@ -158,23 +168,40 @@ public final class Issuer {
    * @param validFor how long the license is valid, or null for a perpetual license
    */
   public LicenseKey issue( String customer, String edition, Duration validFor ) throws LicenseException, IOException {
-    long issuedAt = System.currentTimeMillis();
-    return validFor == null ? issue( customer, edition, LicenseTerm.PERPETUAL )
-      : issue( customer, edition, issuedAt, Instant.ofEpochMilli( issuedAt ).plus( validFor ).toEpochMilli(),
-        validFor.toDays() + " days" );
+    return issue( customer, edition, validFor, InstanceLimit.NONE );
   }
 
-  private LicenseKey issue( String customer, String edition, long issuedAt, long expiresAt, String term )
+  public LicenseKey issue( String customer, String edition, Duration validFor, InstanceLimit limit )
     throws LicenseException, IOException {
+    long issuedAt = System.currentTimeMillis();
+    return validFor == null ? issue( customer, edition, LicenseTerm.PERPETUAL, limit )
+      : issue( customer, edition, issuedAt, Instant.ofEpochMilli( issuedAt ).plus( validFor ).toEpochMilli(),
+        validFor.toDays() + " days", limit );
+  }
+
+  private LicenseKey issue( String customer, String edition, long issuedAt, long expiresAt, String term,
+                            InstanceLimit limit ) throws LicenseException, IOException {
     if ( customer == null || customer.trim().isEmpty() ) {
       throw new IllegalArgumentException( "a license needs a customer" );
     }
+    requireSupported( limit );
     LicensePayload payload = new LicensePayload( UUID.randomUUID(), customer.trim(),
-      edition == null || edition.trim().isEmpty() ? "ce" : edition.trim(), issuedAt, expiresAt );
+      edition == null || edition.trim().isEmpty() ? "ce" : edition.trim(), issuedAt, expiresAt, limit );
     LicenseKey key = LicenseKey.sign( payload, signingKey() );
-    ledger.append( entry( "issued", payload, "", "", expiresAt == 0 ? "perpetual"
-      : term + ", expires " + Instant.ofEpochMilli( expiresAt ) ) );
+    ledger.append( entry( "issued", payload, "", "", ( expiresAt == 0 ? "perpetual"
+      : term + ", expires " + Instant.ofEpochMilli( expiresAt ) ) + instancesNote( limit ) ) );
     return key;
+  }
+
+  /** Counting by a license server (tier 3) isn't implemented: PDI would refuse such a license. */
+  private static void requireSupported( InstanceLimit limit ) {
+    if ( limit != null && limit.isLimited() && limit.getCounting() == InstanceLimit.Counting.SERVER ) {
+      throw new IllegalArgumentException( "counting by a license server isn't available yet: use declared or folder" );
+    }
+  }
+
+  private static String instancesNote( InstanceLimit limit ) {
+    return limit.isLimited() ? "; instances: " + limit.describe() : "";
   }
 
   /**
@@ -186,18 +213,69 @@ public final class Issuer {
    * @param current the license key as issued (or as last renewed)
    */
   public Renewed renew( LicenseKey current, LicenseTerm term ) throws LicenseException, IOException {
-    PrivateKey key = signingKey();
-    LicenseValidationResult checked = verifier.verifyEntitlement( current );
-    if ( !checked.isValid() && checked.getStatus() != LicenseValidationResult.Status.EXPIRED ) {
-      throw new LicenseException( "Refused: " + checked.getMessage() );
-    }
+    return renew( current, term, null );
+  }
+
+  /**
+   * Same, also changing the instance limit.
+   *
+   * @param limit the new limit ({@link InstanceLimit#NONE}: none), or null to keep the license's
+   */
+  public Renewed renew( LicenseKey current, LicenseTerm term, InstanceLimit limit )
+    throws LicenseException, IOException {
+    requireGenuine( current );
+    requireSupported( limit );
     LicensePayload old = current.getPayload();
     if ( old.isPerpetual() ) {
       throw new LicenseException( "Refused: license " + old.getLicenseId() + " is perpetual, there is nothing to renew" );
     }
     long now = System.currentTimeMillis();
     LicensePayload renewed = new LicensePayload( old.getLicenseId(), old.getCustomerId(), old.getEdition(), now,
-      term.expiresAt( Math.max( old.getExpiresAt(), now ) ) );
+      term.expiresAt( Math.max( old.getExpiresAt(), now ) ), limit == null ? old.getInstanceLimit() : limit );
+    StringBuilder note = new StringBuilder( term.isPerpetual() ? "renewed: perpetual"
+      : "renewed for " + term + ": expires " + Instant.ofEpochMilli( renewed.getExpiresAt() ) );
+    note.append( " (was " ).append( Instant.ofEpochMilli( old.getExpiresAt() ) ).append( ')' );
+    return reissue( old, renewed, note );
+  }
+
+  /**
+   * Changes a license's instance limit (more or fewer PDI processes at once), keeping its expiry: a new key, and a
+   * new activation code for each machine it is activated on, as for a renewal.
+   *
+   * @param limit the new limit, or {@link InstanceLimit#NONE} for none
+   */
+  public Renewed change( LicenseKey current, InstanceLimit limit ) throws LicenseException, IOException {
+    if ( requireGenuine( current ) == LicenseValidationResult.Status.EXPIRED ) {
+      throw new LicenseException( "Refused: license " + current.getPayload().getLicenseId() + " has expired: renew it,"
+        + " giving the new limit" );
+    }
+    requireSupported( limit );
+    LicensePayload old = current.getPayload();
+    if ( old.getInstanceLimit().equals( limit ) ) {
+      throw new LicenseException( "Refused: license " + old.getLicenseId() + " already allows " + limit.describe() );
+    }
+    LicensePayload changed = new LicensePayload( old.getLicenseId(), old.getCustomerId(), old.getEdition(),
+      System.currentTimeMillis(), old.getExpiresAt(), limit );
+    return reissue( old, changed, new StringBuilder( "changed: expires " + changed.expiryDate() ) );
+  }
+
+  /** Valid, or merely expired (renewable): anything else is refused. */
+  private LicenseValidationResult.Status requireGenuine( LicenseKey current ) throws LicenseException {
+    LicenseValidationResult checked = verifier.verifyEntitlement( current );
+    if ( !checked.isValid() && checked.getStatus() != LicenseValidationResult.Status.EXPIRED ) {
+      throw new LicenseException( "Refused: " + checked.getMessage() );
+    }
+    return checked.getStatus();
+  }
+
+  /** Signs {@code renewed} and every active activation of {@code old} again, and records it ({@code renewed}). */
+  private Renewed reissue( LicensePayload old, LicensePayload renewed, StringBuilder note )
+    throws LicenseException, IOException {
+    PrivateKey key = signingKey();
+    if ( !old.getInstanceLimit().equals( renewed.getInstanceLimit() ) ) {
+      note.append( "; instances: " ).append( renewed.getInstanceLimit().describe() ).append( " (was " )
+        .append( old.getInstanceLimit().describe() ).append( ')' );
+    }
     LicenseKey renewedKey = LicenseKey.sign( renewed, key );
     String licenseId = old.getLicenseId().toString();
     return ledger.update( ( entries, append ) -> {
@@ -209,9 +287,6 @@ public final class Issuer {
           Instant.parse( active.time ).toEpochMilli(), machine, key );
         reissued.add( new Reissued( active, activation.encode() ) );
       }
-      StringBuilder note = new StringBuilder( term.isPerpetual() ? "renewed: perpetual"
-        : "renewed for " + term + ": expires " + Instant.ofEpochMilli( renewed.getExpiresAt() ) );
-      note.append( " (was " ).append( Instant.ofEpochMilli( old.getExpiresAt() ) ).append( ')' );
       for ( Reissued r : reissued ) {
         note.append( "; new code for activation " ).append( r.activation.activationId );
       }

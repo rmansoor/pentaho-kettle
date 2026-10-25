@@ -99,4 +99,26 @@ public class LicenseStoreTest {
   public void removeWhenNothingIsInstalledDoesNotThrow() throws Exception {
     LicenseStore.remove(); // just needs to not throw
   }
+
+  /** Many processes starting at once each record the check time: the file is never left half-written. */
+  @Test
+  public void theCheckTimeSurvivesManySimultaneousWriters() throws Exception {
+    LicenseStore.write( "x" );
+    java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool( 16 );
+    java.util.List<java.util.concurrent.Future<?>> writes = new java.util.ArrayList<>();
+    for ( int i = 0; i < 200; i++ ) {
+      long time = 1_000_000_000_000L + i;
+      writes.add( pool.submit( () -> LicenseStore.recordSeen( time ) ) );
+    }
+    for ( java.util.concurrent.Future<?> w : writes ) {
+      w.get();
+    }
+    pool.shutdown();
+    long seen = LicenseStore.lastSeen();
+    assertTrue( "read " + seen, seen >= 1_000_000_000_000L && seen < 1_000_000_000_200L );
+    try ( java.util.stream.Stream<java.nio.file.Path> files = java.nio.file.Files.list(
+      LicenseStore.getLicenseFilePath().getParent() ) ) {
+      assertEquals( "no temporary files left", 0, files.filter( f -> f.toString().endsWith( ".tmp" ) ).count() );
+    }
+  }
 }

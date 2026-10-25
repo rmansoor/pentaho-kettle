@@ -29,6 +29,7 @@ import org.junit.rules.TemporaryFolder;
 import org.pentaho.di.license.Activation;
 import org.pentaho.di.license.ActivationRequest;
 import org.pentaho.di.license.ActivationRequestFactory;
+import org.pentaho.di.license.InstanceLimit;
 import org.pentaho.di.license.LicenseException;
 import org.pentaho.di.license.LicenseKey;
 import org.pentaho.di.license.LicensePayload;
@@ -219,5 +220,81 @@ public class IssuerTest {
     }
     assertEquals( 1, won );
     assertEquals( 1, issuer.ledger().active( key.getPayload().getLicenseId().toString() ).size() );
+  }
+
+  private static final InstanceLimit FOLDER_300 = InstanceLimit.of( 300, InstanceLimit.Counting.FOLDER, false );
+
+  @Test
+  public void issuesALicenseWithAnInstanceLimit() throws Exception {
+    LicenseKey key = issuer.issue( "Acme Corp", "ee", LicenseTerm.years( 1 ), FOLDER_300 );
+    assertEquals( FOLDER_300, key.getPayload().getInstanceLimit() );
+    assertTrue( new LicenseVerifier().verifyEntitlement( key ).isValid() );
+    List<Ledger.Entry> entries = issuer.ledger().entries();
+    String note = entries.get( entries.size() - 1 ).note;
+    assertTrue( note, note.endsWith( "; instances: up to 300 at once, counted in a shared folder (over the limit:"
+      + " refused)" ) );
+    // and its activations carry it
+    assertEquals( FOLDER_300, issuer.activateUnbound( key ).activation.getLicense().getInstanceLimit() );
+  }
+
+  @Test
+  public void aRenewalKeepsTheLimitUnlessGivenOne() throws Exception {
+    LicenseKey key = issuer.issue( "Acme Corp", "ee", LicenseTerm.years( 1 ), FOLDER_300 );
+    LicenseKey kept = issuer.renew( key, LicenseTerm.years( 1 ) ).key;
+    assertEquals( FOLDER_300, kept.getPayload().getInstanceLimit() );
+    InstanceLimit more = InstanceLimit.of( 500, InstanceLimit.Counting.FOLDER, true );
+    assertEquals( more, issuer.renew( kept, LicenseTerm.years( 1 ), more ).key.getPayload().getInstanceLimit() );
+    assertEquals( InstanceLimit.NONE, issuer.renew( kept, LicenseTerm.years( 1 ), InstanceLimit.NONE ).key
+      .getPayload().getInstanceLimit() );
+  }
+
+  /** More processes mid-term: the same expiry, a new key, and new codes for the activations. */
+  @Test
+  public void changingTheLimitKeepsTheExpiryAndReissuesActivations() throws Exception {
+    LicenseKey key = issuer.issue( "Acme Corp", "ee", LicenseTerm.years( 1 ), FOLDER_300 );
+    Issuer.Activated unbound = issuer.activateUnbound( key );
+    InstanceLimit more = InstanceLimit.of( 500, InstanceLimit.Counting.FOLDER, false );
+
+    Issuer.Renewed changed = issuer.change( key, more );
+    assertEquals( key.getPayload().getExpiresAt(), changed.key.getPayload().getExpiresAt() );
+    assertEquals( key.getPayload().getLicenseId(), changed.key.getPayload().getLicenseId() );
+    assertEquals( more, changed.key.getPayload().getInstanceLimit() );
+    assertEquals( 1, changed.activations.size() );
+    Activation again = Activation.decode( changed.activations.get( 0 ).code );
+    assertEquals( unbound.activation.getActivationId(), again.getActivationId() );
+    assertEquals( more, again.getLicense().getInstanceLimit() );
+    assertTrue( new LicenseVerifier().verify( again ).isValid() );
+
+    List<Ledger.Entry> entries = issuer.ledger().entries();
+    Ledger.Entry last = entries.get( entries.size() - 1 );
+    assertEquals( "renewed", last.event );
+    assertTrue( last.note, last.note.startsWith( "changed: expires " ) );
+    assertTrue( last.note, last.note.contains( "instances: up to 500 at once" ) && last.note.contains(
+      "(was up to 300 at once" ) );
+
+    try {
+      issuer.change( changed.key, more );
+      fail( "expected a refusal" );
+    } catch ( LicenseException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( "already allows up to 500" ) );
+    }
+  }
+
+  @Test
+  public void anExpiredLicenseIsRenewedNotChanged() throws Exception {
+    LicenseKey expired = issuer.issue( "Acme Corp", "ce", Duration.ofMillis( 1 ) );
+    Thread.sleep( 5 );
+    try {
+      issuer.change( expired, FOLDER_300 );
+      fail( "expected a refusal" );
+    } catch ( LicenseException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( "has expired: renew it" ) );
+    }
+  }
+
+  @Test( expected = IllegalArgumentException.class )
+  public void countingByAServerIsntAvailableYet() throws Exception {
+    issuer.issue( "Acme Corp", "ce", LicenseTerm.years( 1 ),
+      InstanceLimit.of( 3, InstanceLimit.Counting.SERVER, false ) );
   }
 }

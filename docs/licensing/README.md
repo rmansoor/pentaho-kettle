@@ -121,6 +121,70 @@ license-issuer activate --unbound --private-key <key.der> --ledger <ledger.tsv> 
 Pass it to the container as a file (`HELIX_LICENSE_FILE=/path/in/container`) or as the code itself
 (`HELIX_LICENSE=HELIXACT-...`).
 
+## Instance limits: N PDI processes at once
+
+A license can allow a number of **simultaneous PDI processes**, for example 300 containers. Each PDI JVM counts as
+one: each Pan or Kitchen run, each Carte server, each Spoon, each Pentaho Server. `license` commands don't count.
+The design, with the stories and the third tier (a license server, not built yet), is in
+[instance-limits.md](instance-limits.md).
+```
+license-issuer issue ... --term 1y --instances 300 [--counting declared | folder] [--over-limit refuse | warn]
+license-issuer change --private-key K --ledger L --instances 500 <HELIX1-... | file> [--out DIR]
+```
+- **`--counting declared`** (trust): the number is in the license, and `license status` and the startup log show it.
+  Nothing counts the processes.
+- **`--counting folder`** (deterrence, the default): every PDI process holds one of N slots in a folder they all
+  share, while it runs. With all N taken, the next one is refused (`--over-limit refuse`, the default), or starts
+  with an error in its log and is recorded as over the limit (`--over-limit warn`).
+
+The limit is signed into the key and its activations, so a customer can't change it. A renewal keeps it unless it
+is given again. `change` raises or lowers it and keeps the expiry. Like a renewal, `change` prints a new key and a
+new activation code for each active activation. Dropping that code into the PDI folder installs it, even while the
+old one is valid. A key with a limit needs this PDI or later: older builds refuse it ("Unsupported license payload
+version: 2"). Keys without a limit are unchanged.
+
+**The folder:** `HELIX_LICENSE_SLOTS` (or `-Dhelix.license.slots`).
+- **For an activation bound to a machine**, it defaults to `~/.kettle/.helix-slots`, which counts the processes on
+  that machine.
+- **For an unbound activation (containers)**, it is required. Without it PDI refuses to start and says so.
+
+Mount one folder into every container:
+```
+# Docker: one named volume (or bind mount) shared by every PDI container
+docker run -e HELIX_LICENSE="$(cat acme.helixact)" -e HELIX_LICENSE_SLOTS=/pdi-slots \
+  -v pdi-slots:/pdi-slots pdi:9.4 ./kitchen.sh -file=/jobs/nightly.kjb
+
+# Kubernetes: a ReadWriteMany volume (EFS, Azure Files, Filestore, CephFS, NFS) mounted in every PDI pod
+env:
+  - { name: HELIX_LICENSE, valueFrom: { secretKeyRef: { name: pdi-license, key: activation } } }
+  - { name: HELIX_LICENSE_SLOTS, value: /pdi-slots }
+  - { name: HELIX_LICENSE_WAIT, value: "300" }    # optional: wait up to 5 minutes for a free slot
+volumeMounts: [ { name: pdi-slots, mountPath: /pdi-slots } ]
+volumes: [ { name: pdi-slots, persistentVolumeClaim: { claimName: pdi-slots } } ]   # accessModes: [ReadWriteMany]
+```
+- **`HELIX_LICENSE_WAIT=<seconds>`** (or `-Dhelix.license.wait`): with every slot taken, wait that long for one to
+  free up instead of failing at once. Useful when a scheduler starts bursts of jobs. The default is 0.
+- **`./license.sh usage`** shows who holds the slots now (host, pid, since, heartbeat), and for each month the most
+  processes that ran at once, the starts, and the starts over the limit. It reads the folder without taking a
+  slot.
+
+**How slots work:**
+- **A slot is an exclusive lock on `<folder>/<license id>/slot-NNNN`**, held while the process runs, so a crash
+  never leaks one. The operating system releases the lock when the process ends, however it ends. On NFSv4 or SMB,
+  the file server releases it when the client's lease expires, typically within 90 seconds.
+- **The process writes a heartbeat into its slot every 20 seconds.** Some folders accept locks without enforcing them
+  between machines (NFS mounted with `nolock` or `local_lock`). In such a folder, a slot that is unlocked but names a
+  process elsewhere with a heartbeat under a minute old is treated as taken, and the refusal says why.
+- **Crashes on another machine:** a slot whose process crashed there stays taken until its heartbeat is a minute
+  old. A crash on the same host is recognised at once (the pid is gone).
+- **Clocks:** hosts need clocks within about a minute of each other.
+- **Records:** starts and stops go to `usage-YYYY-MM.tsv` next to the slots. One process at a time also records how
+  many are running.
+
+This is deterrence, not enforcement. Processes given different folders count separately, and deleting the folder
+frees every slot. The records live in the customer's folder: they are evidence for the renewal conversation, not
+proof.
+
 ## Where PDI looks for the license
 
 First found wins:
@@ -139,7 +203,9 @@ the license file). If the clock is later set back by more than a day, PDI refuse
 java -jar kettle-license-issuer-<version>.jar <command> ...      # kettle-license-<version>.jar next to it
   issue    --private-key K --ledger L --customer C [--edition ce] --term <1y | 2y | ... | perpetual>
   issue    --private-key K --ledger L --customer C [--edition ce] --expires-in-days N          (a trial)
+           issue and renew also take --instances N [--counting declared | folder] [--over-limit refuse | warn]
   renew    --private-key K --ledger L --term <1y | ... | perpetual> <HELIX1-... | file> [--out DIR]
+  change   --private-key K --ledger L --instances <N | none> <HELIX1-... | file> [--out DIR]
   activate --private-key K --ledger L <HELIXREQ-... | file>
   activate --private-key K --ledger L --unbound <HELIX1-... | file>
   release  --ledger L <HELIXREL-... | file>
@@ -233,4 +299,6 @@ repository can issue licenses for it. Before shipping:
 
 - Offline licensing deters; it doesn't prevent. PDI is Java: a determined user can patch the check out of the
   bytecode, or build PDI CE (Apache 2.0) from source without it.
-- One activation per license key. Seats, trials and per-execution checks are not implemented.
+- One activation per license key. An instance limit counts PDI processes per license (above), but only through a
+  shared folder, which the customer controls. A license server that enforces it (tier 3 of
+  [instance-limits.md](instance-limits.md)) and per-execution checks are not implemented.
