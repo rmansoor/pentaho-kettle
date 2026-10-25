@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.EnumSet;
 import java.util.Optional;
 
@@ -113,13 +114,30 @@ public final class LicenseStore {
     }
   }
 
-  /** Best effort: a read-only location (e.g. a mounted license in a container) just doesn't record. */
+  /**
+   * Best effort: a read-only location (e.g. a mounted license in a container) just doesn't record. Written to a
+   * temporary file and moved into place, so processes starting at the same time never leave it half-written.
+   */
   static void recordSeen( long time ) {
+    Path temp = null;
     try {
       Path seen = seenPath();
-      Files.write( seen, Long.toString( time ).getBytes( StandardCharsets.US_ASCII ) );
-      lockDownPermissions( seen );
+      temp = Files.createTempFile( seen.toAbsolutePath().getParent(), seen.getFileName().toString(), ".tmp" );
+      Files.write( temp, Long.toString( time ).getBytes( StandardCharsets.US_ASCII ) );
+      lockDownPermissions( temp );
+      try {
+        Files.move( temp, seen, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE );
+      } catch ( java.nio.file.AtomicMoveNotSupportedException e ) {
+        Files.move( temp, seen, StandardCopyOption.REPLACE_EXISTING );
+      }
     } catch ( IOException | RuntimeException e ) {
+      try {
+        if ( temp != null ) {
+          Files.deleteIfExists( temp );
+        }
+      } catch ( IOException ignored ) {
+        // nothing more to do
+      }
       // not recording only weakens the clock check; it never blocks a valid license
     }
   }

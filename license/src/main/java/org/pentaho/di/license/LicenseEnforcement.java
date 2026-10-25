@@ -27,7 +27,8 @@ import java.util.Optional;
 /**
  * Single entry point called from {@code KettleEnvironment.init()} &mdash; the one bootstrap chokepoint
  * shared by Spoon, Carte, Pan, and Kitchen. Reads the installed license and verifies it, entirely offline:
- * a genuine, unexpired {@link Activation} for this machine (or an unbound one).
+ * a genuine, unexpired {@link Activation} for this machine (or an unbound one). For a license limited to a number
+ * of PDI processes at once and counted in a shared folder, it also takes one of the slots ({@link InstanceSlots}).
  * <p>
  * Where the license comes from, first found wins: system property {@value #LICENSE_KEY_SYSTEM_PROPERTY} or
  * environment variable {@value #LICENSE_KEY_ENV} (the activation code itself), else the file of
@@ -50,16 +51,55 @@ public final class LicenseEnforcement {
   }
 
   /**
-   * @return the valid license, for {@link #expiryWarning(LicenseValidationResult)}
-   * @throws LicenseException if this machine isn't licensed. The message is meant to be shown to the user as-is
-   *     (it names the command to fix the problem).
+   * @return the valid license, for {@link #expiryWarning(LicenseValidationResult)} and
+   *     {@link #instanceInfo(LicenseValidationResult)}
+   * @throws LicenseException if this machine isn't licensed, or this process is over its license's limit of PDI
+   *     processes at once. The message is meant to be shown to the user as-is (it names the command to fix the
+   *     problem).
    */
   public static LicenseValidationResult requireLicensed() throws LicenseException {
     LicenseValidationResult result = check();
     if ( !result.isValid() ) {
       throw new LicenseException( result.getMessage() + System.lineSeparator() + advice( result ) );
     }
+    countThisProcess( result );
     return result;
+  }
+
+  /** Takes this process's slot when the license is counted in a folder; refuses counting this PDI can't do. */
+  static void countThisProcess( LicenseValidationResult result ) throws LicenseException {
+    InstanceLimit limit = result.getPayload().getInstanceLimit();
+    if ( !limit.isLimited() ) {
+      return;
+    }
+    switch ( limit.getCounting() ) {
+      case FOLDER:
+        Activation activation = result.getActivation();
+        InstanceSlots.take( result.getPayload(), activation != null && activation.isBound() );
+        break;
+      case SERVER:
+        throw new LicenseException( "This license is counted by a license server, which this version of PDI doesn't"
+          + " support: it needs a newer PDI." );
+      default:
+        break;
+    }
+  }
+
+  /**
+   * What to log at startup about the license's limit of PDI processes at once: the limit and, when counted, which
+   * slot this process holds; empty for a license without a limit.
+   */
+  public static Optional<String> instanceInfo( LicenseValidationResult result ) {
+    if ( result == null || !result.isValid() || !result.getPayload().getInstanceLimit().isLimited() ) {
+      return Optional.empty();
+    }
+    String limit = "This license allows " + result.getPayload().getInstanceLimit().describe() + ".";
+    return Optional.of( InstanceSlots.current().map( c -> limit + " This is " + c.describe() + "." ).orElse( limit ) );
+  }
+
+  /** A problem counting this process, to log as an error: over a soft limit, or not counted at all. */
+  public static Optional<String> instanceWarning() {
+    return InstanceSlots.current().flatMap( InstanceSlots.Claim::getWarning );
   }
 
   /**

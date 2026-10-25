@@ -149,6 +149,8 @@ public class KettleEnvironment {
             LogChannel.GENERAL.logMinimal( warning );
           }
         } );
+        LicenseEnforcement.instanceInfo( license ).ifPresent( LogChannel.GENERAL::logBasic );
+        LicenseEnforcement.instanceWarning().ifPresent( LogChannel.GENERAL::logError );
 
         // Configure Simple JNDI when we run in stand-alone mode (spoon, pan, kitchen, carte, ... NOT on the platform
         //

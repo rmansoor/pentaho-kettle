@@ -169,12 +169,15 @@ public final class Activator {
     return Optional.empty();
   }
 
-  /** Whether {@code next} is a renewal of {@code current}: the same license, running longer. */
+  /**
+   * Whether {@code next} replaces {@code current}: the same license, renewed (running longer) or changed (another
+   * instance limit), so issued later.
+   */
   static boolean renews( LicenseValidationResult next, LicenseValidationResult current ) {
     LicensePayload n = next.getPayload();
     LicensePayload c = current.getPayload();
-    return n.getLicenseId().equals( c.getLicenseId() ) && !c.isPerpetual()
-      && ( n.isPerpetual() || n.getExpiresAt() > c.getExpiresAt() );
+    return n.getLicenseId().equals( c.getLicenseId() ) && n.getIssuedAt() > c.getIssuedAt()
+      && ( n.isPerpetual() || !c.isPerpetual() && n.getExpiresAt() >= c.getExpiresAt() );
   }
 
   static List<Path> droppedFiles() {

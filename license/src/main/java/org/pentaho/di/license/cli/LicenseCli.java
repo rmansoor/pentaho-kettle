@@ -24,6 +24,8 @@ package org.pentaho.di.license.cli;
 
 import org.pentaho.di.license.Activation;
 import org.pentaho.di.license.Activator;
+import org.pentaho.di.license.InstanceLimit;
+import org.pentaho.di.license.InstanceSlots;
 import org.pentaho.di.license.ActivationRequest;
 import org.pentaho.di.license.LicenseEnforcement;
 import org.pentaho.di.license.LicenseException;
@@ -53,6 +55,7 @@ import java.util.Optional;
  *                           activation code (now, or when run again later)
  *   license status          shows whether this machine is licensed
  *   license deactivate      removes the activation and prints the release code, to move the license
+ *   license usage           for a license limited to N PDI processes at once: which are running, and the peaks
  *   license request / install   the two steps of activate, for scripts
  * </pre>
  * Codes can be pasted, or given as the path of a file holding them.
@@ -102,6 +105,8 @@ public class LicenseCli {
           return status();
         case "deactivate":
           return deactivate();
+        case "usage":
+          return usage();
         default:
           printUsage();
           return 2;
@@ -226,6 +231,9 @@ public class LicenseCli {
     LicenseValidationResult result = LicenseEnforcement.check();
     out.println( ( result.isValid() ? "Licensed: " + describe( result ) : "Not licensed: " + result.getMessage() ) );
     LicenseEnforcement.expiryWarning( result ).ifPresent( warning -> out.println( "Warning: " + warning ) );
+    if ( result.getPayload() != null && result.getPayload().getInstanceLimit().isLimited() ) {
+      out.println( "Instances: " + result.getPayload().getInstanceLimit().describe() );
+    }
     out.println( "License file: " + LicenseStore.getLicenseFilePath() );
     if ( !result.isValid() && result.getStatus() != LicenseValidationResult.Status.MALFORMED ) {
       out.println( LicenseEnforcement.advice( result ) );
@@ -256,6 +264,58 @@ public class LicenseCli {
     return 0;
   }
 
+  /** The processes holding slots now, and the usage records per month, read without taking a slot. */
+  private int usage() throws LicenseException {
+    LicenseValidationResult result = LicenseEnforcement.check();
+    if ( result.getPayload() == null ) {
+      err.println( "Not licensed: " + result.getMessage() );
+      return 1;
+    }
+    InstanceLimit limit = result.getPayload().getInstanceLimit();
+    if ( limit.getCounting() != InstanceLimit.Counting.FOLDER || !limit.isLimited() ) {
+      out.println( "This license " + ( limit.isLimited() ? "allows " + limit.describe() : "has no limit of PDI processes"
+        + " at once" ) + ": there are no slots to show." );
+      return 0;
+    }
+    Activation activation = result.getActivation();
+    Path folder = InstanceSlots.folder( activation != null && activation.isBound() );
+    if ( folder == null ) {
+      err.println( "This license is counted in a shared folder: set " + InstanceSlots.FOLDER_ENV + " to it." );
+      return 1;
+    }
+    long now = System.currentTimeMillis();
+    InstanceSlots.Usage usage;
+    try {
+      usage = InstanceSlots.usage( result.getPayload().getLicenseId(), folder, now );
+    } catch ( IOException e ) {
+      throw new LicenseException( "Could not read " + folder + ": " + e.getMessage(), e );
+    }
+    out.println( "License " + result.getPayload().getLicenseId() + " (" + result.getPayload().getCustomerId() + "): "
+      + limit.describe() );
+    out.println( "Folder: " + usage.dir );
+    out.println();
+    out.println( "Running now: " + usage.running.size() + " of " + limit.getMax() );
+    if ( !usage.running.isEmpty() ) {
+      out.println( String.format( "  %-5s  %-30s  %-8s  %-20s  %s", "slot", "host", "pid", "since", "heartbeat" ) );
+      for ( InstanceSlots.Running r : usage.running ) {
+        out.println( String.format( "  %-5s  %-30s  %-8d  %-20s  %d s ago", r.slot == 0 ? "over" : r.slot, r.host,
+          r.pid, Instant.ofEpochMilli( r.startedAt ).truncatedTo( java.time.temporal.ChronoUnit.SECONDS ),
+          Math.max( 0, ( now - r.heartbeat ) / 1000 ) ) );
+      }
+    }
+    out.println();
+    if ( usage.months.isEmpty() ) {
+      out.println( "No usage recorded yet." );
+    } else {
+      out.println( "Usage records (peak: the most PDI processes running at once, as sampled):" );
+      for ( InstanceSlots.Month m : usage.months ) {
+        out.println( "  " + m.month + "  peak " + m.peak + ( m.peakAt == null ? "" : " (" + m.peakAt + ")" ) + ", "
+          + m.starts + " starts, " + m.over + " over the limit" );
+      }
+    }
+    return 0;
+  }
+
   private static String describe( LicenseValidationResult result ) {
     LicensePayload payload = result.getPayload();
     long days = payload.daysLeft( System.currentTimeMillis() );
@@ -280,12 +340,14 @@ public class LicenseCli {
   }
 
   private void printUsage() {
-    out.println( "usage: license <activate | status | deactivate>" );
+    out.println( "usage: license <activate | status | deactivate | usage>" );
     out.println();
     out.println( "  activate     activate this machine: asks for your license key, gives you a request to send to" );
     out.println( "               Hitachi Vantara, then asks for the activation code you receive (now or later)" );
     out.println( "  status       show whether this machine is licensed" );
     out.println( "  deactivate   remove the activation and print the release code, to move the license" );
+    out.println( "  usage        for a license limited to a number of PDI processes at once: which are running now," );
+    out.println( "               and the most that ran at once each month" );
     out.println();
     out.println( "For scripts: request <license key> [--out <file>] and install <activation code>, the two steps of"
       + " activate. Codes can be pasted, or given as the path of a file holding them." );

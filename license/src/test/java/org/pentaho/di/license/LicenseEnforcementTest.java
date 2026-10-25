@@ -59,6 +59,8 @@ public class LicenseEnforcementTest {
       System.setProperty( "KETTLE_HOME", originalKettleHome );
     }
     System.clearProperty( LicenseEnforcement.LICENSE_KEY_SYSTEM_PROPERTY );
+    System.clearProperty( InstanceSlots.FOLDER_PROPERTY );
+    InstanceSlots.reset();
   }
 
   @Test( expected = LicenseException.class )
@@ -240,6 +242,93 @@ public class LicenseEnforcementTest {
     assertEquals( now + 375 * DAY, result.getPayload().getExpiresAt() );
     assertFalse( java.nio.file.Files.exists( renewal ) );
     assertEquals( now + 375 * DAY, LicenseEnforcement.check().getPayload().getExpiresAt() );
+  }
+
+  /** A license with a new instance limit and the same expiry, dropped next to it, replaces it too. */
+  @Test
+  public void aDroppedChangeOfTheLimitReplacesTheValidLicense() throws Exception {
+    long now = System.currentTimeMillis();
+    UUID licenseId = UUID.randomUUID();
+    UUID activationId = UUID.randomUUID();
+    InstanceLimit declared = InstanceLimit.of( 10, InstanceLimit.Counting.DECLARED, false );
+    LicenseStore.write( Activation.sign( new LicensePayload( licenseId, "Acme Corp", "ce", now - DAY, now + 100 * DAY,
+      declared ), activationId, 0, null, TestKeys.devPrivateKey() ).encode() );
+    InstanceLimit more = InstanceLimit.of( 50, InstanceLimit.Counting.DECLARED, false );
+    java.nio.file.Files.write( java.nio.file.Paths.get( LicenseStore.kettleDirectory() ).resolve( "more.helixact" ),
+      Activation.sign( new LicensePayload( licenseId, "Acme Corp", "ce", now, now + 100 * DAY, more ), activationId, 0,
+        null, TestKeys.devPrivateKey() ).encode().getBytes( "UTF-8" ) );
+    assertEquals( more, LicenseEnforcement.check().getPayload().getInstanceLimit() );
+  }
+
+  private static String unbound( InstanceLimit limit ) throws Exception {
+    LicensePayload payload = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, 0, limit );
+    return Activation.sign( payload, UUID.randomUUID(), 0, null, TestKeys.devPrivateKey() ).encode();
+  }
+
+  /** Containers: an unbound activation counted in a folder needs the folder named. */
+  @Test
+  public void anUnboundActivationCountedInAFolderNeedsTheFolder() throws Exception {
+    LicenseStore.write( unbound( InstanceLimit.of( 2, InstanceLimit.Counting.FOLDER, false ) ) );
+    try {
+      LicenseEnforcement.requireLicensed();
+      fail( "expected a LicenseException" );
+    } catch ( LicenseException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( InstanceSlots.FOLDER_ENV ) );
+    }
+    assertFalse( InstanceSlots.current().isPresent() );
+
+    java.io.File slots = new java.io.File( tempFolder.getRoot(), "shared-slots" );
+    System.setProperty( InstanceSlots.FOLDER_PROPERTY, slots.getAbsolutePath() );
+    LicenseValidationResult result = LicenseEnforcement.requireLicensed();
+    InstanceSlots.Claim claim = InstanceSlots.current().get();
+    assertTrue( claim.getSlot() >= 1 && claim.getSlot() <= 2 );
+    assertTrue( new java.io.File( slots, result.getPayload().getLicenseId().toString() ).isDirectory() );
+    String info = LicenseEnforcement.instanceInfo( result ).get();
+    assertTrue( info, info.startsWith( "This license allows up to 2 at once, counted in a shared folder" ) );
+    assertTrue( info, info.contains( "This is PDI process slot " + claim.getSlot() + " of 2" ) );
+    assertFalse( LicenseEnforcement.instanceWarning().isPresent() );
+    // once per process
+    LicenseEnforcement.requireLicensed();
+    assertTrue( claim == InstanceSlots.current().get() );
+  }
+
+  /** A machine's activation counts in the Kettle folder unless told otherwise. */
+  @Test
+  public void aBoundActivationCountsInTheKettleFolder() throws Exception {
+    LicensePayload payload = new LicensePayload( UUID.randomUUID(), "Acme Corp", "ce", 0, 0,
+      InstanceLimit.of( 4, InstanceLimit.Counting.FOLDER, false ) );
+    LicenseStore.write( Activation.sign( payload, UUID.randomUUID(), 0,
+      MachineFingerprint.ofThisMachine( payload.getLicenseId() ), TestKeys.devPrivateKey() ).encode() );
+    LicenseEnforcement.requireLicensed();
+    assertTrue( new java.io.File( LicenseStore.kettleDirectory(), InstanceSlots.DEFAULT_FOLDER + "/"
+      + payload.getLicenseId() ).isDirectory() );
+  }
+
+  @Test
+  public void aDeclaredLimitIsShownAndNotCounted() throws Exception {
+    LicenseStore.write( unbound( InstanceLimit.of( 300, InstanceLimit.Counting.DECLARED, false ) ) );
+    LicenseValidationResult result = LicenseEnforcement.requireLicensed();
+    assertFalse( InstanceSlots.current().isPresent() );
+    assertEquals( "This license allows up to 300 at once, declared, not counted.",
+      LicenseEnforcement.instanceInfo( result ).get() );
+    assertFalse( LicenseEnforcement.instanceInfo( LicenseEnforcement.check() ).get().contains( "slot" ) );
+  }
+
+  @Test
+  public void noLimitNoNotice() throws Exception {
+    LicenseStore.write( aValidKey() );
+    assertFalse( LicenseEnforcement.instanceInfo( LicenseEnforcement.requireLicensed() ).isPresent() );
+  }
+
+  @Test
+  public void aLicenseCountedByAServerNeedsANewerPdi() throws Exception {
+    LicenseStore.write( unbound( InstanceLimit.of( 3, InstanceLimit.Counting.SERVER, false ) ) );
+    try {
+      LicenseEnforcement.requireLicensed();
+      fail( "expected a LicenseException" );
+    } catch ( LicenseException e ) {
+      assertTrue( e.getMessage(), e.getMessage().contains( "needs a newer PDI" ) );
+    }
   }
 
   /** An unbound activation: valid on any machine. */
